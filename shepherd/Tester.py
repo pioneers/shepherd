@@ -75,7 +75,7 @@ def tokenize_wait_exp(expression):
 
 def wait_function(expression):
     original_expression = expression
-    global CURRENT_HEADERS
+    global CURRENT_HEADERS, WAITING
     def helper_min(a, b):
         if a == -1 and b == -1:
             return None
@@ -96,6 +96,19 @@ def wait_function(expression):
         CURRENT_HEADERS.append({'header' : header, 'type' : type, 'received' : False})
     expression = remove_outer_spaces(expression)
     CURRENT_HEADERS.append({'header' : tokenize_wait_exp(expression), 'type' : type, 'received' : False})
+
+def check_received_headers():
+    global CURRENT_HEADERS, WAITING
+    python_usable_string = ''
+    for i in range(len(CURRENT_HEADERS)):
+        header = CURRENT_HEADERS[i]
+        python_usable_string += str(header['received']) + " "
+        if i < len(CURRENT_HEADERS) - 1:
+            python_usable_string += header['type'].lower() + " "
+    if(eval(python_usable_string)):
+        WAITING = False
+        return True
+    return False
 
 def read_next_line():
     global LINE
@@ -196,13 +209,13 @@ def pass_function(expression):
     expression = remove_outer_spaces(expression)
     if evaluate_python(expression) or expression == '':
         print("TEST PASSED")
-        sys.exit()
+        sys.exit(0)
 
 def fail_function(expression):
     expression = remove_outer_spaces(expression)
     if evaluate_python(expression) or expression == '':
         print("TEST FAILED")
-        sys.exit()
+        sys.exit(-1)
 
 def assert_function(expression):
     expression = remove_outer_spaces(expression)
@@ -210,11 +223,13 @@ def assert_function(expression):
         raise Exception('expected a python conditional expression after ASSERT')
     if evaluate_python(expression):
         print("TEST PASSED")
+        sys.exit(0)
     else:
         print("TEST FAILED")
-    sys.exit()
+        sys.exit(-1)
 
 def emit_function(expression):
+    pass
 
 def with_function_wait(expression, data):
     parts = expression.split('=')
@@ -256,11 +271,31 @@ def with_function_emit(expression, data):
         if ex:
             raise ex
 
+def accept_header(header):
+    pass
+
 def run_until_wait():
     global WAITING
     while has_next_line() and not WAITING:
         process_line(current_line())
         read_next_line()
+
+def start():
+    """
+    The loop that interacts with LCM!
+    """
+    global TARGET, EVENTS
+    if TARGET == 'unassigned'
+        raise Exception("READ needs to be called before the first WAIT.")
+    EVENTS = queue.Queue()
+    for target in TARGETS:
+        lcm_start_read(target, EVENTS)
+    while True:
+        time.sleep(0.1)
+        payload = EVENTS.get(True)
+        accept_header(payload)
+        if(check_received_headers()):
+            run_until_wait()
 
 def main():
     """
@@ -279,6 +314,8 @@ def main():
         FILE.append(line)
     file.close()
 
+TARGET = 'unassigned'
+EVENTS = queue.Queue()
 FILE = []
 WAITING = False
 LOCALVARS = {}
@@ -300,3 +337,5 @@ COMMANDS = {'WAIT' : wait_function,
 
 if __name__ == '__main__':
     main()
+    run_until_wait()
+    start()
