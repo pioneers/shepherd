@@ -13,6 +13,7 @@ from runtimeclient import RuntimeClientManager
 import Sheet
 import bot
 import audio
+import game_serialization
 
 
 clients = RuntimeClientManager((), ())
@@ -35,11 +36,21 @@ def start():
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     while True:
-        print("GAME STATE OUTSIDE: ", GAME_STATE)
+        
+        # # Will not be used (same as LAST_HEADER), {"LAST_HEADER": LAST_HEADER, "payload": payload}
+        # No need "EVENTS"
+        # "GAME_STATE": GAME_STATE
+        # "MATCH_NUMBER": MATCH_NUMBER
+        # "STARTING_SPOTS": STARTING_SPOTS
+        # "MASTER_ROBOTS": MASTER_ROBOTS       # Variables will evaluate (the dot stuff)
+        # "BUTTONS": BUTTONS
+        # "CODES_USED": CODES_USED
+
+        print("GAME STATE: ", GAME_STATE)
         time.sleep(0.1)
         payload = EVENTS.get(True)
         LAST_HEADER = payload
-        print(payload)
+        print("payload ", payload)
         if GAME_STATE == STATE.SETUP:
             func = SETUP_FUNCTIONS.get(payload[0])
             if func is not None:
@@ -122,6 +133,8 @@ def to_setup(args):
     print({"blue_score" : ALLIANCES[ALLIANCE_COLOR.BLUE].score,
            "gold_score" : ALLIANCES[ALLIANCE_COLOR.GOLD].score})
 
+    save_game()
+
 def to_auto(args):
     '''
     Move to the autonomous stage where robots should begin autonomously.
@@ -131,6 +144,9 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE
     global clients
+
+    save_game()
+
     try:
         alternate_connections = (ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_custom_ip,
                                  ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_custom_ip,
@@ -165,6 +181,9 @@ def to_wait(args):
     Some years, there might be methods that can be called once in the wait stage
     '''
     global GAME_STATE
+
+    save_game()
+
     GAME_STATE = STATE.WAIT
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     disable_robots()
@@ -176,6 +195,9 @@ def to_teleop(args):
     By the end, should be in teleop state and the teleop match timer should be started.
     '''
     global GAME_STATE
+
+    save_game()
+
     GAME_STATE = STATE.TELEOP
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
 
@@ -193,6 +215,9 @@ def to_end(args):
     and final score adjustments can be made.
     '''
     global GAME_STATE
+
+    save_game()
+
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
              {"blue_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
               "gold_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
@@ -224,6 +249,9 @@ def reset(args=None):
     BUTTONS['gold_2'] = False
     BUTTONS['blue_1'] = False
     BUTTONS['blue_2'] = False
+    MASTER_ROBOTS['blue'] = ""
+    MASTER_ROBOTS['gold'] = ""
+    CODES_USED = []
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
     lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
@@ -394,6 +422,65 @@ def send_connections(args):
     #        "b_2_connection" : ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_connection}
     # lcm_send(LCM_TARGETS.UI, UI_HEADER.CONNECTIONS, msg)
 
+def load_game(args):
+    """
+    Load the game since last game
+    """
+    game_serialization.load_json()
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
+                 {"blue_score" : None,
+                  "gold_score" : None})
+
+def load_game_data(args):
+    print("inside load game data with data ", args)
+    global GAME_STATE
+    global MATCH_NUMBER
+    global STARTING_SPOTS
+    global MASTER_ROBOTS
+    global BUTTONS
+    global CODES_USED
+    global ALLIANCES
+
+    GAME_STATE = args["GAME_STATE"]
+    MATCH_NUMBER = args["MATCH_NUMBER"]
+    STARTING_SPOTS = args["STARTING_SPOTS"]
+    MASTER_ROBOTS = args["MASTER_ROBOTS"]
+    BUTTONS = args["BUTTONS"]
+    CODES_USED = args["CODES_USED"]
+    ALLIANCES = args["ALLIANCES"]
+
+    for key in ALLIANCES:
+        if ALLIANCES[key] is not None:
+            param_data = ALLIANCES[key]
+            print("param_data", param_data)
+            ALLIANCES[key] = Alliance(param_data["name"], param_data["team_1_name"], param_data["team_1_number"], \
+                param_data["team_2_name"], param_data["team_2_number"], param_data["team_1_custom_ip"], \
+                    param_data["team_2_custom_ip"])
+            ALLIANCES[key].score = param_data["score"]
+    print("inside load game data with alliances ",ALLIANCES)
+    print("Game state",GAME_STATE)
+    print("match number",MATCH_NUMBER)
+    print("starting spots",STARTING_SPOTS)
+    print("master robots",MASTER_ROBOTS)
+    print("buttons",BUTTONS)
+    print("codes_used",CODES_USED)
+    print("alliances",ALLIANCES)
+    save_game()
+
+def save_game():
+
+    alliance_processed = dict(ALLIANCES)
+    print("alliance processed:",alliance_processed)
+    for key in alliance_processed:
+        if alliance_processed[key] is not None:
+            alliance_processed[key] = alliance_processed[key].__dict__
+    print("in save game")
+    robot_order = ["blue_1", "blue_2", "gold_1", "gold_2"]
+    starting_spots_dict = {robot_order[i]: STARTING_SPOTS[i] for i in range(4)}
+
+    game_serialization.create_json({"GAME_STATE": GAME_STATE, "MATCH_NUMBER": MATCH_NUMBER, "STARTING_SPOTS": STARTING_SPOTS, \
+                "MASTER_ROBOTS": MASTER_ROBOTS, "BUTTONS": BUTTONS, "CODES_USED": CODES_USED, "ALLIANCES": alliance_processed})
+
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################
@@ -402,7 +489,9 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
     SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
-    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto
+    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
+    SHEPHERD_HEADER.REQUEST_LATEST_DATA: load_game,
+    SHEPHERD_HEADER.UPDATE_SHEPHERD_DATA: load_game_data
 }
 
 AUTO_FUNCTIONS = {
@@ -412,8 +501,9 @@ AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
-
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.REQUEST_LATEST_DATA: load_game,
+    SHEPHERD_HEADER.UPDATE_SHEPHERD_DATA: load_game_data
     }
 
 WAIT_FUNCTIONS = {
@@ -422,7 +512,9 @@ WAIT_FUNCTIONS = {
     SHEPHERD_HEADER.GET_SCORES : get_score,
     SHEPHERD_HEADER.START_NEXT_STAGE : to_teleop,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.REQUEST_LATEST_DATA: load_game,
+    SHEPHERD_HEADER.UPDATE_SHEPHERD_DATA: load_game_data
 }
 
 TELEOP_FUNCTIONS = {
@@ -432,7 +524,9 @@ TELEOP_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.REQUEST_LATEST_DATA: load_game,
+    SHEPHERD_HEADER.UPDATE_SHEPHERD_DATA: load_game_data
 
 }
 
@@ -444,7 +538,9 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
     SHEPHERD_HEADER.FINAL_SCORE : final_score,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.REQUEST_LATEST_DATA: load_game,
+    SHEPHERD_HEADER.UPDATE_SHEPHERD_DATA: load_game_data
 }
 
 ###########################################

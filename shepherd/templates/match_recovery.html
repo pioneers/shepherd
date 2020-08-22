@@ -1,0 +1,556 @@
+<html>
+
+<head>
+  <title>Stage Control</title>
+  <script type="text/javascript" src={{url_for( 'static', filename='jquery-1.12.3.min.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='tabletop.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='lcm_ws_bridge.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script>
+  <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script> -->
+
+  <!-- Latest compiled and minified CSS -->
+  <!--   <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}"> -->
+  <link rel = "stylesheet" href = "../static/bootstrap.min.css">
+
+  <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"> </script>
+  <!-- Styles -->
+  <style>
+    /*Disables spinning on number forms*/
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .bottom-padding {
+      margin-bottom: 15px;
+    }
+
+    .form-inline {
+      flex-flow: row wrap;
+    }
+
+    .led-green,
+    .heartbeat-light {
+      width: 24px;
+      height: 24px;
+      background-color: #ABFF00;
+      border-radius: 50%;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+    }
+
+    .led-red {
+      width: 24px;
+      height: 24px;
+      background-color: #F00;
+      border-radius: 50%;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px;
+    }
+    .gold-style{
+      font-family: Tahoma;
+      color: gold;
+    }
+
+    .blue-style{
+      font-family: Tahoma;
+      color: blue;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-sm navbar-light bg-light">
+    <a class="navbar-brand" href="#">Staff UI</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="../staff_gui.html">Match Creator</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="../stage_control.html">Stage Control
+            <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="../match_recovery.html">Match Recovery</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container" style="max-width:1405px">
+      <h2>Match Recovery</h2>
+      <div class="btn-group bottom-padding" role="group" aria-label="...">
+        <button type="button" class="btn btn-success" id="match-start"><span class="glyphicon glyphicon-play" aria-hidden="true"></span> Set Stage</button>
+        <button class="btn btn-danger" type="button" id="send-data">Send Data</button>
+
+      </div>
+
+
+      <form id = "fieldContainer">
+        <div id = 'individual-fields'></div>
+        <div id = "two-fields">
+
+          <div class="form-group row">
+            <div class="col-md-2"></div>
+            <h4 class="col-md-5 text-center gold-style">
+              GOLD
+            </h4>
+            <h4 class="col-md-5 text-center blue-style">
+              BLUE
+            </h4>
+          </div>
+        </div>
+
+        <div id = "four-fields">
+
+          <div class="form-group row">
+            <div class="col-md-2"></div>
+            <div class="col-md-10">
+              <div class="form-group row">
+              <h4 class="col-md-3 text-center gold-style">
+                GOLD 1
+              </h4>
+              <h4 class="col-md-3 text-center gold-style">
+                GOLD 2
+              </h4>
+              <h4 class="col-md-3 text-center blue-style">
+                BLUE 1
+              </h4>
+              <h4 class="col-md-3 text-center blue-style">
+                BLUE 2
+              </h4> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+    <script>
+      $(document).ready(function() {
+
+      var socket = io('http://127.0.0.1:5000');
+
+      socket.on('connect', function(data) {
+        console.log("requesting latest data")
+        socket.emit('request-latest-data');
+        console.log("requested latest data")
+      });
+
+      socket.on('load-latest-data', function(data) {
+        console.log("received latest data")
+        console.log(data)
+        generateFields(JSON.parse(data))
+        $("#send-data").click(() => sendData(JSON.parse(data)))
+      });
+
+      
+
+      // var data = {"GAME_STATE": "setup", "MATCH_NUMBER": "1", "STARTING_SPOTS": ["left", "left", "left", "left"], "MASTER_ROBOTS": {"blue": null, "gold": null}, "BUTTONS": {"gold_1": false, "gold_2": false, "blue_1": false, "blue_2": false}, "CODES_USED": [], "ALLIANCES": {"gold": {"name": "gold", "team_1_name": "Skyline", "team_2_name": "Albany", "team_1_number": "10", "team_2_number": "1", "score": 0, "team_1_connection": false, "team_2_connection": false, "team_1_custom_ip": null, "team_2_custom_ip": null}, "blue": {"name": "blue", "team_1_name": "CCPA", "team_2_name": "Pinole Valley", "team_2_number": "15", "team_1_number": "37", "score": 0, "team_1_connection": false, "team_2_connection": false, "team_1_custom_ip": null, "team_2_custom_ip": null}}}
+
+      function generateFields(data){
+        for (var k in data){
+          if (typeof data[k] !== "object"){
+            generateIndividualField(k, data[k]);
+          }
+          else if (Array.isArray(data[k])){
+            generateArrayFields(k, data[k]);
+          }
+          else if (k == "ALLIANCES") {
+            generateAllianceFields(data[k]);
+          }
+          else if (Object.keys(data[k]).length == 2){
+            generateTwoField(k, data[k]);
+          }
+          else if (Object.keys(data[k]).length == 4){
+            generateFourField(k, data[k]);
+          }
+
+        }
+      }
+
+      function generateArrayFields(var_name, array){
+        var input = "";
+        for (val of array){
+          input += val + ","
+        }
+        input = input.substring(0, input.length - 1)
+        generateIndividualField(var_name, input);
+      }
+
+      function generateAllianceFields(alliances){
+        var fourFields = document.getElementById("four-fields");
+        var twoFields = document.getElementById("two-fields");
+        for (team of ["gold", "blue"]){
+          for (key in alliances[team]){
+            if (key.includes("team")){
+              var section = document.getElementById("team_" + key.slice(7))
+            }
+            else{
+              var section = document.getElementById(key);
+            }
+
+            if (section == null){
+              var newRow = document.createElement("div");
+              newRow.className = 'form-group row';
+              var newLabel = document.createElement("label");
+              newLabel.className = "col-sm-2 col-form-label";
+              var id = key
+              if (key.includes("team")){
+                id = "team_" + key.slice(7);
+              }
+              var t = document.createTextNode(id);
+              newLabel.appendChild(t);
+              var colMd10 = document.createElement("div");
+              colMd10.className = 'col-md-10';
+
+              var formGroupRow = document.createElement("div");
+              formGroupRow.className = "form-group row";
+              formGroupRow.id = id;
+              colMd10.appendChild(formGroupRow);
+              newRow.appendChild(newLabel);
+              newRow.appendChild(colMd10);
+              if (key.includes("team")){
+                fourFields.appendChild(newRow);
+              }
+              else{
+                twoFields.appendChild(newRow);
+              }
+              section = document.getElementById(id);
+            }
+
+            var newColMd = document.createElement("div");
+            var newField = document.createElement("input");
+            newColMd.className = "col-md-6";
+            if (key.includes("team")){
+              newColMd.className = "col-md-3";
+            }
+            newColMd.id = "col_" + team + "_" + key
+            newField.type = "text";
+            newField.className = "form-control";
+            newField.id = team + "_" + key;
+            newField.value = alliances[team][key]
+            newColMd.appendChild(newField);
+            if (key.includes("team_1") && document.getElementById(team + "_team_2_" + key.slice(7)) != null){
+              section.insertBefore(newColMd, document.getElementById("col_" + team + "_team_2_" + key.slice(7)));
+            }
+            else{
+              section.appendChild(newColMd);
+            }
+            } 
+          }
+      }
+
+      function generateIndividualField(var_name, var_val){
+        var indFields = document.getElementById("individual-fields");
+        indFields.innerHTML += "<div class='form-group row' id = '" + var_name + "_group'>"+ 
+        "<label class='col-sm-2 col-form-label'> " + var_name + " </label>"+
+        "<div class='col-md-10'>" +
+        "<input type='text' id = '" + var_name +"_input' class='form-control' value='" + var_val + "'>" +
+        "</div>"+
+        "</div>"
+      }
+
+      function generateTwoField(var_name, var_vals){
+        var twoFields = document.getElementById("two-fields");
+        for (key in var_vals){
+          if (key.includes("gold")){
+            var gold_val = var_vals[key];
+            console.log(var_name)
+            console.log(key)
+          }
+          else if (key.includes("blue")){
+            var blue_val = var_vals[key];
+            console.log(key)
+          }
+        }
+
+        twoFields.innerHTML += 
+        "<div class='form-group row' id = '" + var_name  + "_group'>"+ 
+            "<label class='col-sm-2 col-form-label'> " + var_name + " </label>"+
+            "<div class='col-md-5'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_gold" + "' value='" + gold_val + "'>" +
+            "</div>"+
+            "<div class='col-md-5'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_blue" + "' value='" + blue_val + "'>" +
+            "</div>"+
+          "</div>"
+      }
+
+      function generateFourField(var_name, var_vals){
+        var fourFields = document.getElementById("four-fields");
+        for (key in var_vals){
+          if (key.includes("gold_1")){
+            var gold_val_1 = var_vals[key];
+          }
+          else if (key.includes("gold_2")){
+            var gold_val_2 = var_vals[key];
+          }
+          else if (key.includes("blue_1")){
+            var blue_val_1 = var_vals[key];
+          }
+          else if (key.includes("blue_2")){
+            var blue_val_2 = var_vals[key];
+          }
+        }
+        fourFields.innerHTML += 
+        "<div class='form-group row'>"+ 
+            "<label class='col-sm-2 col-form-label'> " + var_name + " </label>"+
+            "<div class='col-md-10'>"+
+            "<div class='form-group row'>" +
+            "<div class='col-md-3'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_gold_1"  + "' value='" + gold_val_1 + "'>" +
+            "</div>"+
+            "<div class='col-md-3'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_gold_2"  + "' value='" + gold_val_2 + "'>" +
+            "</div>"+
+            "<div class='col-md-3'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_blue_1"  + "' value='" + blue_val_1 + "'>" +
+            "</div>"+
+            "<div class='col-md-3'>" +
+            "<input type='text' class='form-control' id='" + var_name + "_blue_2"  + "' value='" + blue_val_2 + "'>" +
+            "</div>"+
+            "</div>"+
+            "</div>"+
+          "</div>"
+      }
+
+      function sendData(data) {
+        updateJSON(data)
+        socket.emit('ui-to-server-latest-data', JSON.stringify(data))
+      }
+
+      function updateJSON(data) {
+        for (var k in data){
+          if (typeof data[k] !== "object"){
+            data[k] = $("#" + k + "_input").val()
+          }
+          else if (Array.isArray(data[k])){
+            var input_string = $("#" + k + "_input").val();
+            var arr = input_string.split(",");
+            data[k] = arr;
+          }
+          else if (k == "ALLIANCES") {
+            for (var team in data[k]) {
+              for (var attribute in data[k][team]) {
+                data[k][team][attribute] = $("#" + team +"_" + attribute).val();
+              }
+            }
+          } 
+          else {
+            for (var team in data[k]) {
+              data[k][team] = $("#" + k + "_" + team).val();
+              console.log("#" + k + "_" + team)
+              console.log($("#" + k + "_" + team).val());
+            }
+          }
+        }
+        console.log(data)
+      }
+
+      /*
+      var socket = io('http://127.0.0.1:5000');
+      var match_num = 0
+      var blue_1_num = 0
+      var blue_1_name = ""
+      var blue_2_num = 0
+      var blue_2_name = ""
+      var gold_2_num = 0
+      var gold_2_name = ""
+      var gold_1_num = 0
+      var gold_1_name = ""
+
+      var blue_1_starting_spot = ""
+      var blue_2_starting_spot = ""
+      var gold_1_starting_spot = ""
+      var gold_2_starting_spot = ""
+
+      var blue_1_custom_ip = ""
+      var blue_2_custom_ip = ""
+      var gold_1_custom_ip = ""
+      var gold_2_custom_ip = ""
+
+      function getCookie(cname) {
+          var name = cname + "=";
+          var ca = document.cookie.split(';');
+          for (var i = 0; i < ca.length; i++) {
+              var c = ca[i];
+              while (c.charAt(0) == ' ') c = c.substring(1);
+              if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+          }
+          return "";
+      }
+
+      if (getCookie("match_num") != "") {
+        match_num = parseInt(decodeURIComponent(getCookie("match_num")))
+        blue_1_num = parseInt(decodeURIComponent(getCookie("blue_1_num")))
+        blue_1_name = decodeURIComponent(getCookie("blue_1_name"))
+        blue_2_num = parseInt(decodeURIComponent(getCookie("blue_2_num")))
+        blue_2_name = decodeURIComponent(getCookie("blue_2_name"))
+        gold_2_num = parseInt(decodeURIComponent(getCookie("gold_2_num")))
+        gold_2_name = decodeURIComponent(getCookie("gold_2_name"))
+        gold_1_num = parseInt(decodeURIComponent(getCookie("gold_1_num")))
+        gold_1_name = decodeURIComponent(getCookie("gold_1_name"))
+
+        blue_1_num = parseInt(decodeURIComponent(getCookie("blue_1_custom_ip")))
+        blue_2_num = parseInt(decodeURIComponent(getCookie("blue_2_custom_ip")))
+        gold_1_num = parseInt(decodeURIComponent(getCookie("gold_1_custom_ip")))
+        gold_2_num = parseInt(decodeURIComponent(getCookie("gold_2_custom_ip")))
+
+        setDefaultTeamsInfo()
+      }
+
+      $("#populate-match").click(function() {
+        match_num = $("#new-match-num").val()
+        console.log(match_num)
+        socket.emit('ui-to-server-teams-info-request', JSON.stringify({"match_num" : match_num}))
+      });
+
+      $("#create-match").click(function() {
+        setTeamsInfoVars()
+        data = {"match_num" : match_num,
+                "b1num" : blue_1_num, "b1name" : blue_1_name, 
+                "b1_starting_spot" : blue_1_starting_spot, "b1_custom_ip" : blue_1_custom_ip,
+
+                "b2num" : blue_2_num, "b2name" : blue_2_name, 
+                "b2_starting_spot" : blue_2_starting_spot, "b2_custom_ip" : blue_2_custom_ip,
+
+                "g1num" : gold_1_num, "g1name" : gold_1_name, 
+                "g1_starting_spot" : gold_1_starting_spot, "g1_custom_ip" : gold_1_custom_ip,
+
+                "g2num" : gold_2_num, "g2name" : gold_2_name, 
+                "g2_starting_spot" : gold_2_starting_spot, "g2_custom_ip" : gold_2_custom_ip}
+        socket.emit('ui-to-server-setup-match', JSON.stringify(data))
+        document.cookie = "match_num=" + match_num
+        document.cookie = "blue_1_num=" + blue_1_num
+        document.cookie = "blue_1_name=" + blue_1_name
+        document.cookie = "blue_2_num=" + blue_2_num
+        document.cookie = "blue_2_name=" + blue_2_name
+        document.cookie = "gold_2_num=" + gold_2_num
+        document.cookie = "gold_2_name=" + gold_2_name
+        document.cookie = "gold_1_num=" + gold_1_num
+        document.cookie = "gold_1_name=" + gold_1_name
+
+        document.cookie = "blue_1_custom_ip" + blue_1_custom_ip
+        document.cookie = "blue_2_custom_ip" + blue_2_custom_ip
+        document.cookie = "gold_1_custom_ip" + gold_1_custom_ip
+        document.cookie = "gold_2_custom_ip" + gold_2_custom_ip
+      });
+
+      socket.on('server-to-ui-teamsinfo', function(data) {
+        parsed_data = JSON.parse(data)
+        match_num = parsed_data.match_num
+        blue_1_num = parsed_data.b1num
+        blue_1_name = parsed_data.b1name
+        blue_2_num = parsed_data.b2num
+        blue_2_name = parsed_data.b2name
+        gold_1_num =  parsed_data.g1num
+        gold_1_name = parsed_data.g1name
+        gold_2_num = parsed_data.g2num
+        gold_2_name = parsed_data.g2name
+        setDefaultTeamsInfo()
+      });
+
+      function setDefaultTeamsInfo() {
+        $("#new-match-num").val(match_num);
+        $("#blue-1-number").val(blue_1_num);
+        $("#blue-1-name").val(blue_1_name);
+        $("#blue-2-number").val(blue_2_num);
+        $("#blue-2-name").val(blue_2_name);
+        $("#gold-1-number").val(gold_1_num);
+        $("#gold-1-name").val(gold_1_name);
+        $("#gold-2-number").val(gold_2_num);
+        $("#gold-2-name").val(gold_2_name);
+      }
+
+      function setTeamsInfoVars() {
+        match_num = $("#new-match-num").val();
+        blue_1_num = $("#blue-1-number").val();
+        blue_1_name = $("#blue-1-name").val();
+        blue_2_num = $("#blue-2-number").val();
+        blue_2_name = $("#blue-2-name").val();
+        gold_1_num = $("#gold-1-number").val();
+        gold_1_name = $("#gold-1-name").val();
+        gold_2_num = $("#gold-2-number").val();
+        gold_2_name = $("#gold-2-name").val();
+
+        blue_1_starting_spot = $("#blue-1-starting-spot").val();
+        blue_2_starting_spot = $("#blue-2-starting-spot").val();
+        gold_1_starting_spot = $("#gold-1-starting-spot").val();
+        gold_2_starting_spot = $("#gold-2-starting-spot").val();
+
+        blue_1_custom_ip = $("#blue-1-custom-ip").val();
+        blue_2_custom_ip = $("#blue-2-custom-ip").val();
+        gold_1_custom_ip = $("#gold-1-custom-ip").val();
+        gold_2_custom_ip = $("#gold-2-custom-ip").val();
+      }
+
+      $("#match-start").click(function() {
+        socket.emit('ui-to-server-start-next-stage')
+      });
+      */
+
+     /** $("#match-next-stage").click(function() {
+        socket.emit('ui-to-server-start-next-stage')
+      });**/
+
+     /** $("#match-reset-stage").click(function() {
+        socket.emit('ui-to-server-reset-stage')
+      });**/
+
+      /*
+      $("#match-reset").click(function() {
+        socket.emit('ui-to-server-reset-match')
+      });
+
+      socket.on('server-to-ui-connections', function(data) {
+        parsed_data = JSON.parse(data)
+        toggleBlue1(parsed_data.b_1_connection)
+        toggleBlue2(parsed_data.b_2_connection)
+        toggleGold1(parsed_data.g_1_connection)
+        toggleGold2(parsed_data.g_2_connection)
+      });
+
+      // Heartbeat
+      function toggleBlue1(connected) {
+        toggleLed($(".blue-1-hb"), connected);
+      }
+
+      function toggleBlue2(connected) {
+        toggleLed($(".blue-2-hb"), connected);
+      }
+
+      function toggleGold1(connected) {
+        toggleLed($(".gold-1-hb"), connected);
+      }
+
+      function toggleGold2(connected) {
+        toggleLed($(".gold-2-hb"), connected);
+      }
+
+      function toggleLed(lightName, connected) {
+        if (connected) {
+          lightName.toggleClass("led-red", false);
+        } else {
+          lightName.toggleClass("led-red", true);
+        }
+      }
+      */
+
+    });
+  </script>
+</body>
+
+</html>
