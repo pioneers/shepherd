@@ -1,8 +1,2 @@
 # Project managers are automatically requested for review
-/dawn/            @lancejackson @HaileyJang
-/DevOps/          @benliao1
-/foundry/         @benliao1
-/ansible-protos/  @levincent06 @DanielMolina24
-/runtime/         @levincent06 @DanielMolina24
-/hibike/          @levincent06 @DanielMolina24
-/shepherd/        @akshitdewan @alexwongapps
+/shepherd @FIREdog5 @kaipinryankoh @akshitdewan @alexwongapps
