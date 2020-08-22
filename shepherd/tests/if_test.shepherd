@@ -1,0 +1,15 @@
+RUN x = False
+PRINT starting
+IF x
+PRINT shouldn't be here
+IF True
+PRINT shouldn't be here either
+END
+END
+IF True
+PRINT should be here
+IF False
+PRINT shouldn't be here again
+END
+END
+PRINT done
