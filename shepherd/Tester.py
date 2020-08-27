@@ -1,6 +1,7 @@
 import sys
 import os
 from Utils import *
+from LCM import *
 
 def get_class_from_name(name):
     return globals()[name]
@@ -285,7 +286,7 @@ def start():
     The loop that interacts with LCM!
     """
     global TARGET, EVENTS
-    if TARGET == 'unassigned'
+    if TARGET == 'unassigned':
         raise Exception("READ needs to be called before the first WAIT.")
     EVENTS = queue.Queue()
     for target in TARGETS:

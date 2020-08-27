@@ -1,5 +1,6 @@
 import threading
 import json
+import sys
 import lcm # pylint: disable=import-error
 
 LCM_address = 'udpm://239.255.76.68:7667?ttl=2'
