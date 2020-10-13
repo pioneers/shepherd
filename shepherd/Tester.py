@@ -224,8 +224,43 @@ def read_function(line):
     TARGET = target
     print('now reading from lcm target: LCM_TARGETS.{}'.format(line.split('.')[1])))
 
+def tokenize_emit_exp(expression):
+    original_expression = expression
+    def helper_min(a, b):
+        if a == -1 and b == -1:
+            return None
+        elif a == -1:
+            return b
+        elif b == -1:
+            return a
+        else:
+            return min(a, b)
+    tokens = expression.split('TO')
+    if len(tokens) != 2:
+        raise Exception('expected to find TO after <header> and before <target> in EMIT statement: EMIT {}'.format(original_expression))
+    header = parse_header(remove_outer_spaces(tokens[0]))
+    expression = tokens[1]
+    if remove_outer_spaces(expression[0:expression.find(' WITH ')].split('.')[0]) != 'LCM_TARGETS':
+        raise Exception('was expecting a target in LCM_TARGETS for EMIT statement: EMIT {}'.format(original_expression))
+    target = get_attr_from_name(LCM_TARGETS, remove_outer_spaces(expression[0:expression.find(' WITH ')].split('.')[1]))
+    expression = expression[expression.find(' WITH '):None]
+    statements = []
+    while 'WITH ' in expression:
+        expression = remove_outer_spaces(expression)
+        if expression[0:5] != 'WITH ':
+            raise Exception('was expecting WITH statement, or nothing after TO in EMIT statement: EMIT {}'.format(original_expression))
+        expression = expression[len('WITH'):None]
+        expression = remove_outer_spaces(expression)
+        statements.append(remove_outer_spaces(expression[0:expression.find(' WITH ')]))
+        expression = expression[expression.find(' WITH '):None]
+    return {'header' : header, 'target' : target, 'with_statements' : statements}
+
 def emit_function(expression):
-    pass
+    emit_expression = tokenize_emit_exp(expression)
+    data = {}
+    for with_statement in emit_expression[with_statements]:
+        with_function_emit(expression, data)
+    lcm_send(emit_expression[target], emit_expression[header], data)
 
 def with_function_wait(expression, data):
     parts = expression.split('=')
@@ -239,6 +274,8 @@ def with_function_wait(expression, data):
     try:
         global LOCALVARS
         LOCALVARS[parts[0]] = data[parts[1][1:-1]]
+    except valueError:
+        ex = Exception("{} is undefined".format(parts[0]))
     except Exception:
         ex = Exception("malformed WHEN statement: {}".format(expression))
     finally:
@@ -283,12 +320,7 @@ def check_received_headers():
 def execute_header(header, data):
     global LOCALVARS
     for with_statement in header['header']['with_statements']:
-        local_arg = remove_outer_spaces(with_statement.split('=')[0])
-        header_arg = remove_outer_spaces(with_statement.split('=')[0])[1:-1]
-        if header_arg in list(data.keys()):
-            LOCALVARS[local_arg] = data[header_arg]
-        else:
-            raise Exception("expected {} in header, but header data contained only: {}".format(header_arg, list(data.keys())))
+        with_function_emit(with_statement, data)
     for set_statement in header['header']['set_statements']:
         local_arg = remove_outer_spaces(with_statement.split('=')[0])
         python_expression = remove_outer_spaces(with_statement.split('=')[0])
@@ -352,6 +384,7 @@ LINE = 0
 END_COUNT = 0
 END_COUNT_HEADS = {}
 COMMANDS = {'WAIT' : wait_function,
+            'EMIT' : emit_function,
             'RUN' : execute_python,
             'READ' : read_function),
             'PRINT' : lambda line: print(line),

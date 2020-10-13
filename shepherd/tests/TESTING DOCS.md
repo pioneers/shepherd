@@ -119,10 +119,10 @@ The EMIT statement will send an LCM message from the script to a target. The EMI
 
   * TO
 
-  * A LCM target must follow the header, separated by the keyword TO. This is the LCM channel that the EMIT statement send specified header to.
+    * A LCM target must follow the header, separated by the keyword TO. This is the LCM channel that the EMIT statement send specified header to.
 
   * WITH can then be specified to set the arguments into the header from the namespace. This must follow the header specified by TO. The WITH statement looks something like this, `WITH 'argument in header' = argument`. The name of the argument in the header must be surrounded by single quotes. It is worth noting that this is the reverse of the WITH statement used in WAIT.
 
   * Multiple WITH statements may be specified in order to set multiple arguments in the header. The order of these statements is undefined.
 
-Usage: `EMIT <header> TO <target> WHERE <assignment>...`
+Usage: `EMIT <header> TO <target> WITH <assignment>...`
