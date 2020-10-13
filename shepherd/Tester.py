@@ -42,6 +42,7 @@ def evaluate_python(token):
     return  eval(token, LOCALVARS)
 
 def tokenize_wait_exp(expression):
+    global TARGET
     original_expression = expression
     def helper_min(a, b):
         if a == -1 and b == -1:
@@ -60,6 +61,8 @@ def tokenize_wait_exp(expression):
     if remove_outer_spaces(expression[0:helper_min(expression.find(' SET '),expression.find(' WITH '))].split('.')[0]) != 'LCM_TARGETS':
         raise Exception('was expecting a target in LCM_TARGETS for WAIT statement: WAIT {}'.format(original_expression))
     target = get_attr_from_name(LCM_TARGETS, remove_outer_spaces(expression[0:helper_min(expression.find(' SET '),expression.find(' WITH '))].split('.')[1]))
+    if target != TARGET:
+        raise Exception('target for WAIT expression is not the current target ({}): WAIT {}'.format(TARGET, original_expression))
     expression = expression[helper_min(expression.find(' SET '),expression.find(' WITH ')):None]
     statements = {'SET' : [], 'WITH' : []}
     while 'SET ' in expression or 'WITH ' in expression:
@@ -97,19 +100,6 @@ def wait_function(expression):
         CURRENT_HEADERS.append({'header' : header, 'type' : type, 'received' : False})
     expression = remove_outer_spaces(expression)
     CURRENT_HEADERS.append({'header' : tokenize_wait_exp(expression), 'type' : type, 'received' : False})
-
-def check_received_headers():
-    global CURRENT_HEADERS, WAITING
-    python_usable_string = ''
-    for i in range(len(CURRENT_HEADERS)):
-        header = CURRENT_HEADERS[i]
-        python_usable_string += str(header['received']) + " "
-        if i < len(CURRENT_HEADERS) - 1:
-            python_usable_string += header['type'].lower() + " "
-    if(eval(python_usable_string)):
-        WAITING = False
-        return True
-    return False
 
 def read_next_line():
     global LINE
@@ -150,9 +140,6 @@ def process_line(line):
             break
     if not found:
         raise Exception('unrecognized command on line {}:\n{}'.format(LINE, line))
-
-def LCM_receive(header, dic={}):
-    pass
 
 def remove_outer_spaces(token):
     while len(token) > 0 and token[-1] == ' ':
@@ -229,6 +216,14 @@ def assert_function(expression):
         print("TEST FAILED")
         sys.exit(-1)
 
+def read_function(line):
+    global TARGET
+    if remove_outer_spaces(line.split('.')[0]) != 'LCM_TARGETS' or len(line.split('.')[0]) != 2:
+        raise Exception('was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
+    target = get_attr_from_name(LCM_TARGETS, line.split('.')[1]))
+    TARGET = target
+    print('now reading from lcm target: LCM_TARGETS.{}'.format(line.split('.')[1])))
+
 def emit_function(expression):
     pass
 
@@ -272,8 +267,39 @@ def with_function_emit(expression, data):
         if ex:
             raise ex
 
-def accept_header(header):
-    pass
+def check_received_headers():
+    global CURRENT_HEADERS, WAITING
+    python_usable_string = ''
+    for i in range(len(CURRENT_HEADERS)):
+        header = CURRENT_HEADERS[i]
+        python_usable_string += str(header['received']) + " "
+        if i < len(CURRENT_HEADERS) - 1:
+            python_usable_string += header['type'].lower() + " "
+    if(eval(python_usable_string)):
+        WAITING = False
+        return True
+    return False
+
+def execute_header(header, data):
+    global LOCALVARS
+    for with_statement in header['header']['with_statements']:
+        local_arg = remove_outer_spaces(with_statement.split('=')[0])
+        header_arg = remove_outer_spaces(with_statement.split('=')[0])[1:-1]
+        if header_arg in list(data.keys()):
+            LOCALVARS[local_arg] = data[header_arg]
+        else:
+            raise Exception("expected {} in header, but header data contained only: {}".format(header_arg, list(data.keys())))
+    for set_statement in header['header']['set_statements']:
+        local_arg = remove_outer_spaces(with_statement.split('=')[0])
+        python_expression = remove_outer_spaces(with_statement.split('=')[0])
+        LOCALVARS[local_arg] = evaluate_python(python_expression)
+
+def accept_header(payload):
+    global CURRENT_HEADERS
+    for header in CURRENT_HEADERS:
+        if header['header']['header'] == payload[0]:
+            execute_header(header, payload[1])
+            header['received'] == True
 
 def run_until_wait():
     global WAITING
@@ -285,7 +311,7 @@ def start():
     """
     The loop that interacts with LCM!
     """
-    global TARGET, EVENTS
+    global TARGET, EVENTS, CURRENT_HEADERS
     if TARGET == 'unassigned':
         raise Exception("READ needs to be called before the first WAIT.")
     EVENTS = queue.Queue()
@@ -296,6 +322,7 @@ def start():
         payload = EVENTS.get(True)
         accept_header(payload)
         if(check_received_headers()):
+            CURRENT_HEADERS = []
             run_until_wait()
 
 def main():
@@ -326,7 +353,7 @@ END_COUNT = 0
 END_COUNT_HEADS = {}
 COMMANDS = {'WAIT' : wait_function,
             'RUN' : execute_python,
-            'READ' : lambda line: print('READ is not implemented in this version, but its still good style to use it.'),
+            'READ' : read_function),
             'PRINT' : lambda line: print(line),
             'PRINTP' : lambda line: print(evaluate_python(line)),
             'IF' : if_function,

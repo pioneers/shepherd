@@ -97,13 +97,17 @@ The WAIT statement is used to pause code execution until a specific LCM message 
 
   * A LCM target must follow the header, separated by the keyword FROM. This is the LCM channel that the WAIT statement will listen to for the specified header.
 
-  * WITH can then be specified, to store arguments from the header into the namespace. This must follow the header specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
+  * WITH can then be specified, to store arguments from the header into the namespace. This must follow the target specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
 
   * SET can then be specified, which will execute a line of python code when the header is received. The SET statement looks something like this, `SET test = True`.
 
   * Any number or WITH and SET statements can follow the FROM statement, and they may be arranged in any order (WITH does not need to come first). Likewise, there are no guarantees about the order that the WITH and SET statements will be executed in, so they should not rely on the execution of one another.
 
   * AND and OR can be used to chain multiple headers into one WAIT statement. This will cause the WAIT statement to wait until multiple headers have been received. AND and OR statements will be evaluated from left to right, and as soon as conditions allow for the execution to continue, it will. The OR statement is satisfied as soon as one of the headers on either side of it have been received, and the AND statement will be satisfied once both headers have been received. Adjacent AND and OR statements in the same WAIT statement will wait on each other, so `1 AND 2 AND 3` would wait for all 3 headers to be received, while `1 OR 2 AND 3 OR 4` would proceed once either 1 , 4, or both 2 and 3 had been received.
+
+    * All headers in a WAIT statement that are chained together are considered together. This means that if a WAIT statement is waiting on the same header twice, when that header arrives both places it is referenced will be evaluated. Additionally, this means that if a header has already been satisfied but execution is blocked by another unsatisfied header chained together, and the header is received a second time, the header will be evaluated again using the new data.
+
+    * WAIT statements will only apply changes to the environment as soon as a header is received, however since execution cannot continue until all chained headers are satisfied, all changes effectively are applied after the WAIT statement, using the most recent version of each header.
 
 Usage: `WITH <header> FROM <target> WHERE <assignment>... SET <python expression>... AND <header> FROM <target>... OR...`
 
