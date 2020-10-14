@@ -1,23 +1,28 @@
 # Shepherd Testing Utility
 
-The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to LCM messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Since shepherd is not asynchronous in this project, the tester has been more or less hacked into shepherd to be compatible with the LCM changes. This means that rather than running the tester as a separate program, and having it talk to the parts being tested, we now directly call the tester from our program, which we run in testing mode.
+The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to LCM messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Unfortunately, the shepherd testing utility requires LCM to communicate with other parts of shepherd, so a computer without LCM will not be able to run it.
 
-Several changes are also made to LCM communication between the tester and the program being tested:
+The testing utility communicates via LCM targets, and there are a few important things to be aware of while using the utility. All LCM targets and headers must be included in Utils.py, otherwise the utility will not recognize them. In addition, Utils.py is not imported into the internal environment for python execution that the tester provides. LCM headers and targets will be looked up in Utils.py when they appear in a non-python context, but otherwise they would need to be imported via a RUN statement. Due to underlying limitations, we can only read from one target at a time, so each READ statement will override any previous READ statements, and change our LCM target. Furthermore, we cannot wait on a header from a target before we read from that target, so READ should probably be the first line of your script.
 
-  * Sending an LCM message to the tester will act like a function call to the tester, and this will cause the tester to advance until the next WAIT statement, which will wait for another LCM message. At this point, control will transfer back to the original program.
-  * Sending an LCM message from the tester using EMIT will not immediately send the message, but rather it will send all LCM messages one after another once the next WAIT statement has been reached.
+While the error recognition and reporting in this utility is helpful, it is not exhaustive. Some disallowed behavior in the following command may not result in a runtime exception, and instead have unexpected and undefined consequences. Adhering to the syntax provided below is the best way to make sure your script works.
+
+It is possible to run multiple .shepherd scripts at once, and have them communicate, however having multiple scripts read from the same LCM target is currently untested and may result in undefined behavior. Also keep in mind that there is no synchronization or timing command in this utility yet, however the RUN command may be used in combination with python timing and synchronization to create the same effect.
 
 ## Testing Scripts
 
 The testing utility reads in .shepherd testing scripts and emulates the LCM communication per those script's specifications. These scripts use special syntax, which is covered below.
+
+### Comments
+
+Comments can be added to .shepherd by starting a line with `##`. This will cause the line to be skipped during execution. Comments cannot start mid line.
+
+Usage: `## <comment>`
 
 ### READ
 
 The READ statement will mount a listener to the LCM channel that is indicated.
 
 Usage: `READ <LCM target>`
-
-  * this is unimplemented in the tester provided for this project, but it is still good style to include it.
 
 ### RUN
 
