@@ -394,7 +394,8 @@ COMMANDS = {'WAIT' : wait_function,
             'END' : end_function,
             'PASS': pass_function,
             'FAIL': fail_function,
-            'ASSERT': assert_function}
+            'ASSERT': assert_function,
+            '##' : lambda line: None}
 
 if __name__ == '__main__':
     main()
