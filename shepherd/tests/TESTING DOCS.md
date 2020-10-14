@@ -109,7 +109,7 @@ The WAIT statement is used to pause code execution until a specific LCM message 
 
     * WAIT statements will only apply changes to the environment as soon as a header is received, however since execution cannot continue until all chained headers are satisfied, all changes effectively are applied after the WAIT statement, using the most recent version of each header.
 
-Usage: `WITH <header> FROM <target> WHERE <assignment>... SET <python expression>... AND <header> FROM <target>... OR...`
+Usage: `WAIT <header> FROM <target> WITH <assignment>... SET <python expression>... AND <header> FROM <target>... OR...`
 
 ### EMIT
 
