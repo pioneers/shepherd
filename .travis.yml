@@ -1,83 +1,32 @@
 dist: xenial
 sudo: required
-os:
-  - linux
-matrix:
-  include:
-    - name: Dawn
-      language: node_js
-      env: TEST_DIR=dawn
-    - name: Hibike
-      language: python
-      python: 3.6
-      env: TEST_DIR=hibike/travis
-    - name: Runtime
-      language: python
-      python: 3.8
-      arch: arm64
-      env: TEST_DIR=runtime
-    - name: Shepherd
-      language: python
-      python: 3.7
-      env: TEST_DIR=shepherd
-    - name: Foundry
-      language: python
-      python: 3.7
-      env: TEST_DIR=foundry
+os: linux
+
+language: python
+python: 3.7
+
+# list packages installable using apt here
 addons:
-  apt:
-    packages:
-      - python3-setuptools
-      - python3-pip
-      - libasound2-dev
-      - socat
-env:
-  global:
-    - APP_ID=15634
-cache:
-  pip: true
-  directories:
-    - node_modules
-    - $HOME/.cache/yarn
-before_install:
-  - openssl aes-256-cbc -K $encrypted_516b8f19f8a6_key -iv $encrypted_516b8f19f8a6_iv -in DevOps/pipeline/piecentral-artifacts.pem.encrypted -out DevOps/pipeline/piecentral-artifacts.pem -d
-  - mkdir -p artifacts
-  - if [[ $TEST_DIR = dawn ]] && git tag -l --points-at HEAD | grep dawn; then
-    export DEPLOY_ARTIFACTS=1; fi
-  - if [[ $TEST_DIR = runtime ]] && git tag -l --points-at HEAD | grep runtime; then
-    export DEPLOY_ARTIFACTS=1; fi
-  - if [[ $TEST_DIR = shepherd ]] && git tag -l --points-at HEAD | grep shepherd; then
-    export DEPLOY_ARTIFACTS=1; fi
-  - pushd $TEST_DIR
-  - mkdir -p build-deps/bin
-  - export PATH="${PATH}:$(pwd)/build-deps/bin"
-  - popd
-install:
-  - pushd $TEST_DIR
-  - make install
-  - if [[ $DEPLOY_ARTIFACTS = 1 ]]; then make artifacts-install; fi
-  - popd
-script:
-  - pushd $TEST_DIR
-  - make test
-  - make lint
-  - if [[ $DEPLOY_ARTIFACTS = 1 ]]; then make artifacts; fi
-  - popd
-branches:
-  only:
-    - master
-    - /^shepherd\/.*$/
-    - /^dawn\/.*$/
-    - /^devops\/.*$/
-    - /^foundry\/.*$/
-    - /^hibike\/.*$/
-    - /^runtime\/.*$/
-    - /^test\/.*$/
-deploy:
-  provider: script
-  script: ./DevOps/pipeline/deploy-artifacts.sh "$APP_ID" "$TRAVIS_TAG" "$(pwd)/artifacts"
-  skip_cleanup: true
-  on:
-    branch: master
-    tags: true
-    condition: $DEPLOY_ARTIFACTS = 1
+    apt:
+        packages:
+            - python3-setuptools
+            - python3-pip
+            - libasound2-dev
+            - socat
+
+# requires that commit is for a PR or is on master branch
+if : (type = pull_request) OR (type = push AND branch = master)
+
+jobs:
+    include:
+        - name: test
+          script:
+            - echo "testing"
+
+        - name: format
+          script:
+            - echo "formatting"
+
+        - name: build
+          script:
+            - echo "building"
