@@ -135,3 +135,23 @@ The EMIT statement will send an LCM message from the script to a target. The EMI
   * Multiple WITH statements may be specified in order to set multiple arguments in the header. The order of these statements is undefined.
 
 Usage: `EMIT <header> TO <target> WITH <assignment>...`
+
+## Future modifications:
+
+The testing utility right now is functional, but flawed. The most precarious systems are the syntax error recognition, the execution of IF and WHILE statements, and the LCM interactions. There are also quite a few features that the framework might benefit from.
+
+### Modifications:
+
+  * Syntax for the testing utility is currently hard coded into each of the processing functions. A more robust solution would be to introduce a tokenizer and parser using regular expressions and a grammar such as CUP or BISON to ensure that the syntax makes sense. Unfortunately some of the more specific error messages in the current implementation would become generic, however all syntax errors would be caught.
+
+  * The IF and WHILE statements would also see more reliable functionality from the previous strategy. The grammar would allow IF and WHILE to be packaged with their corresponding END statements, and this would make execution faster and more robust. Furthermore, unbalanced END statements would be detected when the file was read in, and not at runtime (how they currently are) making debugging a script much simpler.
+
+  * LCM is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the LCM issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign LCM targets, or potentially to even read from multiple would make the scripting much more intuitive.
+
+### Additions:
+
+  * Adding an optional (but highly recommended) timeout to the WAIT statements would make detecting a failed test via travis much simpler. Right now, a timeout may be applied to the entire test, however this feels sloppy and makes it harder to have intentional delays in a test. WAIT statement specific timeouts would increase the flexibility of the testing framework, especially when automated testing is involved, and would provide clearer feedback about what timed out.
+
+  * Adding a succinct method of delaying the script execution from line to line would allow time sensitive scripts to be very easy to create. something like leading a line with `#200` for a delay of 200ms would be easy to write and opens up lots of options for shepherd script.
+
+  * Adding functionality for the testing framework to interact with COM ports and socketio connections would allow a far greater number of things to be tested by the scripts. This would allow the testing framework to simulate interactions with sensors on the field, or inputs from one of the UI elements, so that the servers can be tested.
