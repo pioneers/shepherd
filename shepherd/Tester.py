@@ -4,14 +4,27 @@ from Utils import *
 from LCM import *
 
 def get_class_from_name(name):
+    """
+    A helper function used to get a class of name from the globals list.
+    """
     return globals()[name]
 
 def get_attr_from_name(source, name):
+    """
+    A helper function used to get an attribute of a certain name from a given
+    class (source).
+    """
     if not isinstance(source, type):
         raise Exception('{} is not a class.'.format(source))
     return getattr(source, name)
 
 def parse_header(header):
+    """
+    A helper function that translates the headers in format
+    <LCM_targer>.<header> to the string representation stored in Utils.py.
+    Enforces the syntax for referencing the header, as well as the existance of
+    the header in Utils.py.
+    """
     parts = header.split('.')
     if len(parts) != 2:
          raise Exception('{} is invalid.'.format(header))
@@ -34,17 +47,32 @@ def parse_header(header):
     return name
 
 def execute_python(script):
+    """
+    A helper function that executes a python expression in the context of the
+    local scipt enviroment.
+    """
     global LOCALVARS
     exec(script, LOCALVARS)
 
 def evaluate_python(token):
+    """
+    A helper function that evaluates a token against the local scipt enviroment.
+    """
     global LOCALVARS
     return  eval(token, LOCALVARS)
 
 def tokenize_wait_exp(expression):
+    """
+    The function that parses WAIT statements.
+    Enforces syntax and returns a dictionary of the deconstructed WAIT statement.
+    """
     global TARGET
     original_expression = expression
     def helper_min(a, b):
+        """
+        A helper function that returns the min between a and b, but considers -1
+        to be an unacceptable return value.
+        """
         if a == -1 and b == -1:
             return None
         elif a == -1:
@@ -78,9 +106,19 @@ def tokenize_wait_exp(expression):
 
 
 def wait_function(expression):
+    """
+    The function that parses WAIT statements.
+    Enforces the syntax of the WAIT statement.
+    Adds one or multiple new wait conditions to global CURRENT_HEADERS, and sets
+    global WAITING to True.
+    """
     original_expression = expression
     global CURRENT_HEADERS, WAITING
     def helper_min(a, b):
+        """
+        A helper function that returns the min between a and b, but considers -1
+        to be an unacceptable return value.
+        """
         if a == -1 and b == -1:
             return None
         elif a == -1:
@@ -102,26 +140,53 @@ def wait_function(expression):
     CURRENT_HEADERS.append({'header' : tokenize_wait_exp(expression), 'type' : type, 'received' : False})
 
 def read_next_line():
+    """
+    A helper function to maintain the file scanning abstraction.
+    Advances the global LINE pointer to the next line of the script.
+    """
     global LINE
     LINE += 1
 
 def has_next_line():
+    """
+    A helper function to maintain the file scanning abstraction.
+    Returns whether or not there is another line to be read.
+    """
     global LINE, FILE
     return LINE < len(FILE)
 
 def line_at(line):
+    """
+    A helper function to maintain the file scanning abstraction.
+    Returns the line with the number passed in.
+    """
     global FILE
     return FILE[line]
 
 def jump_to_line(line):
+    """
+    A helper function to maintain the file scanning abstraction.
+    Sets global LINE, can be through of as a jump.
+    """
     global LINE
     LINE = line
 
 def current_line():
+    """
+    A helper function to maintain the file scanning abstraction.
+    Returns the line with the number in global LINE.
+    """
     global LINE, FILE
     return FILE[LINE]
 
 def process_line(line):
+    """
+    Takes in a line of the script and identifies the statement being used.
+    Calls the correct executing function on the remainder of the line.
+    Enforces that all lines start with a valid statement, and attaches
+    additional information to errors thrown by the executing funcions.
+
+    """
     global LINE
     if line[0] == ' ' :
         raise Exception('unexpected indent on line {}: {}'.format(LINE, line))
@@ -142,6 +207,11 @@ def process_line(line):
         raise Exception('unrecognized command on line {}:\n{}'.format(LINE, line))
 
 def remove_outer_spaces(token):
+    """
+    A helper function used to strip the spaces off the outside edges of a
+    string.
+    Essential for making shepherd scripting ignore whitespace.
+    """
     while len(token) > 0 and token[-1] == ' ':
         token = token[:-1]
     while len(token) > 0 and token[0] == ' ':
@@ -149,6 +219,13 @@ def remove_outer_spaces(token):
     return token
 
 def if_function(expression):
+    """
+    The function that parses both IF and WHILE statements.
+    Enforces syntax as well as balanced END statements.
+    Evaluates the condition given in the statement, and if false crawls forward
+    in the script to the matching END statement and jumps there, otherwise
+    execution proceedes normally.
+    """
     global END_COUNT, LINE, END_COUNT_HEADS
     starting_count = END_COUNT
     starting_line = LINE
@@ -183,6 +260,12 @@ def if_function(expression):
                 END_COUNT -= 1
 
 def end_function(expression):
+    """
+    The function that parses END statements.
+    Crawls backwards through the script to find the matching IF or WHILE
+    statement and jumps to that line if it is a WHILE.
+    Essentially no processing need happen here for an IF statement.
+    """
     global END_COUNT, LINE, END_COUNT_HEADS
     END_COUNT -= 1
     end_count_heads = list(END_COUNT_HEADS.items())
@@ -194,18 +277,33 @@ def end_function(expression):
             break
 
 def pass_function(expression):
+    """
+    The function that parses PASS statements.
+    Enforces syntax and will print out the result as well as exit the script
+    interpretter if the test is passed.
+    """
     expression = remove_outer_spaces(expression)
     if evaluate_python(expression) or expression == '':
         print("TEST PASSED")
         sys.exit(0)
 
 def fail_function(expression):
+    """
+    The function that parses FAIL statements.
+    Enforces syntax and will print out the result as well as exit the script
+    interpretter if the test is failed.
+    """
     expression = remove_outer_spaces(expression)
     if evaluate_python(expression) or expression == '':
         print("TEST FAILED")
         sys.exit(-1)
 
 def assert_function(expression):
+    """
+    The function that parses ASSERT statements.
+    Enforces syntax and will print out the result of the assertion as well as
+    exit the script interpretter.
+    """
     expression = remove_outer_spaces(expression)
     if expression == '':
         raise Exception('expected a python conditional expression after ASSERT')
@@ -217,7 +315,17 @@ def assert_function(expression):
         sys.exit(-1)
 
 def read_function(line):
+    """
+    The function that parses READ statements.
+    Enforces syntax, and sets the global TARGET appropriately.
+    """
     global TARGET
+    #This is to prevent read from being able to be used a second time, for now!
+    #Remove this once we have a fix!
+    if TARGET != 'unassigned':
+        print("[WARNING] Only the first call to READ does anything right now, check your implementation to make sure you weren't rellying on this!")
+        return
+    #----------------------
     if remove_outer_spaces(line.split('.')[0]) != 'LCM_TARGETS' or len(line.split('.')[0]) != 2:
         raise Exception('was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
     target = get_attr_from_name(LCM_TARGETS, line.split('.')[1]))
@@ -225,6 +333,10 @@ def read_function(line):
     print('now reading from lcm target: LCM_TARGETS.{}'.format(line.split('.')[1])))
 
 def tokenize_emit_exp(expression):
+    """
+    The function that parses EMIT statements.
+    Enforces syntax and returns a dictionary of the deconstructed EMIT statement.
+    """
     original_expression = expression
     def helper_min(a, b):
         if a == -1 and b == -1:
@@ -256,6 +368,11 @@ def tokenize_emit_exp(expression):
     return {'header' : header, 'target' : target, 'with_statements' : statements}
 
 def emit_function(expression):
+    """
+    The function called to handle the execution of an EMIT statement.
+    Processes the statement, processes the WITH statements, and then emits the
+    appropriate header and data via LCM.
+    """
     emit_expression = tokenize_emit_exp(expression)
     data = {}
     for with_statement in emit_expression[with_statements]:
@@ -263,13 +380,19 @@ def emit_function(expression):
     lcm_send(emit_expression[target], emit_expression[header], data)
 
 def with_function_wait(expression, data):
+    """
+    Takes in a WITH statement found in a WAIT statement, and the data that was
+    present in the header that triggered the processing of this WAIT statement,
+    and modifies the local script enviroment accordingly.
+    Also handles syntax checking of the WITH statement.
+    """
     parts = expression.split('=')
     if len(parts) != 2:
-         raise Exception('WHEN statement: {} is invalid.'.format(expression))
+         raise Exception('WITH statement: {} is invalid.'.format(expression))
     parts[0] = remove_outer_spaces(parts[0])
     parts[1] = remove_outer_spaces(parts[1])
     if parts[1][0] != "'" or parts[1][-1] != "'":
-        raise Exception("expected second argument of WHEN statement: {} to be wrapped in '.".format(expression))
+        raise Exception("expected second argument of WITH statement: {} to be wrapped in '.".format(expression))
     ex = None
     try:
         global LOCALVARS
@@ -277,34 +400,48 @@ def with_function_wait(expression, data):
     except valueError:
         ex = Exception("{} is undefined".format(parts[0]))
     except Exception:
-        ex = Exception("malformed WHEN statement: {}".format(expression))
+        ex = Exception("malformed WITH statement: {}".format(expression))
     finally:
         if ex:
             raise ex
 
 def with_function_emit(expression, data):
+    """
+    Takes in a WITH statement found in an EMIT statement, and the data that will
+    be issued to the emmited header and modifies the data appropriately.
+    Also handles syntax checking of the WITH statement.
+    """
     parts = expression.split('=')
     if len(parts) != 2:
-         raise Exception('WHEN statement: {} is invalid.'.format(expression))
+         raise Exception('WITH statement: {} is invalid.'.format(expression))
     #remove leading and trailing spaces around the '='
     while len(parts[0]) > 0 and parts[0][-1] == ' ':
         parts[0] = parts[0][:-1]
     while len(parts[1]) > 0 and parts[1][0] == ' ':
         parts[1] = parts[1][1:]
     if parts[0][0] != "'" or parts[0][-1] != "'":
-        raise Exception("expected first argument of WHEN statement: {} to be wrapped in '.".format(expression))
+        raise Exception("expected first argument of WITH statement: {} to be wrapped in '.".format(expression))
     ex = None
     try:
         data[parts[0][1:-1]] = evaluate_python(parts[1])
     except valueError:
         ex = Exception("{} is undefined".format(parts[1]))
     except Exception:
-        ex = Exception("malformed WHEN statement: {}".format(expression))
+        ex = Exception("malformed WITH statement: {}".format(expression))
     finally:
         if ex:
             raise ex
 
 def check_received_headers():
+    """
+    Returns whether or not the wait conditions are satisfied, so that script
+    execution should proceed.
+    This is done by taking the AND and OR statements in the WAIT litterally,
+    and the python interpretter is fed a string of booleans seperated by the
+    appropriate python and / or opperators.
+    This function will also set the global WAITING variable to false once
+    execution should resume.
+    """
     global CURRENT_HEADERS, WAITING
     python_usable_string = ''
     for i in range(len(CURRENT_HEADERS)):
@@ -318,6 +455,14 @@ def check_received_headers():
     return False
 
 def execute_header(header, data):
+    """
+    Takes in a header data structure and the data from the LCM call and will
+    modify the local enviroment accordingly.
+    Processes all SET and WITH statements in the header individually, and with
+    no guarantee on order.
+        In this implementation, all WITH statements are processed first, from
+        left to right, and then all SET statements, from left to right.
+    """
     global LOCALVARS
     for with_statement in header['header']['with_statements']:
         with_function_emit(with_statement, data)
@@ -327,6 +472,12 @@ def execute_header(header, data):
         LOCALVARS[local_arg] = evaluate_python(python_expression)
 
 def accept_header(payload):
+    """
+    Accepts a header and its payload, and will check if that header is
+    currently being waited on.
+    If it is, accept header will process all instances of that waited on
+    header and also set the wait condition to be satisfied for each instance.
+    """
     global CURRENT_HEADERS
     for header in CURRENT_HEADERS:
         if header['header']['header'] == payload[0]:
@@ -334,6 +485,12 @@ def accept_header(payload):
             header['received'] == True
 
 def run_until_wait():
+    """
+    A useful function that advances script execution until the next WAIT
+    statement is detected.
+    Once that statement is detected, it is processed and then run_until_wait
+    returns.
+    """
     global WAITING
     while has_next_line() and not WAITING:
         process_line(current_line())
@@ -342,6 +499,14 @@ def run_until_wait():
 def start():
     """
     The loop that interacts with LCM!
+    Here target must be assigned before start() may be called, and so this will
+    detect and error on that condition.
+    Otherwise this loop binds a queue to the correct LCM target and processes
+    LCM events that it recieves.
+    Each LCM header that is recieved will be processed based on the current
+    WAIT statements and then if all wait statements have been satisfied,
+    the code execution will advance to the next WAIT before any more LCM headers
+    will be processed.
     """
     global TARGET, EVENTS, CURRENT_HEADERS
     if TARGET == 'unassigned':
@@ -359,11 +524,12 @@ def start():
 
 def main():
     """
-    reads the whole file in and places it in a python list on the heap.
+    Reads the whole file in and places it in a python list on the heap.
+    Also handles errors associated with the file system.
     """
     global FILE
     if len(sys.argv) != 2:
-        print('The tester takes a single argument, the name of a testing file')
+        print('[ERROR] The tester takes a single argument, the name of a testing file')
         return
     script_dir = os.path.dirname(__file__)
     rel_path = "tests/{}".format(sys.argv[1])
@@ -398,6 +564,11 @@ COMMANDS = {'WAIT' : wait_function,
             '##' : lambda line: None}
 
 if __name__ == '__main__':
+    """
+    The main function! Calls main to read the specified file into the heap,
+    and then advances until the first wait command where it begins the LCM
+    interaction found in start.
+    """
     main()
     run_until_wait()
     start()

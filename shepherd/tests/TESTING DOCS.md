@@ -22,6 +22,8 @@ Usage: `## <comment>`
 
 The READ statement will mount a listener to the LCM channel that is indicated.
 
+Right now, due to technical limitations, only the first call to READ will cause the target to be updated.
+
 Usage: `READ <LCM target>`
 
 ### RUN
