@@ -1,3 +1,5 @@
+<img align="right" src="https://github.com/pioneers/shepherd/blob/testing-framework/readmefigures/PiE%20Sheep.png" alt="PiE Sheep" width="86" height="135">
+
 # Shepherd Testing Utility
 
 The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to LCM messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Unfortunately, the shepherd testing utility requires LCM to communicate with other parts of shepherd, so a computer without LCM will not be able to run it.

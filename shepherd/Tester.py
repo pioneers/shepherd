@@ -6,6 +6,11 @@ from LCM import *
 def get_class_from_name(name):
     """
     A helper function used to get a class of name from the globals list.
+    Globals is a dictionary representing the global scope of this program's
+    python execution, which means that to a small extent the functions in this
+    file along with everything imported above is available to this function.
+    Keep this in mind, since this function is called on potentially unsafe user
+    entered code.
     """
     return globals()[name]
 
@@ -540,15 +545,57 @@ def main():
         FILE.append(line)
     file.close()
 
+"""
+The LCM target that we are currently reading from.
+"""
 TARGET = 'unassigned'
+"""
+The queue used to store incoming LCM requests. These requests are then popped
+off in the start function and processed.
+"""
 EVENTS = queue.Queue()
+"""
+A list containing the contents of the file that was specified when the program
+was started. Each line of the file is stored as a string in sequential indexes.
+"""
 FILE = []
+"""
+A varaible which keeps track of whether or not execution is currently happening.
+This is set to True when a wait statement is encountered, and set to False when
+all headers have been resolved, and execution should continue.
+"""
 WAITING = False
+"""
+A dictionary that is populated by the script's execution. This is used as an
+enviroment for python execution in RUN and in the WAIT, SET, and PRINTP
+statements. Unlike normal python enviroments, there are no further frames opened
+for code blocks, and this is a facsimile of dynamic typing.
+"""
 LOCALVARS = {}
+"""
+A list of header dictionaries. This list is populated by WAIT statements and is
+emptied when the headers are all considered resolved.
+"""
 CURRENT_HEADERS = []
+"""
+A varaible keeping track of the current line being executed.
+"""
 LINE = 0
+"""
+A variable keeping track of the current level of indentation (how many unclosed
+IF / WHILE statements there are).
+"""
 END_COUNT = 0
+"""
+A dictionary used to keep track / memoize the level of indentation found at each
+IF and WHILE statement. This is used by the END statement to backtrack to the
+appropriate line and determine if that END is closing an IF or a WHILE.
+"""
 END_COUNT_HEADS = {}
+"""
+A dictionary of command names (that start lines) to the functions to be
+executed in order to parse that kind of line.
+"""
 COMMANDS = {'WAIT' : wait_function,
             'EMIT' : emit_function,
             'RUN' : execute_python,
