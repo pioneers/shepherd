@@ -231,7 +231,6 @@ def process_line(line):
             try:
                 COMMANDS[key](remove_outer_spaces(line[len(key):None]))
             except Exception as exx:
-                aaaaa
                 ex = Exception(
                     'an error occured on line {}:\n{}'.format(LINE, exx))
             finally:
@@ -368,15 +367,16 @@ def read_function(line):
     Enforces syntax, and sets the global TARGET appropriately.
     """
     global TARGET
-    #This is to prevent read from being able to be used a second time, for now!
-    #Remove this once we have a fix!
+    # This is to prevent read from being able to be used a second time, for now!
+    # Remove this once we have a fix!
     if TARGET != 'unassigned':
         print("[WARNING] Only the first call to READ does anything right now, check your implementation to make sure you weren't rellying on this!")
         return
-    #----------------------
+    # ----------------------
     if remove_outer_spaces(line.split('.')[0]) != 'LCM_TARGETS' or len(line.split('.')) != 2:
-        raise Exception('was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
-    target = get_attr_from_name(LCM_TARGETS, line.split('.')[1]))
+        raise Exception(
+            'was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
+    target = get_attr_from_name(LCM_TARGETS, line.split('.')[1])
     TARGET = target
     print('now reading from lcm target: LCM_TARGETS.{}'.format(
         line.split('.')[1]))
@@ -389,27 +389,25 @@ def tokenize_emit_exp(expression):
     """
     original_expression = expression
 
-    def helper_min(a, b):
-        if a == -1 and b == -1:
-            return None
-        elif a == -1:
-            return b
-        elif b == -1:
-            return a
-        else:
-            return min(a, b)
-    tokens = expression.split('TO')
+    def helper_find(expression, target):
+        """
+        A helper function to find the next instance of 'target' in 'expression',
+        and return none if it does not exist.
+        """
+        found = expression.find(target)
+        return found if found >= 0 else None
+    tokens = expression.split(' TO ')
     if len(tokens) != 2:
         raise Exception('expected to find TO after <header> and before <target> in EMIT statement: EMIT {}'.format(
             original_expression))
     header = parse_header(remove_outer_spaces(tokens[0]))
     expression = tokens[1]
-    if remove_outer_spaces(expression[0:expression.find(' WITH ')].split('.')[0]) != 'LCM_TARGETS':
+    if remove_outer_spaces(expression[0:helper_find(expression, ' WITH ')].split('.')[0]) != 'LCM_TARGETS':
         raise Exception('was expecting a target in LCM_TARGETS for EMIT statement: EMIT {}'.format(
             original_expression))
     target = get_attr_from_name(LCM_TARGETS, remove_outer_spaces(
-        expression[0:expression.find(' WITH ')].split('.')[1]))
-    expression = expression[expression.find(' WITH '):None]
+        expression[0:helper_find(expression, ' WITH ')].split('.')[1]))
+    expression = expression[helper_find(expression, ' WITH '):None]
     statements = []
     while 'WITH ' in expression:
         expression = remove_outer_spaces(expression)
@@ -419,8 +417,8 @@ def tokenize_emit_exp(expression):
         expression = expression[len('WITH'):None]
         expression = remove_outer_spaces(expression)
         statements.append(remove_outer_spaces(
-            expression[0:expression.find(' WITH ')]))
-        expression = expression[expression.find(' WITH '):None]
+            expression[0:helper_find(expression, ' WITH ')]))
+        expression = expression[helper_find(expression, ' WITH '):None]
     return {'header': header, 'target': target, 'with_statements': statements}
 
 
@@ -446,11 +444,12 @@ def with_function_wait(expression, data):
     """
     parts = expression.split('=')
     if len(parts) != 2:
-         raise Exception('WITH statement: {} is invalid.'.format(expression))
+        raise Exception('WITH statement: {} is invalid.'.format(expression))
     parts[0] = remove_outer_spaces(parts[0])
     parts[1] = remove_outer_spaces(parts[1])
     if parts[1][0] != "'" or parts[1][-1] != "'":
-        raise Exception("expected second argument of WITH statement: {} to be wrapped in '.".format(expression))
+        raise Exception(
+            "expected second argument of WITH statement: {} to be wrapped in '.".format(expression))
     ex = None
     try:
         global LOCALVARS
@@ -473,13 +472,14 @@ def with_function_emit(expression, data):
     parts = expression.split('=')
     if len(parts) != 2:
         raise Exception('WITH statement: {} is invalid.'.format(expression))
-    #remove leading and trailing spaces around the '='
+    # remove leading and trailing spaces around the '='
     while len(parts[0]) > 0 and parts[0][-1] == ' ':
         parts[0] = parts[0][:-1]
     while len(parts[1]) > 0 and parts[1][0] == ' ':
         parts[1] = parts[1][1:]
     if parts[0][0] != "'" or parts[0][-1] != "'":
-        raise Exception("expected first argument of WITH statement: {} to be wrapped in '.".format(expression))
+        raise Exception(
+            "expected first argument of WITH statement: {} to be wrapped in '.".format(expression))
     ex = None
     try:
         data[parts[0][1:-1]] = evaluate_python(parts[1])
@@ -529,7 +529,8 @@ def execute_header(header, data):
         with_function_emit(with_statement, data)
     for set_statement in header['header']['set_statements']:
         local_arg = remove_outer_spaces(set_statement.split('=')[0])
-        python_expression = remove_outer_spaces(set_statement.split('=')[0])
+        print(f'set statement: {set_statement}')
+        python_expression = remove_outer_spaces(set_statement.split('=')[1])
         LOCALVARS[local_arg] = evaluate_python(python_expression)
 
 
@@ -544,7 +545,7 @@ def accept_header(payload):
     for header in CURRENT_HEADERS:
         if header['header']['header'] == payload[0]:
             execute_header(header, payload[1])
-            header['received'] == True
+            header['received'] = True
 
 
 def run_until_wait():
@@ -556,6 +557,8 @@ def run_until_wait():
     """
     global WAITING
     while has_next_line() and not WAITING:
+        # TODO: remove this print v
+        print(current_line())
         process_line(current_line())
         read_next_line()
     if not has_next_line():
@@ -609,6 +612,7 @@ def main():
         FILE.append(line)
     file.close()
 
+
 """
 The LCM target that we are currently reading from.
 """
@@ -658,17 +662,19 @@ appropriate line and determine if that END is closing an IF or a WHILE.
 END_COUNT_HEADS = {}
 """
 A dictionary of command names (that start lines) to the functions to be
-executed in order to parse that kind of line.
+executed in order to parse that kind of line. Due to how the checking
+works, statements that include another statement's syntax should precede
+those in this dictionary declaration.
 """
-COMMANDS = {'WAIT' : wait_function,
-            'EMIT' : emit_function,
-            'RUN' : execute_python,
-            'READ' : read_function),
-            'PRINT' : lambda line: print(line),
-            'PRINTP' : lambda line: print(evaluate_python(line)),
-            'IF' : if_function,
-            'WHILE' : if_function,
-            'END' : end_function,
+COMMANDS = {'WAIT': wait_function,
+            'EMIT': emit_function,
+            'RUN': execute_python,
+            'READ': read_function,
+            'PRINTP': lambda line: print(evaluate_python(line)),
+            'PRINT': lambda line: print(line),
+            'IF': if_function,
+            'WHILE': if_function,
+            'END': end_function,
             'PASS': pass_function,
             'FAIL': fail_function,
             'ASSERT': assert_function,
