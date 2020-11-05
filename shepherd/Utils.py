@@ -139,3 +139,11 @@ class STATE():
     WAIT = "wait"
     TELEOP = "teleop"
     END = "end"
+
+
+class PROTOBUF_TYPES():
+    RUN_MODE = 0
+    START_POS = 1
+    GAMEPAD = 2
+    TEXT = 3
+    DEVICE = 4
