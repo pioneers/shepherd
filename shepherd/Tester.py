@@ -155,6 +155,7 @@ def wait_function(expression):
             return min(a, b)
     CURRENT_HEADERS = []
     WAITING = True
+    type = 'OR'
     while ' AND ' in expression or ' OR ' in expression:
         expression = remove_outer_spaces(expression)
         found = helper_min(expression.find(' AND '), expression.find(' OR '))
@@ -249,11 +250,7 @@ def remove_outer_spaces(token):
     string.
     Essential for making shepherd scripting ignore whitespace.
     """
-    while len(token) > 0 and token[-1] == ' ':
-        token = token[:-1]
-    while len(token) > 0 and token[0] == ' ':
-        token = token[1:]
-    return token
+    return token.strip()
 
 
 def if_function(expression):
@@ -366,7 +363,7 @@ def read_function(line):
     The function that parses READ statements.
     Enforces syntax, and sets the global TARGET appropriately.
     """
-    global TARGET
+    global TARGET, EVENTS
     # This is to prevent read from being able to be used a second time, for now!
     # Remove this once we have a fix!
     if TARGET != 'unassigned':
@@ -378,6 +375,8 @@ def read_function(line):
             'was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
     target = get_attr_from_name(LCM_TARGETS, line.split('.')[1])
     TARGET = target
+    EVENTS = queue.Queue()
+    lcm_start_read(TARGET, EVENTS, daemon=True)
     print('now reading from lcm target: LCM_TARGETS.{}'.format(
         line.split('.')[1]))
 
@@ -431,7 +430,7 @@ def emit_function(expression):
     emit_expression = tokenize_emit_exp(expression)
     data = {}
     for with_statement in emit_expression['with_statements']:
-        with_function_emit(expression, data)
+        with_function_emit(with_statement, data)
     lcm_send(emit_expression['target'], emit_expression['header'], data)
 
 
@@ -468,15 +467,16 @@ def with_function_emit(expression, data):
     Takes in a WITH statement found in an EMIT statement, and the data that will
     be issued to the emmited header and modifies the data appropriately.
     Also handles syntax checking of the WITH statement.
+    Example:
+    code: SCOREBOARD_HEADER.STAGE TO LCM_TARGETS.SCOREBOARD WITH 'stage' = AUTO
+    expression: 'stage' = AUTO
     """
     parts = expression.split('=')
     if len(parts) != 2:
         raise Exception('WITH statement: {} is invalid.'.format(expression))
     # remove leading and trailing spaces around the '='
-    while len(parts[0]) > 0 and parts[0][-1] == ' ':
-        parts[0] = parts[0][:-1]
-    while len(parts[1]) > 0 and parts[1][0] == ' ':
-        parts[1] = parts[1][1:]
+    parts[0] = remove_outer_spaces(parts[0])
+    parts[1] = remove_outer_spaces(parts[1])
     if parts[0][0] != "'" or parts[0][-1] != "'":
         raise Exception(
             "expected first argument of WITH statement: {} to be wrapped in '.".format(expression))
@@ -526,10 +526,9 @@ def execute_header(header, data):
     """
     global LOCALVARS
     for with_statement in header['header']['with_statements']:
-        with_function_emit(with_statement, data)
+        with_function_wait(with_statement, data)
     for set_statement in header['header']['set_statements']:
         local_arg = remove_outer_spaces(set_statement.split('=')[0])
-        print(f'set statement: {set_statement}')
         python_expression = remove_outer_spaces(set_statement.split('=')[1])
         LOCALVARS[local_arg] = evaluate_python(python_expression)
 
@@ -557,13 +556,11 @@ def run_until_wait():
     """
     global WAITING
     while has_next_line() and not WAITING:
-        # TODO: remove this print v
-        print(current_line())
         process_line(current_line())
         read_next_line()
     if not has_next_line():
         print('reached end of test without failing')
-        exit(0)
+        sys.exit(0)
 
 
 def start():
@@ -581,8 +578,17 @@ def start():
     global TARGET, EVENTS, CURRENT_HEADERS
     if TARGET == 'unassigned':
         raise Exception("READ needs to be called before the first WAIT.")
-    EVENTS = queue.Queue()
-    lcm_start_read(TARGET, EVENTS)
+
+    # def run():
+    #     i = 0
+    #     while True:
+    #         time.sleep(.5)
+    #         print(f"running! {i}")
+    #         i += 1
+
+    # test_thread = threading.Thread(target=run)
+    # test_thread.start()
+
     while True:
         time.sleep(0.1)
         payload = EVENTS.get(True)
@@ -592,15 +598,24 @@ def start():
             run_until_wait()
 
 
+# class worker(Thread):
+#     def run(self):
+#         for i in range(0, 11):
+#             print(x)
+#             time.sleep(1)
+# worker().start()
+
+
 def main():
     """
     Reads the whole file in and places it in a python list on the heap.
     Also handles errors associated with the file system.
+    Returns 1 if the file cannt be found, 0 otherwise
     """
     global FILE
     if len(sys.argv) != 2:
         print('[ERROR] The tester takes a single argument, the name of a testing file')
-        return
+        return 1
     script_dir = os.path.dirname(__file__)
     rel_path = "tests/{}".format(sys.argv[1])
     abs_file_path = os.path.join(script_dir, rel_path)
@@ -611,6 +626,8 @@ def main():
             line = line[0:-1]
         FILE.append(line)
     file.close()
+    print('Starting test: {}'.format(sys.argv[1]))
+    return 0
 
 
 """
@@ -686,6 +703,7 @@ if __name__ == '__main__':
     and then advances until the first wait command where it begins the LCM
     interaction found in start.
     """
-    main()
+    if main():
+        return
     run_until_wait()
     start()
