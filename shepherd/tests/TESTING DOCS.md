@@ -1,4 +1,4 @@
-<img align="right" src="https://github.com/pioneers/shepherd/blob/testing-framework/readmefigures/PiE%20Sheep.png" alt="PiE Sheep" width="86" height="135">
+<img align="right" src="https://github.com/pioneers/shepherd/blob/testing-framework/shepherd/readmefigures/PiE%20Sheep.png" alt="PiE Sheep" width="86" height="135">
 
 # Shepherd Testing Utility
 
