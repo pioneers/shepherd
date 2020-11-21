@@ -104,11 +104,11 @@ def tokenize_wait_exp(expression):
             original_expression))
     header = parse_header(remove_outer_spaces(tokens[0]))
     expression = tokens[1]
-    if remove_outer_spaces(expression[0:helper_min(expression.find(' SET '), expression.find(' WITH '))].split('.')[0]) != 'LCM_TARGETS':
+    whole_target = remove_outer_spaces(expression).split(' ')[0]
+    if whole_target.split('.')[0] != 'LCM_TARGETS':
         raise Exception('was expecting a target in LCM_TARGETS for WAIT statement: WAIT {}'.format(
             original_expression))
-    target = get_attr_from_name(LCM_TARGETS, remove_outer_spaces(expression[0:helper_min(
-        expression.find(' SET '), expression.find(' WITH '))].split('.')[1]))
+    target = get_attr_from_name(LCM_TARGETS, whole_target.split('.')[1])
     if target != TARGET:
         raise Exception('target for WAIT expression is not the current target ({}): WAIT {}'.format(
             TARGET, original_expression))
