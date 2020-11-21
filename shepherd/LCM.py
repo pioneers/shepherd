@@ -18,7 +18,6 @@ def lcm_start_read(receive_channel, queue, put_json=False, daemon=False):
     comm = lcm.LCM(LCM_address)
 
     def handler(_, item):
-        print("lcm recieved:", item)
         if put_json:
             queue.put(item.decode())
         else:
@@ -40,7 +39,6 @@ def lcm_send(target_channel, header, dic={}):  # pylint: disable=dangerous-defau
     '''
     Send header and dictionary to target channel (string)
     '''
-    print("lcm sent:", target_channel, header, dic)
     dic['header'] = header
     json_str = json.dumps(dic)
     lcm.LCM(LCM_address).publish(target_channel, json_str.encode())

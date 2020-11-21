@@ -3,11 +3,14 @@ import os
 import queue
 import time
 import traceback
+from typing import Any, ClassVar
 from Utils import *
 from LCM import *
 
+# pylint: disable=global-statement
 
-def get_class_from_name(name):
+
+def get_class_from_name(name: str) -> Any:
     """
     A helper function used to get a class of name from the globals list.
     Globals is a dictionary representing the global scope of this program's
@@ -36,10 +39,11 @@ def parse_header(header):
     Enforces the syntax for referencing the header, as well as the existance of
     the header in Utils.py.
     """
-    parts = header.split('.')
+    parts: list = header.split('.')
     if len(parts) != 2:
         raise Exception('{} is invalid.'.format(header))
     ex = None
+    klass: type = None
     try:
         klass = get_class_from_name(parts[0])
     except KeyError:
@@ -49,6 +53,7 @@ def parse_header(header):
         if ex:
             raise ex
     ex = None
+    name: str = ''
     try:
         name = get_attr_from_name(klass, parts[1])
     except AttributeError:
@@ -223,17 +228,18 @@ def process_line(line):
 
     """
     global LINE
-    if line[0] == ' ' or line[0] == '\t':
-        raise Exception('unexpected indent on line {}: {}'.format(LINE, line))
+    if line == '':
+        return
     found = False
-    for key in COMMANDS.keys():
+    for key in COMMANDS:
         if line[0:len(key)] == key:
             ex = None
             try:
                 COMMANDS[key](remove_outer_spaces(line[len(key):None]))
+# pylint: disable=broad-except
             except Exception as exx:
                 ex = Exception(
-                    'an error occured on line {}:\n{}'.format(LINE, exx))
+                    'an error occured on line {}:\n{}'.format(LINE + 1, exx))
             finally:
                 if ex:
                     raise ex
@@ -241,7 +247,7 @@ def process_line(line):
             break
     if not found:
         raise Exception(
-            'unrecognized command on line {}:\n{}'.format(LINE, line))
+            'unrecognized command on line {}:\n{}'.format(LINE + 1, line))
 
 
 def remove_outer_spaces(token):
@@ -271,17 +277,17 @@ def if_function(expression):
         while END_COUNT > starting_count:
             read_next_line()
             ex = None
+            line = None
             try:
-                line = current_line()
+                line = remove_outer_spaces(current_line())
             except Exception:
                 ex = Exception(
                     "reached end of file while in the IF on line {}. You are probably missing an END".format(starting_line))
             finally:
                 if ex:
                     raise ex
-            if line[0] == ' ':
-                raise Exception(
-                    'unexpected indent on line {}: {}'.format(LINE, line))
+            if line == '':
+                continue
             found = False
             for key in COMMANDS.keys():
                 if line[0:len(key)] == key:
@@ -289,7 +295,7 @@ def if_function(expression):
                     break
             if not found:
                 raise Exception(
-                    'unrecognized command on line {}:\n{}'.format(LINE, line))
+                    'unrecognized command on line {}:\n{}'.format(LINE + 1, line))
             if line[0:2] == 'IF':
                 END_COUNT += 1
             if line[0:5] == 'WHILE':
@@ -556,7 +562,7 @@ def run_until_wait():
     """
     global WAITING
     while has_next_line() and not WAITING:
-        process_line(current_line())
+        process_line(remove_outer_spaces(current_line()))
         read_next_line()
     if not has_next_line():
         print('reached end of test without failing')
@@ -704,6 +710,6 @@ if __name__ == '__main__':
     interaction found in start.
     """
     if main():
-        return
+        exit(0)
     run_until_wait()
     start()

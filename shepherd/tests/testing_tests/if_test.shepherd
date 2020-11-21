@@ -1,15 +1,23 @@
 RUN x = False
 PRINT starting
 IF x
-PRINT shouldn't be here
+   PRINT shouldn't be here
+FAIL
+## peep the garbage indentation that we are allowed to do
+
 IF True
-PRINT shouldn't be here either
+   PRINT shouldn't be here either
+  FAIL
 END
 END
 IF True
 PRINT should be here
+IF 5 + 5 == 10
+PRINT should be here too
+END
 IF False
-PRINT shouldn't be here again
+PRINT shouldn't be here
+FAIL
 END
 END
 PRINT done
