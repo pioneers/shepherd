@@ -30,7 +30,7 @@ class RuntimeClient:
         print("msg_length: " + str(msg_length))
         msg = self.sock.recv(msg_length)
 
-        if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA: #shouldn't msg_type be 4? not sure, am asking runtime in slack
+        if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA:
             pb = text_pb2.Text()
             pb.ParseFromString(msg)
             print("received data: " + pb.payload[0])
@@ -70,7 +70,7 @@ class RuntimeClient:
 
 
     def connect_tcp(self):
-        self.sock.connect(("127.0.0.1", int(self.host_url))) # todo: should be (self.host_url, PORT_RASPI)
+        self.sock.connect((self.host_url, PORT_RASPI))
 
 class RuntimeClientManager:
 
