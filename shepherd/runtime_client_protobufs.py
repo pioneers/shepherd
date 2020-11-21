@@ -39,7 +39,7 @@ class RuntimeClient:
             print("invalid protobuf type")
 
 
-    def send_mode(self, mode): # this has to follow protocol (1 byte, 2 bytes, protobuf)
+    def send_mode(self, mode): 
         proto_type = bytearray([0])
         self.sock.send(proto_type)
         run_mode = run_mode_pb2.RunMode()
@@ -55,7 +55,7 @@ class RuntimeClient:
         start_pos = start_pos_pb2.StartPos()
         start_pos.pos = pos
         bytearr = bytearray(start_pos.SerializeToString())
-        self.sock.send(bytearray([len(bytearr)]))
+        self.sock.send(len(bytearr).to_bytes(2, "big"))
         self.sock.send(bytearr)
 
 
@@ -65,12 +65,12 @@ class RuntimeClient:
         text = text_pb2.Text()
         text.payload.extend(data)
         bytearr = bytearray(text.SerializeToString())
-        self.sock.send(bytearray([len(bytearr)]))
+        self.sock.send(len(bytearr).to_bytes(2, "big"))
         self.sock.send(bytearr)
 
 
     def connect_tcp(self):
-        self.sock.connect((self.host_url, PORT_RASPI))
+        self.sock.connect(("127.0.0.1", int(self.host_url))) # todo: should be (self.host_url, PORT_RASPI)
 
 class RuntimeClientManager:
 
@@ -109,8 +109,9 @@ class RuntimeClientManager:
 
 read = False
 manager = RuntimeClientManager()
-manager.get_clients(["127.0.0.1"])
+manager.get_clients(["8101", "5000"])
 while True:
-    if len(manager.clients) == 1 and not read:
+    if len(manager.clients) == 2 and not read:
         manager.receive_all_challenge_data()
+        manager.send_challenge_data(["hello"])
         read = True

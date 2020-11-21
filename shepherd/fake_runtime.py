@@ -2,6 +2,7 @@ import socket
 import sys
 from protos import run_mode_pb2
 from protos import text_pb2
+from protos import start_pos_pb2
 from Utils import *
 
 class TestSocket:
@@ -12,42 +13,30 @@ class TestSocket:
 
     def receive(self):
         while True:
-            print("incoming")
+            print("waiting")
             msg_type = int.from_bytes(self.connection.recv(1), "big")
             print("msg_type: " + str(msg_type))
             msg_length = int.from_bytes(self.connection.recv(2), "big")
             print("msg_length: " + str(msg_length))
             msg = self.connection.recv(msg_length)
-            # decode message todo: these are probably wrong, don't line up in runtime
 
-            if msg_type == PROTOBUF_TYPES.TEXT: #shouldn't msg_type be 4? not sure, am asking runtime in slack
-                pb = text_pb2.Text()
-                pb.ParseFromString(msg)
-            elif msg_type == PROTOBUF_TYPES.RUN_MODE:
+            if msg_type == PROTOBUF_TYPES.RUN_MODE:
                 pb = run_mode_pb2.RunMode()
                 pb.ParseFromString(msg)
-                print("received data: " + str(pb.mode))
+                print("received run mode: " + str(pb.mode))
+                pb.ParseFromString(msg)
+            elif msg_type == PROTOBUF_TYPES.START_POS:
+                pb = start_pos_pb2.StartPos()
+                pb.ParseFromString(msg)
+                print("received start pos: " + str(pb.pos))
+            elif msg_type == PROTOBUF_TYPES.CHALLENGE_DATA:
+                pb = text_pb2.Text()
+                pb.ParseFromString(msg)
+                print("received challenge data: " + str(pb.payload[0]))
             else:
                 # error
-                print("error")
-
+                print("invalid protobuf type")
             
-
-    def set_mode(self, mode):
-        # create protobuf
-        run_mode = run_mode_pb2.RunMode()
-        run_mode.mode = mode
-        bytearr = bytearray(run_mode.SerializeToString())
-        self.connection.send(bytearr)
-
-
-    def set_start_pos(self, pos):
-        start_pos = start_pos_pb2.StartPos()
-        start_pos.pos = pos
-        bytearr = bytearray(start_pos.SerializeToString())
-        self.connection.send(bytearr)
-
-    # todo: some way to detect connection/if a connection was dropped (heartbeat? some other way?)
 
     def connect_tcp(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,6 +51,6 @@ socket.connection.send(b'\x02')
 text = text_pb2.Text()
 text.payload.append("wieofw")
 bytearr = bytearray(text.SerializeToString())
-print(len(bytearr))
 socket.connection.send(b'\x00\x08') # hardcoded in, really should be len(bytearr), truncated to 2 bits
 socket.connection.send(bytearr)
+socket.receive()
