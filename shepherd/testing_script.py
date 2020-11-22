@@ -52,11 +52,11 @@ def run_test(name, path, verbose=False):
 # run the specified tests if specified or run all tests
 if len(sys.argv) >= 2:
     for test in sys.argv[1:]:
-        run_test(test, os.path.join('./tests', test), verbose=False)
+        run_test(test, os.path.join('./tests', test), verbose=True)
 else:
     f: DirEntry
     for f in filter(lambda f: f.is_dir(), os.scandir('./tests')):
-        run_test(f.name, f.path, verbose=False)
+        run_test(f.name, f.path, verbose=True)
 
 if SUCCESS:
     print("PASSED ALL TESTS")
