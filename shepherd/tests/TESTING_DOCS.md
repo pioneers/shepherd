@@ -4,11 +4,11 @@
 
 ## Sections
 
-- [Intro](##Intro)
-- [Commands](##Commands)
-- [Test Structure](<##Test\ Structure>)
-- [Running Tests](<##Running\ Tests>)
-- [Future Modifications](<##Future\ Modifications>)
+- [Intro](#Intro)
+- [Commands](#Commands)
+- [Test Structure](#Test-Structure)
+- [Running Tests](#Running-Tests)
+- [Future Modifications](#Future-Modifications)
 
 ## Intro
 

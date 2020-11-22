@@ -5,9 +5,9 @@ Shepherd brings together all the data on the game field into one centralized loc
 
 ## Sections
 
-- [Architecture](##Architecture)
-- [Installing Dependencies](<##Installing\ Dependencies>)
-- [Running Shepherd](<##Running\ Shepherd>)
+- [Architecture](#Architecture)
+- [Installing Dependencies](#Installing-Dependencies)
+- [Running Shepherd](#Running-Shepherd)
 - [Testing](./shepherd/tests/TESTING_DOCS.md)
 
 ## Architecture
