@@ -6,6 +6,7 @@ PRINT counter higher
 END
 RUN counter += 1
 END
+ASSERT counter == 10
 RUN i = 0
 WHILE i < 3
 RUN j = 0
@@ -18,6 +19,8 @@ PRINT 0
 END
 RUN j += 1
 END
+ASSERT J == 3
 RUN i += 1
 END
+ASSERT I == 3
 PASS

@@ -1,8 +1,8 @@
+# pylint: disable=invalid-name
 import sys
 import os
 import queue
 import time
-import traceback
 from typing import Any, ClassVar
 from Utils import *
 from LCM import *
@@ -120,7 +120,7 @@ def tokenize_wait_exp(expression):
     expression = expression[helper_min(expression.find(
         ' SET '), expression.find(' WITH ')):None]
     statements = {'SET': [], 'WITH': []}
-    while 'SET ' in expression or 'WITH ' in expression:
+    while ' SET ' in expression or ' WITH ' in expression:
         expression = remove_outer_spaces(expression)
         type = 'SET' if expression[0:4] == 'SET ' else 'WITH'
         if type == 'WITH' and expression[0:5] != 'WITH ':
@@ -128,10 +128,11 @@ def tokenize_wait_exp(expression):
                 original_expression))
         expression = expression[len(type):None]
         expression = remove_outer_spaces(expression)
+        stop_point = helper_min(expression.find(
+            ' SET '), expression.find(' WITH '))
         statements[type].append(remove_outer_spaces(
-            expression[0:helper_min(expression.find(' SET '), expression.find(' WITH '))]))
-        expression = expression[helper_min(expression.find(
-            ' SET '), expression.find(' WITH ')):None]
+            expression[0:stop_point]))
+        expression = expression[stop_point:None]
     return {'header': header, 'target': target, 'with_statements': statements['WITH'], 'set_statements': statements['SET']}
 
 
@@ -370,16 +371,13 @@ def read_function(line):
     Enforces syntax, and sets the global TARGET appropriately.
     """
     global TARGET, EVENTS
-    # This is to prevent read from being able to be used a second time, for now!
-    # Remove this once we have a fix!
-    if TARGET != 'unassigned':
-        print("[WARNING] Only the first call to READ does anything right now, check your implementation to make sure you weren't rellying on this!")
-        return
-    # ----------------------
     if remove_outer_spaces(line.split('.')[0]) != 'LCM_TARGETS' or len(line.split('.')) != 2:
         raise Exception(
             'was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
     target = get_attr_from_name(LCM_TARGETS, line.split('.')[1])
+    if TARGET == target:
+        print("[WARNING] Calling READ again on the same target will cause the LCM queue to be \
+            cleared. Make sure that this is intended.")
     TARGET = target
     EVENTS = queue.Queue()
     lcm_start_read(TARGET, EVENTS, daemon=True)
@@ -459,7 +457,7 @@ def with_function_wait(expression, data):
     try:
         global LOCALVARS
         LOCALVARS[parts[0]] = data[parts[1][1:-1]]
-    except valueError:
+    except ValueError:
         ex = Exception("{} is undefined".format(parts[0]))
     except Exception:
         ex = Exception("malformed WITH statement: {}".format(expression))
@@ -489,7 +487,7 @@ def with_function_emit(expression, data):
     ex = None
     try:
         data[parts[0][1:-1]] = evaluate_python(parts[1])
-    except valueError:
+    except ValueError:
         ex = Exception("{} is undefined".format(parts[1]))
     except Exception:
         ex = Exception("malformed WITH statement: {}".format(expression))
