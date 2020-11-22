@@ -2,6 +2,16 @@
 
 # Shepherd Testing Utility
 
+## Sections
+
+- [Intro](##Intro)
+- [Commands](##Commands)
+- [Test Structure](<##Test\ Structure>)
+- [Running Tests](<##Running\ Tests>)
+- [Future Modifications](<##Future\ Modifications>)
+
+## Intro
+
 The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to LCM messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Unfortunately, the shepherd testing utility requires LCM to communicate with other parts of shepherd, so a computer without LCM will not be able to run it.
 
 The testing utility communicates via LCM targets, and there are a few important things to be aware of while using the utility. All LCM targets and headers must be included in Utils.py, otherwise the utility will not recognize them. In addition, Utils.py is not imported into the internal environment for python execution that the tester provides. LCM headers and targets will be looked up in Utils.py when they appear in a non-python context, but otherwise they would need to be imported via a RUN statement. Due to underlying limitations, we can only read from one target at a time, so each READ statement will override any previous READ statements, and change our LCM target. Furthermore, we cannot wait on a header from a target before we read from that target, so READ should probably be the first line of your script.
@@ -10,7 +20,7 @@ While the error recognition and reporting in this utility is helpful, it is not 
 
 It is possible to run multiple .shepherd scripts at once, and have them communicate, however having multiple scripts read from the same LCM target is currently untested and may result in undefined behavior. Also keep in mind that there is no synchronization or timing command in this utility yet, however the RUN command may be used in combination with python timing and synchronization to create the same effect.
 
-## Testing Scripts
+## Commands
 
 The testing utility reads in .shepherd testing scripts and emulates the LCM communication per those script's specifications. These scripts use special syntax, which is covered below.
 
@@ -24,7 +34,7 @@ Usage: `## <comment>`
 
 The READ statement will mount a listener to the LCM channel that is indicated.
 
-Right now, due to technical limitations, only the first call to READ will cause the target to be updated.
+Typically, this is put at the top of a test file but it is possible to have multiple READ statements in a test. Subsequent READ statements will cause the LCM queue to clear.
 
 Usage: `READ <LCM target>`
 
@@ -100,23 +110,23 @@ Usage: `ASSERT <python conditional expression>`
 
 The WAIT statement is used to pause code execution until a specific LCM message is received by the testing script. A WAIT statement consists of the following pieces:
 
-  * A LCM header must follow the WAIT statement, this is the header that will be waited on.
+- A LCM header must follow the WAIT statement, this is the header that will be waited on.
 
-  * FROM
+- FROM
 
-  * A LCM target must follow the header, separated by the keyword FROM. This is the LCM channel that the WAIT statement will listen to for the specified header.
+- A LCM target must follow the header, separated by the keyword FROM. This is the LCM channel that the WAIT statement will listen to for the specified header.
 
-  * WITH can then be specified, to store arguments from the header into the namespace. This must follow the target specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
+- WITH can then be specified, to store arguments from the header into the namespace. This must follow the target specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
 
-  * SET can then be specified, which will execute a line of python code when the header is received. The SET statement looks something like this, `SET test = True`.
+- SET can then be specified, which will execute a line of python code when the header is received. The SET statement looks something like this, `SET test = True`.
 
-  * Any number or WITH and SET statements can follow the FROM statement, and they may be arranged in any order (WITH does not need to come first). Likewise, there are no guarantees about the order that the WITH and SET statements will be executed in, so they should not rely on the execution of one another.
+- Any number or WITH and SET statements can follow the FROM statement, and they may be arranged in any order (WITH does not need to come first). Likewise, there are no guarantees about the order that the WITH and SET statements will be executed in, so they should not rely on the execution of one another.
 
-  * AND and OR can be used to chain multiple headers into one WAIT statement. This will cause the WAIT statement to wait until multiple headers have been received. AND and OR statements will be evaluated from left to right, and as soon as conditions allow for the execution to continue, it will. The OR statement is satisfied as soon as one of the headers on either side of it have been received, and the AND statement will be satisfied once both headers have been received. Adjacent AND and OR statements in the same WAIT statement will wait on each other, so `1 AND 2 AND 3` would wait for all 3 headers to be received, while `1 OR 2 AND 3 OR 4` would proceed once either 1 , 4, or both 2 and 3 had been received.
+- AND and OR can be used to chain multiple headers into one WAIT statement. This will cause the WAIT statement to wait until multiple headers have been received. AND and OR statements will be evaluated from left to right, and as soon as conditions allow for the execution to continue, it will. The OR statement is satisfied as soon as one of the headers on either side of it have been received, and the AND statement will be satisfied once both headers have been received. Adjacent AND and OR statements in the same WAIT statement will wait on each other, so `1 AND 2 AND 3` would wait for all 3 headers to be received, while `1 OR 2 AND 3 OR 4` would proceed once either 1 , 4, or both 2 and 3 had been received.
 
-    * All headers in a WAIT statement that are chained together are considered together. This means that if a WAIT statement is waiting on the same header twice, when that header arrives both places it is referenced will be evaluated. Additionally, this means that if a header has already been satisfied but execution is blocked by another unsatisfied header chained together, and the header is received a second time, the header will be evaluated again using the new data.
+  - All headers in a WAIT statement that are chained together are considered together. This means that if a WAIT statement is waiting on the same header twice, when that header arrives both places it is referenced will be evaluated. Additionally, this means that if a header has already been satisfied but execution is blocked by another unsatisfied header chained together, and the header is received a second time, the header will be evaluated again using the new data.
 
-    * WAIT statements will only apply changes to the environment as soon as a header is received, however since execution cannot continue until all chained headers are satisfied, all changes effectively are applied after the WAIT statement, using the most recent version of each header.
+  - WAIT statements will only apply changes to the environment as soon as a header is received, however since execution cannot continue until all chained headers are satisfied, all changes effectively are applied after the WAIT statement, using the most recent version of each header.
 
 Usage: `WAIT <header> FROM <target> WITH <assignment>... SET <python expression>... AND <header> FROM <target>... OR...`
 
@@ -124,17 +134,49 @@ Usage: `WAIT <header> FROM <target> WITH <assignment>... SET <python expression>
 
 The EMIT statement will send an LCM message from the script to a target. The EMIT statement is significantly simpler than the WAIT statement, and it's structure is as follows:
 
-  * A LCM header must follow the EMIT statement, this is the header that will be sent.
+- A LCM header must follow the EMIT statement, this is the header that will be sent.
 
-  * TO
+- TO
 
-    * A LCM target must follow the header, separated by the keyword TO. This is the LCM channel that the EMIT statement send specified header to.
+  - A LCM target must follow the header, separated by the keyword TO. This is the LCM channel that the EMIT statement send specified header to.
 
-  * WITH can then be specified to set the arguments into the header from the namespace. This must follow the header specified by TO. The WITH statement looks something like this, `WITH 'argument in header' = argument`. The name of the argument in the header must be surrounded by single quotes. It is worth noting that this is the reverse of the WITH statement used in WAIT.
+- WITH can then be specified to set the arguments into the header from the namespace. This must follow the header specified by TO. The WITH statement looks something like this, `WITH 'argument in header' = argument`. The name of the argument in the header must be surrounded by single quotes. It is worth noting that this is the reverse of the WITH statement used in WAIT.
 
-  * Multiple WITH statements may be specified in order to set multiple arguments in the header. The order of these statements is undefined.
+- Multiple WITH statements may be specified in order to set multiple arguments in the header. The order of these statements is undefined.
 
 Usage: `EMIT <header> TO <target> WITH <assignment>...`
+
+## Test Structure
+
+Each test will be contained in a folder which consists of a number of files, representing different parts of Shepherd that are being run.
+
+For example, the [example](./example] test contains an example_client.shepherd and an example.shepherd which interact with each other through EMIT and WAIT commands.
+
+Each test will also contain an instructions.shepherd (see [example](./example/instructions.shepherd)) file which has a list of the order in which to run the test files. This is important when one target needs to be WAITing before another test EMITs to it.
+
+## Running Tests
+
+To run all the tests, run
+
+```
+python3 testing_scripts.py
+```
+
+To run a specific test folder, run
+
+```
+python3 testing_script.py example
+```
+
+where example is the name of the test folder. You can include as many tests as you want separated by spaces.
+
+To run an individual test file, run
+
+```
+python3 Tester.py example/example_client.shepherd
+```
+
+where example/example_client.shepherd is the path to a test inside the tests folder. When there are multiple test files to run, you can run each of them in a different terminal tab. This method might be more helpful when debugging test results.
 
 ## Future modifications:
 
@@ -142,16 +184,16 @@ The testing utility right now is functional, but flawed. The most precarious sys
 
 ### Modifications:
 
-  * Syntax for the testing utility is currently hard coded into each of the processing functions. A more robust solution would be to introduce a tokenizer and parser using regular expressions and a grammar such as CUP or BISON to ensure that the syntax makes sense. Unfortunately some of the more specific error messages in the current implementation would become generic, however all syntax errors would be caught.
+- Syntax for the testing utility is currently hard coded into each of the processing functions. A more robust solution would be to introduce a tokenizer and parser using regular expressions and a grammar such as CUP or BISON to ensure that the syntax makes sense. Unfortunately some of the more specific error messages in the current implementation would become generic, however all syntax errors would be caught.
 
-  * The IF and WHILE statements would also see more reliable functionality from the previous strategy. The grammar would allow IF and WHILE to be packaged with their corresponding END statements, and this would make execution faster and more robust. Furthermore, unbalanced END statements would be detected when the file was read in, and not at runtime (how they currently are) making debugging a script much simpler.
+- The IF and WHILE statements would also see more reliable functionality from the previous strategy. The grammar would allow IF and WHILE to be packaged with their corresponding END statements, and this would make execution faster and more robust. Furthermore, unbalanced END statements would be detected when the file was read in, and not at runtime (how they currently are) making debugging a script much simpler.
 
-  * LCM is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the LCM issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign LCM targets, or potentially to even read from multiple would make the scripting much more intuitive.
+- LCM is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the LCM issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign LCM targets, or potentially to even read from multiple would make the scripting much more intuitive.
 
 ### Additions:
 
-  * Adding an optional (but highly recommended) timeout to the WAIT statements would make detecting a failed test via travis much simpler. Right now, a timeout may be applied to the entire test, however this feels sloppy and makes it harder to have intentional delays in a test. WAIT statement specific timeouts would increase the flexibility of the testing framework, especially when automated testing is involved, and would provide clearer feedback about what timed out.
+- Adding an optional (but highly recommended) timeout to the WAIT statements would make detecting a failed test via travis much simpler. Right now, a timeout may be applied to the entire test, however this feels sloppy and makes it harder to have intentional delays in a test. WAIT statement specific timeouts would increase the flexibility of the testing framework, especially when automated testing is involved, and would provide clearer feedback about what timed out.
 
-  * Adding a succinct method of delaying the script execution from line to line would allow time sensitive scripts to be very easy to create. something like leading a line with `#200` for a delay of 200ms would be easy to write and opens up lots of options for shepherd script.
+- Adding a succinct method of delaying the script execution from line to line would allow time sensitive scripts to be very easy to create. something like leading a line with `#200` for a delay of 200ms would be easy to write and opens up lots of options for shepherd script.
 
-  * Adding functionality for the testing framework to interact with COM ports and socketio connections would allow a far greater number of things to be tested by the scripts. This would allow the testing framework to simulate interactions with sensors on the field, or inputs from one of the UI elements, so that the servers can be tested.
+- Adding functionality for the testing framework to interact with COM ports and socketio connections would allow a far greater number of things to be tested by the scripts. This would allow the testing framework to simulate interactions with sensors on the field, or inputs from one of the UI elements, so that the servers can be tested.
