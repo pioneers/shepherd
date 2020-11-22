@@ -7,26 +7,27 @@ python: 3.7
 
 # list packages installable using apt here
 addons:
-    apt:
-        packages:
-            - python3-setuptools
-            - python3-pip
-            - libasound2-dev
-            - socat
+  apt:
+    packages:
+      - python3-setuptools
+      - python3-pip
+      - libasound2-dev
+      - socat
 
 # requires that commit is for a PR or is on master branch
-if : (type = pull_request) OR (type = push AND branch = master)
+if: (type = pull_request) OR (type = push AND branch = master)
 
 jobs:
-    include:
-        - name: test
-          script:
-            - echo "testing"
+  include:
+    - name: test
+      script:
+        - echo "testing"
+        - cd shepherd && python3 testing_script.py
 
-        - name: format
-          script:
-            - echo "formatting"
+    - name: format
+      script:
+        - echo "formatting"
 
-        - name: build
-          script:
-            - echo "building"
+    - name: build
+      script:
+        - echo "building"
