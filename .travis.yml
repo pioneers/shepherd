@@ -22,8 +22,9 @@ jobs:
     - name: test
       script:
         - echo "testing"
+        - cd shepherd
         - ./installlcm
-        - cd shepherd && python3 testing_script.py
+        - python3 testing_script.py
 
     - name: format
       script:
