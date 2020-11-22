@@ -150,7 +150,7 @@ Usage: `EMIT <header> TO <target> WITH <assignment>...`
 
 Each test will be contained in a folder which consists of a number of files, representing different parts of Shepherd that are being run.
 
-For example, the [example](./example] test contains an example_client.shepherd and an example.shepherd which interact with each other through EMIT and WAIT commands.
+For example, the [example](./example) test contains an example_client.shepherd and an example.shepherd which interact with each other through EMIT and WAIT commands.
 
 Each test will also contain an instructions.shepherd (see [example](./example/instructions.shepherd)) file which has a list of the order in which to run the test files. This is important when one target needs to be WAITing before another test EMITs to it.
 
