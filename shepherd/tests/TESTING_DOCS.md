@@ -159,7 +159,7 @@ Each test will also contain an instructions.shepherd file (see [example](./examp
 To run all the tests, run
 
 ```
-python3 testing_scripts.py
+python3 testing_script.py
 ```
 
 To run a specific test folder, run
