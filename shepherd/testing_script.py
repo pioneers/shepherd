@@ -7,7 +7,7 @@ from os import DirEntry
 from subprocess import Popen, PIPE
 import sys
 import time
-# pylint: disable=global-statement
+# pylint: disable = global-statement
 SUCCESS = True
 
 
@@ -18,7 +18,7 @@ def run_test(name, path, verbose=False):
 
     There is a 0.1 second delay between each process to ensure that the order is maintained.
     If you are encountering an infinite loop, try changing this delay
-    as well as ensurinng that your instructions are in a valid order.
+    as well as ensuring that your instructions are in a valid order.
     '''
     global SUCCESS
     instructions = open(os.path.join(

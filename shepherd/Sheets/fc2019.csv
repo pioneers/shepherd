@@ -1,0 +1,48 @@
+f,MatchTime,Blue1Number,Blue1Name,Blue2Number,Blue2Name,Gold1Number,Gold1Name,Gold2Number,Gold2Name,BlueScore,GoldScore,MatchCompleted,WinScore,WinTeam,Win1,Win2,LoseScore,Lose1,Lose2,Lose3,Lose4,TieScore,Tie1,Tie2,Tie3,Tie4,WinDifference,LoseDifference,Day,Time,VideoURL,MatchType
+1,Sat 12:30 PM,37,CCPA,15,Pinole Valley,10,Skyline,1,Albany,99,192,1,192,g,10,1,99,37,15,,,FALSE,,,,,93,-93,Sat,12:30 PM,,Q
+2,Sat 12:50 PM,31,Arroyo,26,OSA,8,Bishop O'Dowd,29,REALM,52,42,1,52,b,31,26,42,8,29,,,FALSE,,,,,10,-10,Sat,12:50 PM,,Q
+3,Sat  1:10 PM,35,Hayward One,40,Salesian,17,ACLC,41,ARISE,132,80,1,132,b,35,40,80,17,41,,,FALSE,,,,,52,-52,Sat ,1:10:00 PM,,Q
+4,Sat  1:30 PM,36,Miramonte,3,De Anza,42,John Henry,20,Encinal,-1,89,1,89,g,42,20,-1,36,3,,,FALSE,,,,,90,-90,Sat ,1:30:00 PM,,Q
+5,Sat  1:50 PM,12,El Cerrito,9,Hercules,4,LPS Richmond,6,Middle College,84,32,1,84,b,12,9,32,4,6,,,FALSE,,,,,52,-52,Sat ,1:50:00 PM,,Q
+6,Sat  2:10 PM,43,Hayward Two,36,Miramonte,20,Encinal,40,Salesian,104,4,1,104,b,43,36,4,20,40,,,FALSE,,,,,100,-100,Sat ,2:10:00 PM,,Q
+7,Sat  2:30 PM,41,ARISE,35,Hayward One,8,Bishop O'Dowd,1,Albany,40,204,1,204,g,8,1,40,41,35,,,FALSE,,,,,164,-164,Sat ,2:30:00 PM,,Q
+8,Sat  2:50 PM,12,El Cerrito,40,Salesian,43,Hayward Two,10,Skyline,119,84,1,119,b,12,40,84,43,10,,,FALSE,,,,,35,-35,Sat ,2:50:00 PM,,Q
+9,Sat  3:10 PM,3,De Anza,20,Encinal,29,REALM,15,Pinole Valley,-20,174,1,174,g,29,15,-20,3,20,,,FALSE,,,,,194,-194,Sat ,3:10:00 PM,,Q
+10,Sun  9:00 AM,6,Middle College,42,John Henry,37,CCPA,26,OSA,117,114,1,117,b,6,42,114,37,26,,,FALSE,,,,,3,-3,Sun ,9:00:00 AM,,Q
+11,Sun  9:15 AM,36,Miramonte,9,Hercules,#N/A,(LPS Richmond absent),17,ACLC,174,107,1,174,b,36,9,107,#N/A,17,,,FALSE,,,,,67,-67,Sun ,9:15:00 AM,,Q
+12,Sun  9:30 AM,31,Arroyo,29,REALM,10,SkyLine,8,Bishop O'Dowd,124,33,1,124,b,31,29,33,10,8,,,FALSE,,,,,91,-91,Sun ,9:30:00 AM,,Q
+13,Sun 10:15 AM,41,ARISE,3,De Anza,26,OSA,17,ACLC,54,104,1,104,g,26,17,54,41,3,,,FALSE,,,,,50,-50,Sun,10:15:00 AM,,Q
+14,Sun  10:30 AM,12,El Cerrito,4,LPS Richmond,15,Pinole Valley,9,Hercules,164,124,1,164,b,12,4,124,15,9,,,FALSE,,,,,40,-40,Sun ,10:30:00 AM,,Q
+15,Sun  10:45 AM,37,CCPA,42,John Henry,6,Middle College,31,Arroyo,97,164,1,164,g,6,31,97,37,42,,,FALSE,,,,,67,-67,Sun ,10:45:00 AM,,Q
+16,Sun   11:00 AM,4,LPS Richmond,35,Hayward One,1,Albany,43,Hayward Two,32,264,1,264,g,1,43,32,4,35,,,FALSE,,,,,232,-232,Sun  ,11:00:00 AM,,Q
+17,Sun 12:40 PM,9,Hercules,15,Pinole Valley,8,Bishop O'Dowd,20,Encinal,82,114,1,,,,,,,,,,,,,,,,,Sun,12:40:00 PM,,E
+18,Sun 12:50 PM,15,Pinole Valley,10,Skyline,29,REALM,20,Encinal,154,-16,1,,,,,,,,,,,,,,,,,Sun,12:50:00 PM,,E
+19,Sun 2:10 PM,9,Hercules,10,Skyline,29,REALM,8,Bishop O'Dowd,-6,124,1,,,,,,,,,,,,,,,,,Sun,2:10:00 PM,,E
+20,Sun 2:20 PM,6,Middle College,41,ARISE,42,John Henry,4,LPS Richmond,254,42,1,,,,,,,,,,,,,,,,,Sun,2:20:00 PM,,E
+21,Sun 2:30 PM,43,Hayward Two,6,Middle College,4,LPS Richmond,35,Hayward One,172,52,1,,,,,,,,,,,,,,,,,Sun,2:30:00 PM,,E
+22,Sun 2:40 PM,3,De Anza,31,Arroyo,26,OSA,17,ACLC,154,134,1,,,,,,,,,,,,,,,,,Sun,2:40:00 PM,,E
+23,Sun 2:50 PM,31,Arroyo,36,Miramonte,17,ACLC,37,CCPA,154,84,1,,,,,,,,,,,,,,,,,Sun,2:50:00 PM,,E
+24,Sun 3:00 PM,12,El Cerrito,1,Albany,29,REALM,20,Encinal,249,92,1,,,,,,,,,,,,,,,,,Sun,3:00:00 PM,,E
+25,Sun 3:10 PM,40,Salesian,1,Albany,8,Bishop O'Dowd,29,REALM,165,114,1,,,,,,,,,,,,,,,,,Sun,3:10:00 PM,,E
+26,Sun 3:20 PM,31,Arroyo,36,Miramonte,43,Hayward Two,6,Middle College,99,239,1,,,,,,,,,,,,,,,,,Sun,3:20:00 PM,,E
+27,Sun 3:30 PM,36,Miramonte,3,De Anza,43,Hayward Two,41,ARISE,169,144,1,,,,,,,,,,,,,,,,,Sun,3:30:00 PM,,E
+28,Sun 3:40 PM,31,Arroyo,3,De Anza,41,ARISE,6,Middle College,139,204,1,,,,,,,3,,,,,,,,,,Sun,3:40:00 PM,,E
+29,Sun 3:50 PM,1,Albany,12,El Cerrito,6,Middle College,41,ARISE,259,234,1,,,,,,,,,,,,,,,,,Sun,3:50:00 PM,,E
+30,Sun 4:00 PM,1,Albany,40,Salesian,6,Middle College,43,Hayward Two,259,159,1,,,,,,,,,,,,,,,,,Sun,4:00:00 PM,,E
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,259,234,,,,,,,,,,,,,,,,,,,,,

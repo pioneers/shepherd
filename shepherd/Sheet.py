@@ -5,11 +5,11 @@ from __future__ import print_function
 import os
 import csv
 
-import httplib2 # pylint: disable=import-error
-from googleapiclient import discovery # pylint: disable=import-error,no-name-in-module
-from oauth2client import client # pylint: disable=import-error
-from oauth2client import tools # pylint: disable=import-error
-from oauth2client.file import Storage # pylint: disable=import-error
+import httplib2  # pylint: disable=import-error
+from googleapiclient import discovery  # pylint: disable=import-error,no-name-in-module
+from oauth2client import client  # pylint: disable=import-error
+from oauth2client import tools  # pylint: disable=import-error
+from oauth2client.file import Storage  # pylint: disable=import-error
 
 from Utils import *
 
@@ -46,18 +46,24 @@ def get_credentials():
         print('Storing credentials to ' + credential_path)
     return credentials
 
+
 def get_match(match_number):
-    #return get_offline_match(match_number)
+    # return get_offline_match(match_number)
     try:
         return get_online_match(match_number)
     except httplib2.ServerNotFoundError:
         return get_offline_match(match_number)
+    except Exception:
+        print('[error!] Google API has changed yet again, please fix Sheet.py')
+        return get_offline_match(match_number)
+
 
 def write_scores(match_number, blue_score, gold_score):
     try:
         write_online_scores(match_number, blue_score, gold_score)
     except httplib2.ServerNotFoundError:
         print("Unable to write to spreadsheet")
+
 
 def get_online_match(match_number):
     """
@@ -73,7 +79,7 @@ def get_online_match(match_number):
                               discoveryServiceUrl=discoveryUrl)
     spreadsheetId = CONSTANTS.SPREADSHEET_ID
     range_name = "Match Database!A2:J"
-    spreadsheet = service.spreadsheets() # pylint: disable=no-member
+    spreadsheet = service.spreadsheets()  # pylint: disable=no-member
     game_data = spreadsheet.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
     row = 48
@@ -81,10 +87,11 @@ def get_online_match(match_number):
         if int(j[0]) == match_number:
             row = i
     match = game_data['values'][row]
-    return {"b1name" : match[3], "b1num" : match[2],
-            "b2name" : match[5], "b2num" : match[4],
-            "g1name" : match[7], "g1num" : match[6],
-            "g2name" : match[9], "g2num" : match[8]}
+    return {"b1name": match[3], "b1num": match[2],
+            "b2name": match[5], "b2num": match[4],
+            "g1name": match[7], "g1num": match[6],
+            "g2name": match[9], "g2num": match[8]}
+
 
 def get_offline_match(match_number):
     """
@@ -97,12 +104,14 @@ def get_offline_match(match_number):
     match = matches[match_number]
     match = " ".join(match)
     match = match.split(',')
-    return {"b1name" : match[3], "b1num" : match[2],
-            "b2name" : match[5], "b2num" : match[4],
-            "g1name" : match[7], "g1num" : match[6],
-            "g2name" : match[9], "g2num" : match[8]}
+    return {"b1name": match[3], "b1num": match[2],
+            "b2name": match[5], "b2num": match[4],
+            "g1name": match[7], "g1num": match[6],
+            "g2name": match[9], "g2num": match[8]}
 
 # pylint: disable=too-many-locals
+
+
 def write_online_scores(match_number, blue_score, gold_score):
     """
     A method that writes the scores to the sheet
@@ -116,7 +125,7 @@ def write_online_scores(match_number, blue_score, gold_score):
     spreadsheetId = CONSTANTS.SPREADSHEET_ID
 
     range_name = "Match Database!A2:J"
-    spreadsheet = service.spreadsheets() # pylint: disable=no-member
+    spreadsheet = service.spreadsheets()  # pylint: disable=no-member
     game_data = spreadsheet.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
     row = 47
@@ -125,11 +134,11 @@ def write_online_scores(match_number, blue_score, gold_score):
             row = i
 
     range_name = "'Match Database'!K" + str(row + 2) + ":L" + str(row + 2)
-    score_sheets = service.spreadsheets() # pylint: disable=no-member
+    score_sheets = service.spreadsheets()  # pylint: disable=no-member
     game_scores = score_sheets.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
     game_scores['values'] = [[blue_score, gold_score]]
-    sheets = service.spreadsheets() # pylint: disable=no-member
+    sheets = service.spreadsheets()  # pylint: disable=no-member
     sheets.values().update(spreadsheetId=spreadsheetId,
                            range=range_name, body=game_scores,
                            valueInputOption="RAW").execute()
