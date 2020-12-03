@@ -30,7 +30,7 @@ class RuntimeClient:
         print("msg_length: " + str(msg_length))
         msg = self.sock.recv(msg_length)
 
-        if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA: #shouldn't msg_type be 4? not sure, am asking runtime in slack
+        if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA: 
             pb = text_pb2.Text()
             pb.ParseFromString(msg)
             print("received data: " + pb.payload[0])
@@ -40,7 +40,7 @@ class RuntimeClient:
 
 
     def send_mode(self, mode): 
-        proto_type = bytearray([0])
+        proto_type = bytearray([PROTOBUF_TYPES.RUN_MODE])
         self.sock.send(proto_type)
         run_mode = run_mode_pb2.RunMode()
         run_mode.mode = mode
@@ -50,7 +50,7 @@ class RuntimeClient:
 
 
     def send_start_pos(self, pos):
-        proto_type = bytearray([1])
+        proto_type = bytearray([PROTOBUF_TYPES.START_POS])
         self.sock.send(proto_type)
         start_pos = start_pos_pb2.StartPos()
         start_pos.pos = pos
@@ -60,7 +60,7 @@ class RuntimeClient:
 
 
     def send_challenge_data(self, data):
-        proto_type = bytearray([2])
+        proto_type = bytearray([PROTOBUF_TYPES.CHALLENGE_DATA])
         self.sock.send(proto_type)
         text = text_pb2.Text()
         text.payload.extend(data)
@@ -69,8 +69,16 @@ class RuntimeClient:
         self.sock.send(bytearr)
 
 
+    def check_connection(self):
+        try:
+            self.sock.send(bytes([PROTOBUF_TYPES.HEARTBEAT])) # todo: tell runtime we send this as a heartbeat
+        except:
+            self.connect_tcp()
+
+
     def connect_tcp(self):
-        self.sock.connect(("127.0.0.1", int(self.host_url))) # todo: should be (self.host_url, PORT_RASPI)
+        # self.sock.connect(("127.0.0.1", int(self.host_url))) # todo: should be (self.host_url, PORT_RASPI)
+        self.sock.connect(self.host_url, PORT_RASPI)
 
 class RuntimeClientManager:
 
@@ -107,11 +115,23 @@ class RuntimeClientManager:
         for client in self.clients:
             client.send_challenge_data(data)
 
+    def check_connection(self, client):
+        client.check_connection()
+
+    def check_connections(self, clients=None):
+        if clients is None:
+            clients = self.clients
+        for client in clients:
+            thr = threading.Thread(target=self.check_connection, args=[client])
+            thr.start()
+
+
 read = False
 manager = RuntimeClientManager()
-manager.get_clients(["8101", "5000"])
+manager.get_clients(["8000", "5000"]) # should be IP addresses in actual use
 while True:
     if len(manager.clients) == 2 and not read:
         manager.receive_all_challenge_data()
-        manager.send_challenge_data(["hello"])
+        # manager.send_challenge_data(["hello"])
+        manager.check_connections()
         read = True

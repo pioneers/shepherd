@@ -40,7 +40,7 @@ class TestSocket:
 
     def connect_tcp(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(("127.0.0.1", 8101))
+        server.bind(("127.0.0.1", 5000))
         server.listen(1)
         (connection, client_address) = server.accept()
         return connection

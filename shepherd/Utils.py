@@ -147,3 +147,4 @@ class PROTOBUF_TYPES():
     CHALLENGE_DATA = 2 # text proto
     LOG = 3 # text proto
     DEVICE_DATA = 4
+    HEARTBEAT = 7
