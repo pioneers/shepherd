@@ -56,6 +56,37 @@ class SHEPHERD_HEADER():
     REQUEST_CONNECTIONS = "request_connections"
         #REQUEST_CONNECTIONS{}
 
+    # AUTO
+
+    AUTO_TRACK_COMPLETE = "auto_track_complete"
+
+    # CITY
+
+    STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
+    FOREST_ENTRY = "forest_entry"
+
+    # FOREST
+    CONTACT_WALL = "contact_wall"
+    DESERT_ENTRY = "desert_entry"
+
+    # DESERT
+    DEHYDRATION_ENTRY = "dehydration_entry"
+
+    # DEHYDRATION
+    DEHYDRATION_BUTTON_PRESS = "dehydration_button_press"
+    DEHYDRATION_TIMER_END = "dehydration_timer_end"
+    ROBOT_DEHYDRATED_TIMER_END = "robot_dehydrated_timer_end"
+
+    # FIRE
+    COLLECT_TINDER = "collect_tinder"
+    HYPOTHERMIA_ENTRY = "hypothermia_entry"
+
+    # HYPOTHERMIA
+    FINAL_ENTRY = "final_entry"
+    
+    # FINAL
+    CROSS_FINISH_LINE = "to_end"
+
 # pylint: disable=invalid-name
 class DAWN_HEADER():
     CODES = "codes"
@@ -136,6 +167,11 @@ class TIMER_TYPES():
 class STATE():
     SETUP = "setup"
     AUTO = "auto"
-    WAIT = "wait"
-    TELEOP = "teleop"
+    CITY = "city"
+    FOREST = "forest"
+    SANDSTORM = "sandstorm"
+    DEHYDRATION = "dehydration"
+    FIRE = "fire"
+    HYPOTHERMIA = "hypothermia"
+    FINAL = "final"
     END = "end"

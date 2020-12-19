@@ -52,48 +52,18 @@ def start():
                 func(payload[1])
             else:
                 print("Invalid Event in Auto")
-        elif GAME_STATE == STATE.CITY:
-            func = CITY_FUNCTIONS.get(payload[0])
+        elif GAME_STATE == STATE.WAIT:
+            func = WAIT_FUNCTIONS.get(payload[0])
             if func is not None:
                 func(payload[1])
             else:
-                print("Invalid Event in City")
-        elif GAME_STATE == STATE.FOREST:
-            func = FOREST_FUNCTIONS.get(payload[0])
+                print("Invalid Event in Wait")
+        elif GAME_STATE == STATE.TELEOP:
+            func = TELEOP_FUNCTIONS.get(payload[0])
             if func is not None:
                 func(payload[1])
             else:
-                print("Invalid Event in Forest")
-        elif GAME_STATE == STATE.SANDSTORM:
-            func = SANDSTORM_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Sandstorm")
-        elif GAME_STATE == STATE.DEHYDRATION:
-            func = DEHYDRATION_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Dehydration")
-        elif GAME_STATE == STATE.FIRE:
-            func = FIRE_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Fire")
-        elif GAME_STATE == STATE.HYPOTHERMIA:
-            func = HYPOTHERMIA_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Hypothermia")
-        elif GAME_STATE == STATE.FINAL:
-            func = FINAL_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Final")
+                print("Invalid Event in Teleop")
         elif GAME_STATE == STATE.END:
             func = END_FUNCTIONS.get(payload[0])
             if func is not None:
@@ -112,6 +82,24 @@ def to_setup(args):
     global GAME_STATE
     global STARTING_SPOTS
 
+    b1_name, b1_num, b1_starting_spot = args["b1name"], args["b1num"], args["b1_starting_spot"]
+    b2_name, b2_num, b2_starting_spot = args["b2name"], args["b2num"], args["b2_starting_spot"]
+    g1_name, g1_num, g1_starting_spot = args["g1name"], args["g1num"], args["g1_starting_spot"]
+    g2_name, g2_num, g2_starting_spot = args["g2name"], args["g2num"], args["g2_starting_spot"]
+
+    g1_custom_ip = args["g1_custom_ip"] or None
+    g2_custom_ip = args["g2_custom_ip"] or None
+    b1_custom_ip = args["b1_custom_ip"] or None
+    b2_custom_ip = args["b2_custom_ip"] or None
+
+    STARTING_SPOTS = [b1_starting_spot, b2_starting_spot, g1_starting_spot, g2_starting_spot]
+
+    if GAME_STATE == STATE.END:
+        flush_scores()
+
+    MATCH_NUMBER = args["match_num"]
+
+    if ALLIANCES[ALLIANCE_COLOR.BLUE] is not None:
         reset()
 
     #code_setup()
@@ -414,78 +402,38 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
     SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
-    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
-    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code
+    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto
 }
 
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.STAGE_TIMER_END : to_wait,
+    #SHEPHERD_HEADER.CODE_APPLICATION : auto_apply_code,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
+    #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: enter_city,
-    SHEPHERD_HEADER.STAGE_TIMER_END: enter_ciy
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+
+    }
+
+WAIT_FUNCTIONS = {
+    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
+    SHEPHERD_HEADER.GET_SCORES : get_score,
+    SHEPHERD_HEADER.START_NEXT_STAGE : to_teleop,
+    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
 }
 
-CITY_FUNCTIONS = {
+TELEOP_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.STAGE_TIMER_END : to_end,
+    #SHEPHERD_HEADER.CODE_APPLICATION : apply_code,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
+    #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
-    SHEPHERD_HEADER.FOREST_ENTRY: enter_forest
-}
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
 
-FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DESERT_ENTRY: enter_desert
-}
-
-SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: enter_dehydration
-}
-
-DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
-    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: robot_dehydration_timer_start,
-    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: robot_dehydration_timer_end
-}
-
-FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.COLLECT_TINDER: collect_tinder,
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: enter_hypothermia
-}
-
-HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.FINAL_ENTRY: enter_final
-}
-
-FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end
 }
 
 END_FUNCTIONS = {
