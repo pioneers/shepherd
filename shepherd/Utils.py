@@ -82,6 +82,7 @@ class SHEPHERD_HEADER():
     # FIRE
     COLLECT_TINDER = "collect_tinder"
     HYPOTHERMIA_ENTRY = "hypothermia_entry"
+    TOGGLE_FIRE = "toggle_fire"
 
     # HYPOTHERMIA
     AIRPORT_ENTRY = "to_airport"
