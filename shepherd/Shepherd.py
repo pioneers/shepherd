@@ -13,6 +13,8 @@ from runtimeclient import RuntimeClientManager
 import Sheet
 import bot
 import audio
+import Robot
+import Field
 
 
 clients = RuntimeClientManager((), ())
@@ -407,6 +409,175 @@ def send_connections(args):
     # lcm_send(LCM_TARGETS.UI, UI_HEADER.CONNECTIONS, msg)
 
 ###########################################
+# Spring 2020 Game
+###########################################
+
+# ----------
+# SETUP STAGE
+# ----------
+
+def check_code(args):
+    '''
+    Check the coding challenges and act appropriately
+    '''
+
+# ----------
+# AUTO STAGE
+# ----------
+
+# TODO: traffic sig_
+
+def to_city(args):
+    '''
+    Go to the city stage
+    '''
+    global ROBOT
+    ROBOT.state = STATE.CITY
+
+# ----------
+# CITY STAGE
+# ----------
+
+def stoplight_button_press(args):
+    '''
+    Triggered by a press of the stoplight button
+    '''
+    global ROBOT
+    if ROBOT.pass_all_coding_challenges():
+        # robot can pass through, but hasn't reach forest yet, so no state change yet
+
+def stoplight_pe_alty(args):
+
+
+def to_forest(args):
+    '''
+    Go to the forest stage
+    '''
+    global ROBOT
+    ROBOT.state = STATE.FOREST
+
+# ----------
+# FOREST STAGE
+# ----------
+
+def contact_wall(args):
+    '''
+    Triggered when the robot hits the wall
+    '''
+    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.REVERSE_TEN_SECONDS, {})
+
+def to_desert(args):
+    '''
+    Go to the sandstorm stage
+    '''
+    global ROBOT
+    ROBOT.state = STATE.SANDSTORM
+    if ROBOT.pass_coding_challenges(n=1) == 0:
+        # TODO: start timer
+        # TODO: obscure vision
+
+# ----------
+# SANDSTORM STAGE
+# ----------
+
+def sandstorm_timer_end(args):
+    # TODO: un-obscure vision
+
+def to_dehydration(args):
+    '''
+    Go to the dehydration stage
+    '''
+    global ROBOT, FIELD
+    ROBOT.state = STATE.DEHYDRATION
+    # TODO: start "water getting" timer
+    FIELD.illuminate_buttons(ROBOT)
+
+# ----------
+# DEHYDRATION STAGE
+# ----------
+
+def dehydration_button_press(args):
+    '''
+    Triggered when dehydration button is pressed
+    '''
+    global ROBOT, FIELD
+    button_number = int(args["button"])
+    if FIELD.press_button_and_check(button_number):
+        ROBOT.state = STATE.FIRE
+
+
+def robot_dehydration_timer_start(args):
+    '''
+    Triggered when robot gets dehydrated ("water getting" timer runs out)
+    '''
+    # TODO: start dehydration timer
+    # TODO: stop robot
+
+def robot_dehydration_timer_end(args):
+    '''
+    Triggered when robot dehydration ends
+    '''
+    global ROBOT
+    ROBOT.state = STATE.FIRE
+    # TODO: restart robot
+
+
+# ----------
+# FIRE STAGE
+# ----------
+
+def collect_tinder(args):
+    '''
+    This method collects one more tinder
+    1 tinder = fire is lit for one round.
+    2 tinder = fire is lit for two rounds.
+    3 tinder = fire is lit for three rounds.
+    '''
+    global TINDER
+    TINDER += 1
+
+def toggle_fire(args):
+    '''
+    Toggle the fire.
+    '''
+    global FIRE_LIT
+    if not FIRE_LIT:
+        # TODO: light fire
+        FIRE_LIT = True
+    else:
+        FIRE_LIT = False
+
+def to_hypothermia(args):
+    '''
+    Go to the hypothermia zone in the forest biome.
+    '''
+    global ROBOT
+    ROBOT.state = STATE.HYPOTHERMIA
+
+# ----------
+# HYPOTHERMIA STAGE
+# ----------
+
+def to_airport(args):
+    '''
+    Go to the airport stage.
+    '''
+    global ROBOT
+    ROBOT.state = STATE.AIRPORT
+
+# ----------
+# AIRPORT STAGE
+# ----------
+
+def to_end(args):
+    '''
+    Go to the end state.
+    '''
+    global ROBOT
+    ROBOT.state = STATE.END
+
+
+###########################################
 # Event to Function Mappings for each Stage
 ###########################################
 
@@ -424,7 +595,7 @@ AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: enter_city,
-    SHEPHERD_HEADER.STAGE_TIMER_END: enter_ciy
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_ciy
 }
 
 CITY_FUNCTIONS = {
@@ -433,7 +604,8 @@ CITY_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
-    SHEPHERD_HEADER.FOREST_ENTRY: enter_forest
+    SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
+    SHEPHERD_HEADER.FOREST_ENTRY: to_forest
 }
 
 FOREST_FUNCTIONS = {
@@ -442,7 +614,7 @@ FOREST_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DESERT_ENTRY: enter_desert
+    SHEPHERD_HEADER.DESERT_ENTRY: to_desert
 }
 
 SANDSTORM_FUNCTIONS = {
@@ -450,7 +622,8 @@ SANDSTORM_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: enter_dehydration
+    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 DEHYDRATION_FUNCTIONS = {
@@ -460,7 +633,8 @@ DEHYDRATION_FUNCTIONS = {
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: robot_dehydration_timer_start,
-    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: robot_dehydration_timer_end
+    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: robot_dehydration_timer_end,
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 FIRE_FUNCTIONS = {
@@ -469,7 +643,9 @@ FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.COLLECT_TINDER: collect_tinder,
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: enter_hypothermia
+    SHEPHERD_HEADER.TOGGLE_FIRE: toggle_fire,
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 HYPOTHERMIA_FUNCTIONS = {
@@ -477,10 +653,10 @@ HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.FINAL_ENTRY: enter_final
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final
 }
 
-FINAL_FUNCTIONS = {
+AIRPORT_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_MATCH : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
@@ -505,6 +681,8 @@ END_FUNCTIONS = {
 
 GAME_STATE = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
+ROBOT = Robot()
+FIELD = Field()
 
 MATCH_NUMBER = -1
 ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
@@ -523,7 +701,11 @@ STUDENT_DECODE_TIMER = Timer(TIMER_TYPES.STUDENT_DECODE)
 
 CODES_USED = []
 
-#nothing
+###########################################
+# 2020 Game Specific Variables
+###########################################
+TINDER = 0
+FIRE_LIT = False
 
 def main():
     """Main function"""

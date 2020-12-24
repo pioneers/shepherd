@@ -63,6 +63,7 @@ class SHEPHERD_HEADER():
     # CITY
 
     STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
+    STOPLIGHT_PENALTY = "stoplight_penalty"
     FOREST_ENTRY = "forest_entry"
 
     # FOREST
@@ -70,6 +71,7 @@ class SHEPHERD_HEADER():
     DESERT_ENTRY = "desert_entry"
 
     # DESERT
+    SANDSTORM_TIMER_END = "sandstorm_timer_end"
     DEHYDRATION_ENTRY = "dehydration_entry"
 
     # DEHYDRATION
@@ -82,9 +84,9 @@ class SHEPHERD_HEADER():
     HYPOTHERMIA_ENTRY = "hypothermia_entry"
 
     # HYPOTHERMIA
-    FINAL_ENTRY = "final_entry"
-    
-    # FINAL
+    AIRPORT_ENTRY = "to_airport"
+
+    # AIRPORT
     CROSS_FINISH_LINE = "to_end"
 
 # pylint: disable=invalid-name
@@ -105,6 +107,7 @@ class RUNTIME_HEADER():
         # robot ip is 192.168.128.teamnumber
     DECODE = "decode"
         # DECODE{team_number, seed}
+    REVERSE_TEN_SECONDS = "reverse_ten_seconds"
 
 # pylint: disable=invalid-name
 class UI_HEADER():
@@ -173,5 +176,5 @@ class STATE():
     DEHYDRATION = "dehydration"
     FIRE = "fire"
     HYPOTHERMIA = "hypothermia"
-    FINAL = "final"
+    AIRPORT = "airport"
     END = "end"
