@@ -4,11 +4,13 @@ import random
 import time
 import datetime
 import traceback
+from datetime import datetime
 from Alliance import *
 from LCM import *
 from Timer import *
 from Utils import *
 from Code import *
+# TODO: import protos and change things like "auto" to Mode.AUTO
 from runtimeclient import RuntimeClientManager
 import Sheet
 import bot
@@ -106,35 +108,29 @@ def start():
 #pylint: disable=too-many-locals
 def to_setup(args):
     '''
-    Move to the setup stage which is should push scores from previous game to spreadsheet,
+    Move to the setup stage which should push scores from previous game to spreadsheet,
     load the teams for the upcoming match, reset all state, and send information to scoreboard.
     By the end, should be ready to start match.
     '''
     global MATCH_NUMBER
     global GAME_STATE
     global STARTING_SPOTS
+    global ROBOT
 
-        reset()
+    reset()
 
     #code_setup()
 
-    ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(ALLIANCE_COLOR.BLUE, b1_name,
-                                              b1_num, b2_name, b2_num, b1_custom_ip, b2_custom_ip)
-    ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(ALLIANCE_COLOR.GOLD, g1_name,
-                                              g1_num, g2_name, g2_num, g1_custom_ip, g2_custom_ip)
+    name, num, alliance = args["name"], args["num"], args["alliance"]
+    custom_ip = args["custom_ip"] or None
 
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAMS, {
-        "b1name" : b1_name, "b1num" : b1_num,
-        "b2name" : b2_name, "b2num" : b2_num,
-        "g1name" : g1_name, "g1num" : g1_num,
-        "g2name" : g2_name, "g2num" : g2_num,
-        "match_num" : MATCH_NUMBER})
+    ROBOT = Robot(name, num, alliance, custom_ip)
+
+    # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
-    print({"blue_score" : ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-           "gold_score" : ALLIANCES[ALLIANCE_COLOR.GOLD].score})
 
 def to_auto(args):
     '''
@@ -143,63 +139,24 @@ def to_auto(args):
     stage to be called and autonomous match timer should have begun.
     '''
     #pylint: disable= no-member
-    global GAME_STATE
+    global GAME_STATE, ROBOT
     global clients
     try:
-        alternate_connections = (ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_custom_ip)
-
-        clients = RuntimeClientManager((
-            int(ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_number),
-            int(ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_number),
-        ), (
-            int(ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_number),
-            int(ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_number),
-        ), *alternate_connections)
-        clients.set_MASTER_ROBOTS(MASTER_ROBOTS[ALLIANCE_COLOR.BLUE],
-                                  MASTER_ROBOTS[ALLIANCE_COLOR.GOLD])
-        clients.set_starting_zones(STARTING_SPOTS)
+        clients = RuntimeClientManager()
+        clients.get_clients([ROBOT.custom_ip])
     except Exception as exc:
         log(exc)
         return
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME + 2)
+    #The +2 is a lag compensation and honestly we should work on removing it.
     GAME_STATE = STATE.AUTO
+    ROBOT.start_time = datetime.now()
+    STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     enable_robots(True)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
              {"time" : CONSTANTS.AUTO_TIME})
     print("ENTERING AUTO STATE")
-
-def to_wait(args):
-    '''
-    Move to the waiting stage, between autonomous and teleop periods.
-    By the end, should be in wait state and the robots should be disabled.
-    Some years, there might be methods that can be called once in the wait stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.WAIT
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-    disable_robots()
-    print("ENTERING WAIT STATE")
-
-def to_teleop(args):
-    '''
-    Move to teleoperated stage where robots are enabled and controlled manually.
-    By the end, should be in teleop state and the teleop match timer should be started.
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.TELEOP
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-
-    Timer.reset_all()
-    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME + 2)
-
-    enable_robots(False)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
-             {"time" : CONSTANTS.TELEOP_TIME})
-    print("ENTERING TELEOP STATE")
 
 def to_end(args):
     '''
@@ -221,23 +178,18 @@ def reset(args=None):
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, clients
+    global GAME_STATE, EVENTS, clients, ROBOT
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.RESET_TIMERS)
-    for alliance in ALLIANCES.values():
-        if alliance is not None:
-            alliance.reset()
-    send_connections(None)
-    #STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
-    clients = RuntimeClientManager((), ())
+    ROBOT.reset()
+
+    send_connections(None) # currently does nothing
+    clients = RuntimeClientManager()
     disable_robots()
-    BUTTONS['gold_1'] = False
-    BUTTONS['gold_2'] = False
-    BUTTONS['blue_1'] = False
-    BUTTONS['blue_2'] = False
+
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
     lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
@@ -255,20 +207,20 @@ def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    blue_score, gold_score = args["blue_score"], args["gold_score"]
-    ALLIANCES[ALLIANCE_COLOR.BLUE].score = blue_score
-    ALLIANCES[ALLIANCE_COLOR.GOLD].score = gold_score
+    time, penalty = args["time"], args["penalty"]
+    ROBOT.elapsed_time = time
+    ROBOT.penalty = penalty
+
+    # TODO: update lcm send
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
              {"alliance" : ALLIANCES[ALLIANCE_COLOR.BLUE].name,
               "score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score)})
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
-             {"alliance" : ALLIANCES[ALLIANCE_COLOR.GOLD].name,
-              "score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
 
 def get_score(args):
     '''
     Send the current blue and gold score to the UI
     '''
+    # TODO: update lcm send
     if ALLIANCES[ALLIANCE_COLOR.BLUE] is None:
         lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
                  {"blue_score" : None,
@@ -289,7 +241,7 @@ def flush_scores():
 
 def enable_robots(autonomous):
     '''
-    Sends message to Dawn to enable all robots. The argument should be a boolean
+    Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
     try:
@@ -333,8 +285,7 @@ def log(Exception):
     file.write("all relevant data may be found below.\n")
     file.write("match: " + str(MATCH_NUMBER)+"\n")
     file.write("game state: " + str(GAME_STATE)+"\n")
-    file.write("gold alliance: " + str(ALLIANCES[ALLIANCE_COLOR.GOLD])+"\n")
-    file.write("blue alliance: " + str(ALLIANCES[ALLIANCE_COLOR.BLUE])+"\n")
+    file.write("robot: " + str(ROBOT)+"\n")
     file.write("game timer running?: " + str(GAME_TIMER.is_running())+"\n")
     file.write("the last received header was:" + str(LAST_HEADER)+"\n")
     file.write("a stacktrace of the error may be found below\n")
@@ -431,30 +382,39 @@ def to_city(args):
     '''
     Go to the city stage
     '''
-    global ROBOT
-    ROBOT.state = STATE.CITY
+    global GAME_STATE
+    enable_robots(False)
+    GAME_TIMER.reset()
+    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
+    # TODO: stopwatch for course time
+    if STOPLIGHT_TIMER.is_running():
+        stoplight_penalty()
+    GAME_STATE = STATE.CITY
 
 # ----------
 # CITY STAGE
 # ----------
 
+def stoplight_timer_end(args):
+    # turn stoplight green
+    STOPLIGHT_TIMER.reset()
+
 def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    global ROBOT
     if ROBOT.pass_all_coding_challenges():
-        # robot can pass through, but hasn't reach forest yet, so no state change yet
+        stoplight_timer_end([])
 
-def stoplight_pe_alty(args):
-
+def stoplight_penalty():
+    # whatever the penalty is
 
 def to_forest(args):
     '''
     Go to the forest stage
     '''
-    global ROBOT
-    ROBOT.state = STATE.FOREST
+    global GAME_STATE
+    GAME_STATE = STATE.FOREST
 
 # ----------
 # FOREST STAGE
@@ -470,10 +430,10 @@ def to_desert(args):
     '''
     Go to the sandstorm stage
     '''
-    global ROBOT
-    ROBOT.state = STATE.SANDSTORM
+    global GAME_STATE
+    GAME_STATE = STATE.SANDSTORM
     if ROBOT.pass_coding_challenges(n=1) == 0:
-        # TODO: start timer
+        SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         # TODO: obscure vision
 
 # ----------
@@ -487,9 +447,9 @@ def to_dehydration(args):
     '''
     Go to the dehydration stage
     '''
-    global ROBOT, FIELD
-    ROBOT.state = STATE.DEHYDRATION
-    # TODO: start "water getting" timer
+    global GAME_STATE
+    GAME_STATE = STATE.DEHYDRATION
+    DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
     FIELD.illuminate_buttons(ROBOT)
 
 # ----------
@@ -500,26 +460,27 @@ def dehydration_button_press(args):
     '''
     Triggered when dehydration button is pressed
     '''
-    global ROBOT, FIELD
+    global GAME_STATE
     button_number = int(args["button"])
     if FIELD.press_button_and_check(button_number):
-        ROBOT.state = STATE.FIRE
+        DEHYDRATION_TIMER.reset() # stop dehydration timer so it doesn't run out
+        GAME_STATE = STATE.FIRE
 
 
-def robot_dehydration_timer_start(args):
+def dehydration_penalty_timer_start(args):
     '''
-    Triggered when robot gets dehydrated ("water getting" timer runs out)
+    Triggered when robot gets dehydrated ("water getting" timer runs out). Starts the penalty timer and forcibly stops the robot.
     '''
-    # TODO: start dehydration timer
-    # TODO: stop robot
+    ROBOT_DEHYDRATED_TIMER.start_timer(CONSTANTS.ROBOT_DEHYDRATED_TIME)
+    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.STOP_ROBOT, {})
 
-def robot_dehydration_timer_end(args):
+def dehydration_penalty_timer_end(args):
     '''
-    Triggered when robot dehydration ends
+    Triggered when robot dehydration ends.
     '''
-    global ROBOT
-    ROBOT.state = STATE.FIRE
-    # TODO: restart robot
+    global GAME_STATE
+    GAME_STATE = STATE.FIRE
+    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.START_ROBOT, {})
 
 
 # ----------
@@ -551,8 +512,8 @@ def to_hypothermia(args):
     '''
     Go to the hypothermia zone in the forest biome.
     '''
-    global ROBOT
-    ROBOT.state = STATE.HYPOTHERMIA
+    global GAME_STATE
+    GAME_STATE = STATE.HYPOTHERMIA
 
 # ----------
 # HYPOTHERMIA STAGE
@@ -562,8 +523,8 @@ def to_airport(args):
     '''
     Go to the airport stage.
     '''
-    global ROBOT
-    ROBOT.state = STATE.AIRPORT
+    global GAME_STATE
+    GAME_STATE = STATE.AIRPORT
 
 # ----------
 # AIRPORT STAGE
@@ -573,8 +534,16 @@ def to_end(args):
     '''
     Go to the end state.
     '''
-    global ROBOT
-    ROBOT.state = STATE.END
+    global GAME_STATE
+    GAME_STATE = STATE.END
+    disable_robots()
+    ROBOT.end_time = datetime.now()
+    # TODO: update scoreboard header and pass time instead of score
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
+            {"blue_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
+            "gold_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
+    GAME_STATE = STATE.END
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
 
 
 ###########################################
@@ -594,8 +563,9 @@ AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: enter_city,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_ciy
+    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
+    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_city
 }
 
 CITY_FUNCTIONS = {
@@ -603,6 +573,9 @@ CITY_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city,
+    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
     SHEPHERD_HEADER.FOREST_ENTRY: to_forest
@@ -613,6 +586,7 @@ FOREST_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
     SHEPHERD_HEADER.DESERT_ENTRY: to_desert
 }
@@ -622,6 +596,7 @@ SANDSTORM_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
@@ -631,9 +606,10 @@ DEHYDRATION_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
-    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: robot_dehydration_timer_start,
-    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: robot_dehydration_timer_end,
+    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
+    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: dehydration_penalty_timer_end,
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
@@ -642,6 +618,7 @@ FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.COLLECT_TINDER: collect_tinder,
     SHEPHERD_HEADER.TOGGLE_FIRE: toggle_fire,
     SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
@@ -653,6 +630,7 @@ HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.FINAL_ENTRY: to_final
 }
 
@@ -661,6 +639,7 @@ AIRPORT_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end
 }
 
@@ -681,6 +660,10 @@ END_FUNCTIONS = {
 
 GAME_STATE = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
+STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
+SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
+DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
+ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
 ROBOT = Robot()
 FIELD = Field()
 

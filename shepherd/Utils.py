@@ -25,7 +25,7 @@ class SHEPHERD_HEADER():
         # GET_SCORES{}: gets scores of the match
 
     SCORE_ADJUST = "score_adjust"
-        # SCORE_ADJUST{blue_score, gold_score}: adjusts the current scores to the input scores
+        # SCORE_ADJUST{time, penalty}: adjusts the current scores to the input scores
 
     STAGE_TIMER_END = "stage_timer_end"
         # STAGE_TIMER_END{}: ends the stage's timer
@@ -62,6 +62,7 @@ class SHEPHERD_HEADER():
 
     # CITY
 
+    STOPLIGHT_TIMER_END = "stoplight_timer_end"
     STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
     STOPLIGHT_PENALTY = "stoplight_penalty"
     FOREST_ENTRY = "forest_entry"
@@ -109,6 +110,8 @@ class RUNTIME_HEADER():
     DECODE = "decode"
         # DECODE{team_number, seed}
     REVERSE_TEN_SECONDS = "reverse_ten_seconds"
+    START_ROBOT = "start_robot"
+    STOP_ROBOT = "stop_robot"
 
 # pylint: disable=invalid-name
 class UI_HEADER():
@@ -139,8 +142,12 @@ class TABLET_HEADER():
 
 # pylint: disable=invalid-name
 class CONSTANTS():
-    AUTO_TIME = 30 # 30
-    TELEOP_TIME = 180 # 180
+    AUTO_TIME = 20 # 20
+    TELEOP_TIME = 280 # 280
+    STOPLIGHT_TIME = 30
+    SANDSTORM_COVER_TIME = 10
+    DEHYRATION_TIME = 30
+    ROBOT_DEHYDRATED_TIME = 10
     SPREADSHEET_ID = "1vurNOrlIIeCHEtK5aJVDfHrRM1AC2qWvIbtWqUgnmLk"
     CSV_FILE_NAME = "Sheets/fc2019.csv"
     STUDENT_DECODE_TIME = 1
@@ -166,6 +173,14 @@ class TIMER_TYPES():
              "FUNCTION":SHEPHERD_HEADER.STAGE_TIMER_END}
     STUDENT_DECODE = {"TYPE":"student_decode", "NEEDS_FUNCTION": True,
                       "FUNCTION":SHEPHERD_HEADER.CODE_RETRIEVAL}
+    STOPLIGHT_WAIT = {"TYPE":"stoplight_wait", "NEEDS_FUNCTION": True,
+                      "FUNCTION":SHEPHERD_HEADER.STOPLIGHT_TIMER_END} #this should be a sensor header to turn the stoplight green
+    SANDSTORM_COVER = {"TYPE":"sandstorm_cover", "NEEDS_FUNCTION": True,
+                      "FUNCTION":SHEPHERD_HEADER.SANDSTORM_TIMER_END}
+    DEHYDRATION = {"TYPE":"dehydrated", "NEEDS_FUNCTION": True,
+                      "FUNCTION":SHEPHERD_HEADER.DEHYDRATION_TIMER_END}
+    ROBOT_DEHYDRATED = {"TYPE":"robot_dehydrated", "NEEDS_FUNCTION": True,
+                      "FUNCTION":SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END}
 
 # pylint: disable=invalid-name
 class STATE():
