@@ -225,7 +225,7 @@ def process_line(line):
     Takes in a line of the script and identifies the statement being used.
     Calls the correct executing function on the remainder of the line.
     Enforces that all lines start with a valid statement, and attaches
-    additional information to errors thrown by the executing funcions.
+    additional information to errors thrown by the executing functions.
 
     """
     global LINE
@@ -327,7 +327,7 @@ def pass_function(expression):
     """
     The function that parses PASS statements.
     Enforces syntax and will print out the result as well as exit the script
-    interpretter if the test is passed.
+    interpreter if the test is passed.
     """
     expression = remove_outer_spaces(expression)
     if expression == '' or evaluate_python(expression):
