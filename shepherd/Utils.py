@@ -6,23 +6,40 @@ class SHEPHERD_HEADER():
     RESET_CURRENT_STAGE = "reset_current_stage"
         # RESET_CURRENT_STAGE{}: resets the current stage
 
+    # TODO: revisit
     RESET_MATCH = "reset_match"
         # RESET_MATCH{}: resets the current match
+    
+    # TODO: do
+    RESET_ROUND = "reset_round"
+        # RESET_ROUND{}: resets the current round, preserving relevant state from the previous round.
 
-    GET_MATCH_INFO = "get_match_info"
-        # GET_MATCH_INFO{match_number}: gets match info for given match number
+    # TODO: make work for 2021
+    GET_ROUND_INFO = "get_match_info"
+        # GET_ROUND_INFO{match_number, round}: gets match info for given match number
 
+    # TODO: fix for 2021
     SETUP_MATCH = "setup_match"
         # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
         # sets up the match given the corresponding info about the teams and match number
         # also has {g1_custom_ip, g2_custom_ip, b1_custom_ip, b2_custom_ip}
 
+    # TODO: do
+    SETUP_ROUND = "setup_round"
+        # SETUP_ROUND{teamname, team#, match#, round#, tinder, buttons}
+
     GET_CONNECTION_STATUS = "get_connection_status"
         # GET_CONNECTION_STATUS{}: requested from the Staff UI to check robot
         # connection statuses
 
+    GET_GAME_INFO = "get_game_info"
+        # GET_GAME_INFO{}: gets tinder/activated buttons
+
+    UPDATE_TINDER = "update_tinder"
+        # UPDATE_TINDER{tinder}: updates the amount of tinder
+
     GET_SCORES = "get_scores"
-        # GET_SCORES{}: gets scores of the match
+        # GET_SCORES{}: get time and penalty time of robot
 
     SCORE_ADJUST = "score_adjust"
         # SCORE_ADJUST{time, penalty}: adjusts the current scores to the input scores
@@ -69,6 +86,7 @@ class SHEPHERD_HEADER():
 
     # FOREST
     CONTACT_WALL = "contact_wall"
+        # CONTACT_WALL{}: wall was contacted
     DESERT_ENTRY = "desert_entry"
 
     # DESERT
@@ -115,18 +133,34 @@ class RUNTIME_HEADER():
 
 # pylint: disable=invalid-name
 class UI_HEADER():
+    """
+    These are headers used by Shepherd to send information to the Staff UI.
+    """
     TEAMS_INFO = "teams_info"
     SCORES = "scores"
+        # SCORES{time[seconds], penalty[seconds]}
+    # TODO: update for one robot
     CONNECTIONS = "connections"
-    #CONNECTIONS{g_1_connection[True/False], g_2_connection[True/False],
-    # b_1_connection[True/False], b_2_connection[True/False]}
+        # CONNECTIONS{g_1_connection[True/False], g_2_connection[True/False],
+        # b_1_connection[True/False], b_2_connection[True/False]}
+    GAME_INFO = "game_info"
+        # GAME_INFO{tinder, buttons activated}
+    SENSORS_INFO = "sensors_info"
+        # SENSORS_INFO{tinder}
 
 # pylint: disable=invalid-name
 class SCOREBOARD_HEADER():
-    SCORE = "score"
-    TEAMS = "teams"
+    """
+    These are headers used by Shepherd to send information to the Scoreboard.
+    """
+    SCORES = "scores"
+     # SCORES{time, penalty}
+    TEAM = "team"
+     # TEAM{teamname, team#}
     STAGE = "stage"
+     # STAGE{stage}
     STAGE_TIMER_START = "stage_timer_start"
+    STAGE_TIMER_STOP = "stage_timer_stop"
     RESET_TIMERS = "reset_timers"
     ALL_INFO = "all_info"
 
