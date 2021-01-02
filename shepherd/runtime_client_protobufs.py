@@ -7,7 +7,7 @@ from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from Utils import *
-from LCM import *
+# from LCM import *
 import socket
 
 PORT_RASPI = 8101
@@ -24,9 +24,9 @@ class RuntimeClient:
 
     def receive_challenge_data(self):
         print("incoming")
-        msg_type = int.from_bytes(self.sock.recv(1), "big")
+        msg_type = int.from_bytes(self.sock.recv(1), "little")
         print("msg_type: " + str(msg_type))
-        msg_length = int.from_bytes(self.sock.recv(2), "big")
+        msg_length = int.from_bytes(self.sock.recv(2), "little")
         print("msg_length: " + str(msg_length))
         msg = self.sock.recv(msg_length)
 
@@ -45,7 +45,7 @@ class RuntimeClient:
         run_mode = run_mode_pb2.RunMode()
         run_mode.mode = mode
         bytearr = bytearray(run_mode.SerializeToString())
-        self.sock.send(bytearray([len(bytearr)]))
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
 
 
@@ -55,7 +55,7 @@ class RuntimeClient:
         start_pos = start_pos_pb2.StartPos()
         start_pos.pos = pos
         bytearr = bytearray(start_pos.SerializeToString())
-        self.sock.send(len(bytearr).to_bytes(2, "big"))
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
 
 
@@ -65,8 +65,10 @@ class RuntimeClient:
         text = text_pb2.Text()
         text.payload.extend(data)
         bytearr = bytearray(text.SerializeToString())
-        self.sock.send(len(bytearr).to_bytes(2, "big"))
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
+        # Listen for challenge outputs
+        self.receive_challenge_data()
 
 
     def check_connection(self):
@@ -78,7 +80,7 @@ class RuntimeClient:
 
     def connect_tcp(self):
         # self.sock.connect(("127.0.0.1", int(self.host_url))) # todo: should be (self.host_url, PORT_RASPI)
-        self.sock.connect(self.host_url, PORT_RASPI)
+        self.sock.connect((self.host_url, PORT_RASPI))
 
 class RuntimeClientManager:
 
@@ -128,10 +130,11 @@ class RuntimeClientManager:
 
 read = False
 manager = RuntimeClientManager()
-manager.get_clients(["8000", "5000"]) # should be IP addresses in actual use
+manager.get_clients(["192.168.29.1"]) # should be IP addresses in actual use
 while True:
-    if len(manager.clients) == 2 and not read:
-        manager.receive_all_challenge_data()
+    if len(manager.clients) == 1 and not read:
+        # manager.receive_all_challenge_data()
         # manager.send_challenge_data(["hello"])
-        manager.check_connections()
+        manager.send_challenge_data(["12"])
+        # manager.check_connections()
         read = True
