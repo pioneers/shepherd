@@ -15,7 +15,7 @@ from runtimeclient import RuntimeClientManager
 import Sheet
 import bot
 import audio
-import Robot
+from Robot import Robot
 import Field
 
 
@@ -173,6 +173,7 @@ def to_end(args):
     print("ENTERING END STATE")
 
 def reset(args=None):
+    # TODO: this should be reset round i.e. go to the tinder and buttons pressed of the previous round.
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
     Should reset all state being tracked by Shepherd.
@@ -407,7 +408,8 @@ def stoplight_button_press(args):
         stoplight_timer_end([])
 
 def stoplight_penalty():
-    # whatever the penalty is
+    # whatever the penalty is 
+    pass
 
 def to_forest(args):
     '''
@@ -442,6 +444,7 @@ def to_desert(args):
 
 def sandstorm_timer_end(args):
     # TODO: un-obscure vision
+    pass
 
 def to_dehydration(args):
     '''
@@ -519,7 +522,7 @@ def to_hypothermia(args):
 # HYPOTHERMIA STAGE
 # ----------
 
-def to_airport(args):
+def to_final(args):
     '''
     Go to the airport stage.
     '''
@@ -559,7 +562,7 @@ SETUP_FUNCTIONS = {
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -569,7 +572,7 @@ AUTO_FUNCTIONS = {
 }
 
 CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -582,7 +585,7 @@ CITY_FUNCTIONS = {
 }
 
 FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -592,17 +595,17 @@ FOREST_FUNCTIONS = {
 }
 
 SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration
+    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration,
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -614,7 +617,7 @@ DEHYDRATION_FUNCTIONS = {
 }
 
 FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -626,7 +629,7 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -635,7 +638,7 @@ HYPOTHERMIA_FUNCTIONS = {
 }
 
 AIRPORT_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -644,7 +647,7 @@ AIRPORT_FUNCTIONS = {
 }
 
 END_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
+    SHEPHERD_HEADER.RESET_ROUND : reset,
     SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
     SHEPHERD_HEADER.GET_SCORES : get_score,
     SHEPHERD_HEADER.SETUP_MATCH : to_setup,
@@ -664,8 +667,8 @@ STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
 SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
 DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
 ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
-ROBOT = Robot()
-FIELD = Field()
+ROBOT = None
+FIELD = None
 
 MATCH_NUMBER = -1
 ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}

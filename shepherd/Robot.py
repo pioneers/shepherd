@@ -36,4 +36,4 @@ class Robot:
         return sum([self.coding_challenge[i] for i in to_sample])
 
     def __str__(self):
-        return f"{num} {name}"
+        return f"{self.number} {self.name}"

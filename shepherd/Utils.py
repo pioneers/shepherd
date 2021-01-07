@@ -34,6 +34,9 @@ class SHEPHERD_HEADER():
 
     GET_GAME_INFO = "get_game_info"
         # GET_GAME_INFO{}: gets tinder/activated buttons
+    
+    GET_MATCH_INFO = "get_match_info"
+        # GET_MATCH_InFO{}: sends match info to the UI
 
     UPDATE_TINDER = "update_tinder"
         # UPDATE_TINDER{tinder}: updates the amount of tinder
@@ -104,7 +107,7 @@ class SHEPHERD_HEADER():
     TOGGLE_FIRE = "toggle_fire"
 
     # HYPOTHERMIA
-    AIRPORT_ENTRY = "to_airport"
+    FINAL_ENTRY = "to_final"
 
     # AIRPORT
     CROSS_FINISH_LINE = "to_end"
@@ -140,9 +143,8 @@ class UI_HEADER():
     SCORES = "scores"
         # SCORES{time[seconds], penalty[seconds]}
     # TODO: update for one robot
-    CONNECTIONS = "connections"
-        # CONNECTIONS{g_1_connection[True/False], g_2_connection[True/False],
-        # b_1_connection[True/False], b_2_connection[True/False]}
+    CONNECTIONS = "connections" # TODO: ask Matt why this function is commented out
+        # CONNECTIONS{robot_connection[True/False]}
     GAME_INFO = "game_info"
         # GAME_INFO{tinder, buttons activated}
     SENSORS_INFO = "sensors_info"
