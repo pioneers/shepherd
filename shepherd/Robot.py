@@ -3,14 +3,13 @@ from Utils import *
 
 class Robot:
 
-    def __init__(self, name, number, alliance, custom_ip=None):
+    def __init__(self, name, number, custom_ip=None):
         self.name = name
         self.number = number
         self.custom_ip = custom_ip
         self.connection = False
-        self.alliance = alliance
 
-        self.coding_challenge = []
+        self.coding_challenge = [False] * 10 # TODO: change
         self.start_time = None
         self.end_time = None
         self.elapsed_time = None
@@ -23,6 +22,10 @@ class Robot:
     def reset(self):
         self.connection = False
 
+    def run_coding_challenges(self):
+        # TODO
+        pass
+
     def pass_all_coding_challenges(self):
         return all(self.coding_challenge)
 
@@ -32,7 +35,7 @@ class Robot:
         runs n random coding challenges
         returns how many were passed
         """
-        to_sample = random.choice(range(len(self.coding_challenge), n))
+        to_sample = random.sample(range(len(self.coding_challenge)), n)
         return sum([self.coding_challenge[i] for i in to_sample])
 
     def __str__(self):

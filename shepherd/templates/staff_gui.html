@@ -2,10 +2,10 @@
 
 <head>
   <title>Staff UI</title>
-  <script type="text/javascript" src={{url_for( 'static', filename='jquery-1.12.3.min.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='tabletop.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='lcm_ws_bridge.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
+  <!-- <script type="text/javascript" src={{url_for( 'static' , filename='tabletop.js' )}}></script> -->
+  <!-- <script type="text/javascript" src={{url_for( 'static' , filename='lcm_ws_bridge.js' )}}></script> -->
+  <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
   <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script> -->
 
   <!-- Latest compiled and minified CSS -->
@@ -52,25 +52,25 @@
     }
   </style>
   <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
 
       var socket = io('http://127.0.0.1:5000');
-      var match_num = 0
-      var round_num = 0
-      var team_num = 0
-      var team_name = ""
+      var match_num = "";
+      var round_num = "";
+      var team_num = "";
+      var team_name = "";
 
       var custom_ip = "";
 
       function getCookie(cname) {
-          var name = cname + "=";
-          var ca = document.cookie.split(';');
-          for (var i = 0; i < ca.length; i++) {
-              var c = ca[i];
-              while (c.charAt(0) == ' ') c = c.substring(1);
-              if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
-          }
-          return "";
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') c = c.substring(1);
+          if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+        }
+        return "";
       }
 
       if (getCookie("match_num") != "") {
@@ -82,21 +82,24 @@
         setDefaultTeamsInfo()
       }
 
-      socket.on('connect', function(data) {
+      socket.on('connect', function (data) {
         socket.emit('join', 'staff_gui');
       });
 
-      $("#populate-match").click(function() {
-        match_num = $("#new-match-num").val()
-        console.log(match_num)
-        socket.emit('ui-to-server-teams-info-request', JSON.stringify({"match_num" : match_num}))
+      $("#select-round").click(() => {
+        match_num = $("#select-match-number").val();
+        round_num = $("#select-round-number").val();
+        console.log("populate button pressed");
+        socket.emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       });
 
-      $("#create-match").click(function() {
+      $("#create-match").click(() => {
         setTeamsInfoVars()
-        data = {"match_num" : match_num,
-                "team_num" : team_num, "team_name" : team_name, 
-                "custom_ip" : custom_ip}
+        data = {
+          "match_num": match_num,
+          "team_num": team_num, "team_name": team_name,
+          "custom_ip": custom_ip
+        }
         socket.emit('ui-to-server-setup-match', JSON.stringify(data))
         document.cookie = "match_num=" + match_num
         document.cookie = "team_num=" + team_num
@@ -105,9 +108,13 @@
         document.cookie = "custom_ip" + custom_ip
       });
 
-      socket.on('server-to-ui-teamsinfo', function(data) {
+      socket.on('server-to-ui-teamsinfo', function (data) {
+        console.log("server-to-ui-teams-info")
         parsed_data = JSON.parse(data)
+        console.log(parsed_data)
         match_num = parsed_data.match_num
+        console.log(match_num)
+        round_num = parsed_data.round_num
         team_num = parsed_data.team_num
         team_name = parsed_data.team_name
         custom_ip = parsed_data.custom_ip // check if this is sent / used
@@ -115,41 +122,46 @@
       });
 
       function setDefaultTeamsInfo() {
-        $("match-number").val(match_num);
-        $("round-number").val(round_num);
-        $("team-number").val(team_num);
-        $("team-name").val(team_name);
+        $("#match-number").text(match_num);
+        $("#round-number").text(round_num);
+        $("#team-number").text(team_num);
+        $("#team-name").text(team_name);
       }
 
       function setTeamsInfoVars() {
-        match_num = $("#match-number").val();
-        round_num = $("#round-number").val();
-        team_num = $("#team-number").val();
-        team_name = $("#team-name").val();
+        match_num = $("#match-number").text();
+        round_num = $("#round-number").text();
+        team_num = $("#team-number").text();
+        team_name = $("#team-name").text();
       }
 
-      $("#submit-tinder").click(function() {
-        // TODO: add the info as the load
-        socket.emit('ui-to-server-game-info');
+      $("#submit-tinder").click(function () {
+        var tinder = $("#tinder").val();
+        socket.emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
       });
 
-      $("#match-start").click(function() {
+      $("#submit-buttons").click(function () {
+        var buttons = $("#buttons").val();
+        socket.emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
+      });
+
+      $("#round-start").click(function () {
         socket.emit('ui-to-server-start-next-stage');
       });
 
-     /** $("#match-next-stage").click(function() {
-        socket.emit('ui-to-server-start-next-stage')
-    });**/
+      /** $("#match-next-stage").click(function() {
+         socket.emit('ui-to-server-start-next-stage')
+     });**/
 
-     /** $("#match-reset-stage").click(function() {
-        socket.emit('ui-to-server-reset-stage')
-    });**/
+      /** $("#match-reset-stage").click(function() {
+         socket.emit('ui-to-server-reset-stage')
+     });**/
 
-      $("#round-reset").click(function() {
+      $("#round-reset").click(function () {
         socket.emit('ui-to-server-reset-match');
       });
 
-      socket.on('server-to-ui-connections', function(data) {
+      socket.on('server-to-ui-connections', function (data) {
         parsed_data = JSON.parse(data);
         toggleConnection(parsed_data.robot_connection);
         // toggleBlue1(parsed_data.b_1_connection)
@@ -164,7 +176,7 @@
         toggleLed($(".hb"), connected);
       }
 
-      function toggleLed(lightObj   , connected) {
+      function toggleLed(lightObj, connected) {
         if (connected) {
           lightObj.toggleClass("led-red", false);
         } else {
@@ -176,26 +188,27 @@
 </head>
 
 <body>
-  
+
   <nav class="navbar navbar-expand-sm navbar-light bg-light">
-  <a class="navbar-brand" href="#">Staff UI</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item active">
-        <a class="nav-link" href="../staff_gui.html">Match Creator<span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../stage_control.html">Stage Control</a>
-      </li>
-    </ul>
-  </div>
-</nav>
+    <a class="navbar-brand" href="#">Staff UI</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item active">
+          <a class="nav-link" href="../staff_gui.html">Match Creator<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="../stage_control.html">Stage Control</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
 
   <div class="container" style="max-width:1405px">
 
@@ -203,16 +216,19 @@
       <div class="btn-group bottom-padding" role="group" aria-label="...">
         <h3 id="match-number">Match #</h3>
         <h3 id="round-number">Round #</h3>
-        <button type="button" class="btn btn-success" id="next-round"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Next Round</button>
-        <button type="button" class="btn btn-success" id="next-match"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Next Match</button>
-        <button type="button" class="btn btn-success" id="select-round"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Populate</button>
+        <button type="button" class="btn btn-success" id="next-round"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Next Round</button>
+        <button type="button" class="btn btn-success" id="next-match"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Next Match</button>
+        <button type="button" class="btn btn-success" id="select-round"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Populate</button>
         <div class="form-group">
           <input type="number" class="form-control" id="select-match-number" style="width: 81px;" placeholder="Match #">
         </div>
         <div class="form-group">
           <input type="number" class="form-control" id="select-round-number" style="width: 81px;" placeholder="Round #">
         </div>
-      </div> 
+      </div>
     </div>
 
     <div class="row">
@@ -222,21 +238,27 @@
         <div class="form-group">
           <input type="number" class="form-control" id="tinder" style="width: 81px;" placeholder="Tinder">
         </div>
-        <button type="button" class="btn btn-success" id="submit-tinder"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Submit Tinder</button>
+        <button type="button" class="btn btn-success" id="submit-tinder"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Submit Tinder</button>
         <div class="form-group">
           <input type="number" class="form-control" id="buttons" style="width: 81px;" placeholder="Buttons">
         </div>
-        <button type="button" class="btn btn-success" id="submit-buttons"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Submit Buttons</button>
+        <button type="button" class="btn btn-success" id="submit-buttons"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Submit Buttons</button>
         <div class="form-group heartbeat-light hb"></div>
-      </div> 
+      </div>
     </div>
 
     <div class="row">
       <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <button type="button" class="btn btn-success" id="round-start"><span class="glyphicon glyphicon-play" aria-hidden="true"></span>Start Round</button>
-        <button type="button" class="btn btn-danger" id="round-reset"><span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span>Reset Round</button>
+        <button type="button" class="btn btn-success" id="create-match"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Create Match</button>
+        <button type="button" class="btn btn-success" id="round-start"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Start Round</button>
+        <button type="button" class="btn btn-danger" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
+            aria-hidden="true"></span>Reset Round</button>
 
-      </div> 
+      </div>
     </div>
   </div>
 </body>

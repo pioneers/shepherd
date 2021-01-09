@@ -47,9 +47,9 @@ def ui_to_server_score_request():
 
 #Main GUI
 @socketio.on('ui-to-server-teams-info-request')
-def ui_to_server_match_info_request(match_num_dict):
-    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_MATCH_INFO, json.loads(match_num_dict))
-    print(json.loads(match_num_dict))
+def ui_to_server_round_info_request(round_info):
+    print("TEAMS I_fo request made")
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO, json.loads(round_info))
 
 @socketio.on('ui-to-server-setup-match')
 def ui_to_server_setup_match(teams_info):
@@ -62,6 +62,11 @@ def ui_to_server_start_next_stage():
 @socketio.on('ui-to-server-reset-match')
 def ui_to_server_reset_match():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.RESET_MATCH)
+
+@socketio.on('ui-to-server-game-info')
+def ui_to_server_game_info(game_info):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_GAME_INFO, json.loads(game_info))
+
 
 def receiver():
     events = gevent.queue.Queue()

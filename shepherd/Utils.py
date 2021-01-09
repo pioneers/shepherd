@@ -9,14 +9,14 @@ class SHEPHERD_HEADER():
     # TODO: revisit
     RESET_MATCH = "reset_match"
         # RESET_MATCH{}: resets the current match
-    
+
     # TODO: do
     RESET_ROUND = "reset_round"
         # RESET_ROUND{}: resets the current round, preserving relevant state from the previous round.
 
     # TODO: make work for 2021
-    GET_ROUND_INFO = "get_match_info"
-        # GET_ROUND_INFO{match_number, round}: gets match info for given match number
+    GET_ROUND_INFO = "get_round_info"
+        # GET_ROUND_INFO{match_num, round_num}: gets match info for given match number
 
     # TODO: fix for 2021
     SETUP_MATCH = "setup_match"
@@ -34,7 +34,7 @@ class SHEPHERD_HEADER():
 
     GET_GAME_INFO = "get_game_info"
         # GET_GAME_INFO{}: gets tinder/activated buttons
-    
+
     GET_MATCH_INFO = "get_match_info"
         # GET_MATCH_InFO{}: sends match info to the UI
 
@@ -178,9 +178,9 @@ class TABLET_HEADER():
 
 # pylint: disable=invalid-name
 class CONSTANTS():
-    AUTO_TIME = 20 # 20
-    TELEOP_TIME = 280 # 280
-    STOPLIGHT_TIME = 30
+    AUTO_TIME = 5 # 20
+    TELEOP_TIME = 10 # 280
+    STOPLIGHT_TIME = 5 # 30
     SANDSTORM_COVER_TIME = 10
     DEHYRATION_TIME = 30
     ROBOT_DEHYDRATED_TIME = 10
@@ -228,5 +228,5 @@ class STATE():
     DEHYDRATION = "dehydration"
     FIRE = "fire"
     HYPOTHERMIA = "hypothermia"
-    AIRPORT = "airport"
+    FINAL = "final"
     END = "end"

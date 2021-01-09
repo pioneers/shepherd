@@ -16,7 +16,7 @@ import Sheet
 import bot
 import audio
 from Robot import Robot
-import Field
+from Field import Field
 
 
 clients = RuntimeClientManager((), ())
@@ -116,15 +116,17 @@ def to_setup(args):
     global GAME_STATE
     global STARTING_SPOTS
     global ROBOT
-
-    reset()
+    global FIELD
 
     #code_setup()
 
-    name, num, alliance = args["name"], args["num"], args["alliance"]
+    name, num = args["team_name"], args["team_num"]
     custom_ip = args["custom_ip"] or None
 
-    ROBOT = Robot(name, num, alliance, custom_ip)
+    ROBOT = Robot(name, num, custom_ip)
+    FIELD = Field()
+
+    reset()
 
     # LCM send to scoreboard about robot
 
@@ -141,12 +143,14 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global clients
+    """
     try:
         clients = RuntimeClientManager()
         clients.get_clients([ROBOT.custom_ip])
     except Exception as exc:
         log(exc)
         return
+    """
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME + 2)
     #The +2 is a lag compensation and honestly we should work on removing it.
     GAME_STATE = STATE.AUTO
@@ -154,6 +158,9 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     enable_robots(True)
+
+    FIELD.illuminate_buttons(ROBOT)
+
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
              {"time" : CONSTANTS.AUTO_TIME})
     print("ENTERING AUTO STATE")
@@ -188,7 +195,9 @@ def reset(args=None):
     ROBOT.reset()
 
     send_connections(None) # currently does nothing
+    """
     clients = RuntimeClientManager()
+    """
     disable_robots()
 
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
@@ -199,10 +208,21 @@ def get_match(args):
     '''
     Retrieves the match based on match number and sends this information to the UI
     '''
+    # TODO: change for 2021
     match_num = int(args["match_num"])
     info = Sheet.get_match(match_num)
     info["match_num"] = match_num
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, info)
+
+def get_round(args):
+    '''
+    Retrieves the match based on match number and sends this information to the UI
+    '''
+    # TODO: change for 2021
+    match_num = int(args["match_num"])
+    round_num = int(args["round_num"])
+    lcm_data = {"match_num": match_num, "round_num": round_num, "team_num": 10, "team_name": "tmp team", "custom_ip": 5}
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
 
 def score_adjust(args):
     '''
@@ -360,6 +380,19 @@ def send_connections(args):
     #        "b_2_connection" : ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_connection}
     # lcm_send(LCM_TARGETS.UI, UI_HEADER.CONNECTIONS, msg)
 
+def set_game_info(args):
+    '''
+    Set tinder/buttons from UI. If tinder/buttons are not passed in, they are ignored.
+    '''
+    global TINDER
+    if args.get("tinder", ""):
+        TINDER = int(args["tinder"])
+    if args.get("buttons", ""):
+        FIELD.illuminated = int(args["buttons"])
+    print(f"Current Tinder: {TINDER}")
+    print(f"Current num buttons: {FIELD.illuminated}")
+
+
 ###########################################
 # Spring 2020 Game
 ###########################################
@@ -391,6 +424,7 @@ def to_city(args):
     if STOPLIGHT_TIMER.is_running():
         stoplight_penalty()
     GAME_STATE = STATE.CITY
+    print("ENTERING CITY STATE")
 
 # ----------
 # CITY STAGE
@@ -408,7 +442,7 @@ def stoplight_button_press(args):
         stoplight_timer_end([])
 
 def stoplight_penalty():
-    # whatever the penalty is 
+    # whatever the penalty is
     pass
 
 def to_forest(args):
@@ -557,8 +591,10 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
     SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
+    SHEPHERD_HEADER.GET_ROUND_INFO : get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
-    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code
+    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
+    SHEPHERD_HEADER.GET_GAME_INFO : set_game_info
 }
 
 AUTO_FUNCTIONS = {
@@ -652,6 +688,7 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_SCORES : get_score,
     SHEPHERD_HEADER.SETUP_MATCH : to_setup,
     SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
+    SHEPHERD_HEADER.GET_ROUND_INFO : get_round,
     SHEPHERD_HEADER.FINAL_SCORE : final_score,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
