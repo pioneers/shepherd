@@ -65,7 +65,7 @@ def ui_to_server_reset_match():
 
 @socketio.on('ui-to-server-game-info')
 def ui_to_server_game_info(game_info):
-    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_GAME_INFO, json.loads(game_info))
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_GAME_INFO, json.loads(game_info))
 
 
 def receiver():

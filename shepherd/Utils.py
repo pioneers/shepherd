@@ -32,8 +32,8 @@ class SHEPHERD_HEADER():
         # GET_CONNECTION_STATUS{}: requested from the Staff UI to check robot
         # connection statuses
 
-    GET_GAME_INFO = "get_game_info"
-        # GET_GAME_INFO{}: gets tinder/activated buttons
+    SET_GAME_INFO = "set_game_info"
+        # SET_GAME_INFO{}: sets tinder/activated buttons
 
     GET_MATCH_INFO = "get_match_info"
         # GET_MATCH_InFO{}: sends match info to the UI
