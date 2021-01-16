@@ -1,6 +1,6 @@
 import random
 
-class Field:
+class Buttons:
 
     # TODO: make a new field every match
     def __init__(self):

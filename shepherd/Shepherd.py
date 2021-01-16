@@ -16,7 +16,7 @@ import Sheet
 import bot
 import audio
 from Robot import Robot
-from Field import Field
+from Buttons import Buttons
 
 
 clients = RuntimeClientManager((), ())
@@ -118,7 +118,7 @@ def to_setup(args):
     global GAME_STATE
     global STARTING_SPOTS
     global ROBOT
-    global FIELD
+    global BUTTONS
 
     # code_setup()
 
@@ -126,7 +126,7 @@ def to_setup(args):
     custom_ip = args["custom_ip"] or None
 
     ROBOT = Robot(name, num, custom_ip)
-    FIELD = Field()
+    BUTTONS = Buttons()
 
     reset()
 
@@ -164,7 +164,7 @@ def to_auto(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     enable_robots(True)
 
-    FIELD.illuminate_buttons(ROBOT)
+    BUTTONS.illuminate_buttons(ROBOT)
 
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
              {"time": CONSTANTS.AUTO_TIME})
@@ -379,7 +379,7 @@ def set_connections(args):
     """Set connections"""
     # pylint: disable=undefined-variable, not-an-iterable
     team = args["team_number"]
-    connection = boolean(args["connection"])
+    connection = bool(args["connection"])
     dirty = False
     for alliance in ALLIANCES.values:
         if team == alliance.team_1_number:
@@ -412,9 +412,9 @@ def set_game_info(args):
     if args.get("tinder", ""):
         TINDER = int(args["tinder"])
     if args.get("buttons", ""):
-        FIELD.illuminated = int(args["buttons"])
+        BUTTONS.illuminated = int(args["buttons"])
     print(f"Current Tinder: {TINDER}")
-    print(f"Current num buttons: {FIELD.illuminated}")
+    print(f"Current num buttons: {BUTTONS.illuminated}")
 
 
 ###########################################
@@ -520,7 +520,7 @@ def to_dehydration(args):
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
-    FIELD.illuminate_buttons(ROBOT)
+    BUTTONS.illuminate_buttons(ROBOT)
 
 # ----------
 # DEHYDRATION STAGE
@@ -533,7 +533,7 @@ def dehydration_button_press(args):
     '''
     global GAME_STATE
     button_number = int(args["button"])
-    if FIELD.press_button_and_check(button_number):
+    if BUTTONS.press_button_and_check(button_number):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
 
@@ -747,7 +747,7 @@ SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
 DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
 ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
 ROBOT = None
-FIELD = None
+BUTTONS = None
 
 MATCH_NUMBER = -1
 ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
