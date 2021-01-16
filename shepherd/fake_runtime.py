@@ -1,14 +1,15 @@
 import socket
-import sys
 from protos import run_mode_pb2
 from protos import text_pb2
 from protos import start_pos_pb2
 from Utils import *
 
+
 class TestSocket:
 
     def __init__(self):
         self.connection = self.connect_tcp()
+        # this is the byte that indicates it was Shepherd sending the message
         self.connection.recv(1)
 
     def receive(self):
@@ -36,7 +37,6 @@ class TestSocket:
             else:
                 # error
                 print("invalid protobuf type")
-            
 
     def connect_tcp(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -51,6 +51,7 @@ socket.connection.send(b'\x02')
 text = text_pb2.Text()
 text.payload.append("wieofw")
 bytearr = bytearray(text.SerializeToString())
-socket.connection.send(b'\x00\x08') # hardcoded in, really should be len(bytearr), truncated to 2 bits
+# hardcoded in, really should be len(bytearr), truncated to 2 bits
+socket.connection.send(b'\x00\x08')
 socket.connection.send(bytearr)
 socket.receive()
