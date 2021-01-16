@@ -7,8 +7,9 @@ class Robot:
     def __init__(self, name, number, custom_ip=None):
         self.name = name
         self.number = number
-        self.custom_ip = custom_ip
+        self.custom_ip = custom_ip or f"192.168.128.{number + 100}"
         self.connection = False
+        print(self.custom_ip)
 
         self.coding_challenge = [False] * 10  # TODO: change
         self.start_time = None

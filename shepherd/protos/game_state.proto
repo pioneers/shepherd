@@ -14,5 +14,5 @@
  }
  
  message GameState {
-     State state = 0;
+     State state = 1;
  }

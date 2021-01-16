@@ -12,6 +12,7 @@ from Utils import *
 from Code import *
 # TODO: import protos and change things like "auto" to Mode.AUTO
 from runtimeclient import RuntimeClientManager
+from protos.game_state_pb2 import State
 import Sheet
 import bot
 import audio
@@ -19,7 +20,7 @@ from Robot import Robot
 from Buttons import Buttons
 
 
-clients = RuntimeClientManager((), ())
+clients = RuntimeClientManager()
 
 __version__ = (1, 0, 0)
 
@@ -147,14 +148,12 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global clients
-    """
     try:
         clients = RuntimeClientManager()
         clients.get_clients([ROBOT.custom_ip])
     except Exception as exc:
         log(exc)
         return
-    """
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME + 2)
     # The +2 is a lag compensation and honestly we should work on removing it.
     GAME_STATE = STATE.AUTO
@@ -490,7 +489,7 @@ def contact_wall(args):
     '''
     Triggered when the robot hits the wall
     '''
-    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.REVERSE_TEN_SECONDS, {})
+    clients.send_game_state(State.POISON_IVY)
 
 
 def to_desert(args):
@@ -543,7 +542,7 @@ def dehydration_penalty_timer_start(args):
     Triggered when robot gets dehydrated ("water getting" timer runs out). Starts the penalty timer and forcibly stops the robot.
     '''
     ROBOT_DEHYDRATED_TIMER.start_timer(CONSTANTS.ROBOT_DEHYDRATED_TIME)
-    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.STOP_ROBOT, {})
+    clients.send_game_state(State.DEHYDRATION)
 
 
 def dehydration_penalty_timer_end(args):
@@ -552,7 +551,6 @@ def dehydration_penalty_timer_end(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FIRE
-    lcm_send(LCM_TARGETS.RUNTIME, RUNTIME_HEADER.START_ROBOT, {})
 
 
 # ----------
@@ -586,8 +584,10 @@ def to_hypothermia(args):
     '''
     Go to the hypothermia zone in the forest biome.
     '''
-    global GAME_STATE
+    global GAME_STATE, FIRE_LIT
     GAME_STATE = STATE.HYPOTHERMIA
+    if not FIRE_LIT:
+        clients.send_game_state(State.HYPOTHERMIA_START)
 
 # ----------
 # HYPOTHERMIA STAGE
@@ -600,6 +600,7 @@ def to_final(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FINAL
+    clients.send_game_state(State.HYPOTHERMIA_STOP)
 
 # ----------
 # AIRPORT STAGE
