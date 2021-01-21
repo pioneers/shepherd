@@ -129,7 +129,8 @@ def to_setup(args):
     ROBOT = Robot(name, num, custom_ip)
     BUTTONS = Buttons()
 
-    reset()
+    # TODO: have to determine whether reset_round or reset_match is called
+    reset_round()
 
     # LCM send to scoreboard about robot
 
@@ -154,13 +155,13 @@ def to_auto(args):
     except Exception as exc:
         log(exc)
         return
-    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME + 2)
-    # The +2 is a lag compensation and honestly we should work on removing it.
+    # TODO: i got rid of this plus 2, maybe the lag goes away?
+    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = datetime.now()
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})  # TODO: send in other state transitions?
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
@@ -170,23 +171,7 @@ def to_auto(args):
     print("ENTERING AUTO STATE")
 
 
-def to_end(args):
-    '''
-    Move to end stage after the match ends. Robots should be disabled here
-    and final score adjustments can be made.
-    '''
-    global GAME_STATE
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-             {"blue_score": math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
-              "gold_score": math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
-    GAME_STATE = STATE.END
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-    disable_robots()
-    print("ENTERING END STATE")
-
-
-def reset(args=None):
+def reset_round(args=None):
     # TODO: this should be reset round i.e. go to the tinder and buttons pressed of the previous round.
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
@@ -280,7 +265,7 @@ def enable_robots(autonomous):
     which is true if we are entering autonomous mode
     '''
     try:
-        clients.set_mode("auto" if autonomous else "teleop")
+        clients.send_mode("auto" if autonomous else "teleop")
     except Exception as exc:
         for client in clients.clients:
             try:
@@ -715,7 +700,7 @@ HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.FINAL_ENTRY: to_final
 }
 
-AIRPORT_FUNCTIONS = {
+FINAL_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
@@ -743,10 +728,6 @@ END_FUNCTIONS = {
 
 GAME_STATE = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
-STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
-SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
-DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
-ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
 ROBOT = None
 BUTTONS = None
 
@@ -764,6 +745,10 @@ STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
 MASTER_ROBOTS = {ALLIANCE_COLOR.BLUE: None, ALLIANCE_COLOR.GOLD: None}
 
 STUDENT_DECODE_TIMER = Timer(TIMER_TYPES.STUDENT_DECODE)
+STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
+SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
+DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
+ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
 
 CODES_USED = []
 
