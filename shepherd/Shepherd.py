@@ -1,6 +1,6 @@
 import argparse
 import queue
-import random
+from Utils import SHEPHERD_HEADER
 import time
 import datetime
 import traceback
@@ -197,26 +197,27 @@ def reset_round(args=None):
     print("RESET MATCH, MOVE TO SETUP")
 
 
-def get_match(args):
-    '''
-    Retrieves the match based on match number and sends this information to the UI
-    '''
-    # TODO: change for 2021
-    match_num = int(args["match_num"])
-    info = Sheet.get_match(match_num)
-    info["match_num"] = match_num
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, info)
+def reset_state(args):
+    """
+    This is called after a match is complete because tinder and buttons are persisted across rounds for the same alliance but not when the next alliance begins.
+    """
+    global TINDER, BUTTONS
+    TINDER = 0
+    BUTTONS = Buttons()
 
 
 def get_round(args):
     '''
     Retrieves the match based on match number and sends this information to the UI
     '''
-    # TODO: change for 2021
+    global MATCH_NUMBER, ROUND_NUMBER
     match_num = int(args["match_num"])
     round_num = int(args["round_num"])
+    MATCH_NUMBER = match_num
+    ROUND_NUMBER = round_num
+    info = Sheet.get_round(match_num, round_num)
     lcm_data = {"match_num": match_num, "round_num": round_num,
-                "team_num": 10, "team_name": "tmp team", "custom_ip": 5}
+                "team_num": info["num"], "team_name": info["name"]}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
 
 
@@ -238,24 +239,20 @@ def get_score(args):
     '''
     Send the current blue and gold score to the UI
     '''
-    # TODO: update lcm send
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is None:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score": None,
-                  "gold_score": None})
-    else:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score": math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
-                  "gold_score": math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
+    ROBOT.calculate_time()
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, {
+        "time": ROBOT.elapsed_time,
+        "penalty": ROBOT.penalty,
+        "stamp_time": ROBOT.stamp_time,
+        "score": ROBOT.total_time()
+    })
 
 
 def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is not None:
-        Sheet.write_scores(MATCH_NUMBER, ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-                           ALLIANCES[ALLIANCE_COLOR.GOLD].score)
+    Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
     return -1
 
 
@@ -354,14 +351,16 @@ def final_score(args):
     ALLIANCES[ALLIANCE_COLOR.GOLD].score = gold_final
     ALLIANCES[ALLIANCE_COLOR.BLUE].score = blue_final
     msg = {"alliance": ALLIANCE_COLOR.GOLD, "amount": gold_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE, msg)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, msg)
     msg = {"alliance": ALLIANCE_COLOR.BLUE, "amount": blue_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE, msg)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, msg)
 
 
 def set_connections(args):
     """Set connections"""
+    # TODO: ask matthew what this is for
     # pylint: disable=undefined-variable, not-an-iterable
+
     team = args["team_number"]
     connection = bool(args["connection"])
     dirty = False
@@ -380,6 +379,7 @@ def set_connections(args):
 
 def send_connections(args):
     """Send connections"""
+    # TODO: this sends connection statuses to the ui
     pass  # pylint: disable=unnecessary-pass
     # msg = {"g_1_connection" : ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_connection,
     #        "g_2_connection" : ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_connection,
@@ -417,8 +417,6 @@ def check_code(args):
 # ----------
 # AUTO STAGE
 # ----------
-
-# TODO: traffic sig_
 
 
 def to_city(args):
@@ -625,7 +623,7 @@ SETUP_FUNCTIONS = {
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -635,7 +633,7 @@ AUTO_FUNCTIONS = {
 }
 
 CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -648,7 +646,7 @@ CITY_FUNCTIONS = {
 }
 
 FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -658,7 +656,7 @@ FOREST_FUNCTIONS = {
 }
 
 SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -668,7 +666,7 @@ SANDSTORM_FUNCTIONS = {
 }
 
 DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -680,7 +678,7 @@ DEHYDRATION_FUNCTIONS = {
 }
 
 FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -692,7 +690,7 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -701,7 +699,7 @@ HYPOTHERMIA_FUNCTIONS = {
 }
 
 FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -710,7 +708,7 @@ FINAL_FUNCTIONS = {
 }
 
 END_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.GET_SCORES: get_score,
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
@@ -719,7 +717,8 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
-    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info
+    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.RESET_MATCH: reset_state,
 }
 
 ###########################################
@@ -729,9 +728,9 @@ END_FUNCTIONS = {
 GAME_STATE = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
 ROBOT = None
-BUTTONS = None
 
 MATCH_NUMBER = -1
+ROUND_NUMBER = -1
 ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
 EVENTS = None
 
@@ -740,7 +739,6 @@ LAST_HEADER = None
 ###########################################
 # Game Specific Variables
 ###########################################
-BUTTONS = {'gold_1': False, 'gold_2': False, 'blue_1': False, 'blue_2': False}
 STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
 MASTER_ROBOTS = {ALLIANCE_COLOR.BLUE: None, ALLIANCE_COLOR.GOLD: None}
 
@@ -756,6 +754,7 @@ CODES_USED = []
 # 2020 Game Specific Variables
 ###########################################
 TINDER = 0
+BUTTONS = None
 FIRE_LIT = False
 
 
