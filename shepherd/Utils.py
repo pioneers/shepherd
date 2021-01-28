@@ -141,7 +141,7 @@ class UI_HEADER():
     """
     TEAMS_INFO = "teams_info"
     SCORES = "scores"
-        # SCORES{time[seconds], penalty[seconds]}
+        # SCORES{time[seconds], penalty[seconds], stamp_time[seconds]}
     # TODO: update for one robot
     CONNECTIONS = "connections" # TODO: ask Matt why this function is commented out
         # CONNECTIONS{robot_connection[True/False]}

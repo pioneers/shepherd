@@ -16,6 +16,7 @@ class Robot:
         self.end_time = None
         self.elapsed_time = None
         self.penalty = 0
+        self.stamp_time = 0
 
     def calculate_time(self):
         if self.end_time is not None and self.start_time is not None:

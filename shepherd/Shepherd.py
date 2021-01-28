@@ -1,6 +1,7 @@
 import argparse
 import queue
 import random
+from re import match
 import time
 import datetime
 import traceback
@@ -202,10 +203,13 @@ def get_match(args):
     Retrieves the match based on match number and sends this information to the UI
     '''
     # TODO: change for 2021
+    global MATCH_NUMBER, ROUND_NUMBER
     match_num = int(args["match_num"])
     info = Sheet.get_match(match_num)
     info["match_num"] = match_num
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, info)
+    MATCH_NUMBER = match_num
+    ROUND_NUMBER = 1
 
 
 def get_round(args):
@@ -213,20 +217,24 @@ def get_round(args):
     Retrieves the match based on match number and sends this information to the UI
     '''
     # TODO: change for 2021
+    global MATCH_NUMBER, ROUND_NUMBER
     match_num = int(args["match_num"])
     round_num = int(args["round_num"])
     lcm_data = {"match_num": match_num, "round_num": round_num,
                 "team_num": 10, "team_name": "tmp team", "custom_ip": 5}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+    MATCH_NUMBER = match_num
+    ROUND_NUMBER = round_num
 
 
 def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    time, penalty = args["time"], args["penalty"]
+    time, penalty, stamps = args["time"], args["penalty"], args["stamp_time"]
     ROBOT.elapsed_time = time
     ROBOT.penalty = penalty
+    ROBOT.stamp_time = stamps
 
     # TODO: update lcm send
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
@@ -238,15 +246,8 @@ def get_score(args):
     '''
     Send the current blue and gold score to the UI
     '''
-    # TODO: update lcm send
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is None:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score": None,
-                  "gold_score": None})
-    else:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score": math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
-                  "gold_score": math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
+    ROBOT.calculate_time()
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time})
 
 
 def flush_scores():
@@ -732,6 +733,7 @@ ROBOT = None
 BUTTONS = None
 
 MATCH_NUMBER = -1
+ROUND_NUMBER = -1
 ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
 EVENTS = None
 
