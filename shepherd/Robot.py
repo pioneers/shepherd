@@ -15,6 +15,7 @@ class Robot:
         self.start_time = None
         self.end_time = None
         self.elapsed_time = None
+        self.stamp_time = 0
         self.penalty = 0
         self.stamp_time = 0
 
@@ -22,6 +23,9 @@ class Robot:
         if self.end_time is not None and self.start_time is not None:
             self.elapsed_time = (
                 self.end_time - self.start_time).total_seconds()
+
+    def total_time(self):
+        return self.elapsed_time + self.stamp_time + self.penalty
 
     def reset(self):
         self.connection = False
