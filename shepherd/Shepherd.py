@@ -178,13 +178,15 @@ def reset_round(args=None):
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, clients, ROBOT
+    global GAME_STATE, EVENTS, clients, ROBOT, TINDER, BUTTONS
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.RESET_TIMERS)
     ROBOT.reset()
+    TINDER = LAST_TINDER
+    BUTTONS = LAST_BUTTONS
 
     send_connections(None)  # currently does nothing
     """
@@ -219,8 +221,6 @@ def get_round(args):
     lcm_data = {"match_num": match_num, "round_num": round_num,
                 "team_num": info["num"], "team_name": info["name"]}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
-    MATCH_NUMBER = match_num
-    ROUND_NUMBER = round_num
 
 
 def score_adjust(args):
@@ -349,14 +349,8 @@ def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    blue_final = args['blue_score']
-    gold_final = args['gold_score']
-    ALLIANCES[ALLIANCE_COLOR.GOLD].score = gold_final
-    ALLIANCES[ALLIANCE_COLOR.BLUE].score = blue_final
-    msg = {"alliance": ALLIANCE_COLOR.GOLD, "amount": gold_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, msg)
-    msg = {"alliance": ALLIANCE_COLOR.BLUE, "amount": blue_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, msg)
+    ROBOT.calculate_time()
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
 
 
 def set_connections(args):
@@ -597,7 +591,9 @@ def to_end(args):
     '''
     Go to the end state.
     '''
-    global GAME_STATE
+    global GAME_STATE, LAST_TINDER, LAST_BUTTONS
+    LAST_TINDER = TINDER
+    LAST_BUTTONS = BUTTONS
     GAME_STATE = STATE.END
     disable_robots()
     ROBOT.end_time = datetime.now()
@@ -618,7 +614,6 @@ def to_end(args):
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.GET_MATCH_INFO: get_match,
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
@@ -715,7 +710,6 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.GET_SCORES: get_score,
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-    SHEPHERD_HEADER.GET_MATCH_INFO: get_match,
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
@@ -759,6 +753,8 @@ CODES_USED = []
 TINDER = 0
 BUTTONS = None
 FIRE_LIT = False
+LAST_TINDER = 0
+LAST_BUTTONS = None
 
 
 def main():
