@@ -5,3 +5,4 @@ from Utils import *
 
 
 def send_challenges():
+    pass

@@ -154,6 +154,8 @@ class UI_HEADER():
     # GAME_INFO{tinder, buttons activated}
     SENSORS_INFO = "sensors_info"
     # SENSORS_INFO{tinder}
+    STAGE = "stage"
+    # START_TIMESTAMP{is_auto[boolean], start_time[datetime]}
 
 # pylint: disable=invalid-name
 
@@ -167,7 +169,7 @@ class SCOREBOARD_HEADER():
     TEAM = "team"
     # TEAM{teamname, team#}
     STAGE = "stage"
-    # STAGE{stage}
+    # STAGE{stage, start_time}
     STAGE_TIMER_START = "stage_timer_start"
     STAGE_TIMER_STOP = "stage_timer_stop"
     RESET_TIMERS = "reset_timers"

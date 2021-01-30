@@ -1,4 +1,5 @@
-"""import sys
+"""
+import sys
 import time
 import threading
 from multiprocessing import Queue

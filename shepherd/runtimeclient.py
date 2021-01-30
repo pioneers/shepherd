@@ -4,6 +4,7 @@ from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
 from Utils import *
+from Robot import Robot
 import socket
 
 PORT_RASPI = 8101
@@ -11,15 +12,17 @@ PORT_RASPI = 8101
 
 class RuntimeClient:
     """
-    This is a client that connects to the server running on a Raspberry Pi. One client is initialized per robot.
+    This is a client that connects to the server running on a Raspberry Pi. 
+    xOne client is initialized per robot.
     """
-
-    def __init__(self, host_url):
+   
+    def __init__(self, host_url, robot):
         self.host_url = host_url
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect_tcp()
         # send 0 byte so that Runtime knows it's Shepherd
         self.sock.send(bytes([0]))
+        self.robot: Robot = robot
 
     def receive_challenge_data(self):
         """
@@ -35,7 +38,9 @@ class RuntimeClient:
         if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA:
             pb = text_pb2.Text()
             pb.ParseFromString(msg)
-            print("received data: " + pb.payload[0])
+            # TODO: format payload to be a list of booleans
+            payload = pb.payload
+            self.robot.coding_challenge = payload
         else:
             # error
             print("invalid protobuf type")
@@ -104,17 +109,17 @@ class RuntimeClientManager:
     def __init__(self):
         self.clients = []
 
-    def __get_client(self, host_url):
+    def __get_client(self, host_url, robot):
         """
         Connects to robot at host_url. This method should not be called because the thread is created in get_clients.
         """
         print("client " + str(host_url) + " started")
-        client = RuntimeClient(host_url)
+        client = RuntimeClient(host_url, robot)
         self.clients.append(client)
 
-    def get_clients(self, host_urls):
-        for host_url in host_urls:
-            thr = threading.Thread(target=self.__get_client, args=[host_url])
+    def get_clients(self, host_urls, robots):
+        for i in range(len(host_urls)):
+            thr = threading.Thread(target=self.__get_client, args=[host_urls[i], robots[i]])
             thr.start()
 
     def receive_challenge_data(self, client):
