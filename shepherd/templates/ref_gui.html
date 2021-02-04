@@ -39,22 +39,18 @@
 
 
       socket.on('connect', function(data) {
-        socket.emit('join', 'score_adjustment');
-        socket.emit('ui-to-server-score-request');
+        socket.emit('join', 'ref_gui');
       });
+
+      setInterval(() => {
+        socket.emit('ui-to-server-score-request'); //Continuous update score
+      },250);
+
 
       socket.on('server-to-ui-scores', function(scores) {
         console.log(scores);
         team_score = JSON.parse(scores).team_score;
         updateScores();
-      });
-
-      socket.on('server-to-ui-teamsinfo', function (data) {
-        console.log("server-to-ui-teams-info")
-        parsed_data = JSON.parse(data)
-        console.log(parsed_data)
-        $("#team-number").text(parsed_data.team_num);
-        $("#team_name").text(parsed_data.team_name);
       });
 
       function updateScores() {
@@ -71,8 +67,8 @@
       });
 
       $("#send-scores").click(() => {
-        data = {"team_score" : team_score};
-        socket.emit('ui-to-server-scores', JSON.stringify(data));
+        data = {"blue_score" : blueScore, "gold_score" : goldScore}
+        socket.emit('ui-to-server-scores', JSON.stringify(data))
       });
 
     });
@@ -90,10 +86,10 @@
       <li class="nav-item">
         <a class="nav-link" href="../staff_gui.html">Match Creator</a>
       </li>
-      <li class="nav-item active">
+      <li class="nav-item">
         <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item active">
         <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
       </li>
     </ul>
@@ -102,7 +98,7 @@
 
   <div class="container">
     <div class="row container">
-      <h1>Score Adjustment</h1>
+      <h1>Ref GUI</h1>
     </div>
 
 
@@ -111,23 +107,25 @@
       <h2> Team Score: <span id="team-score"></span></h2>
     </div>
 
-
     <div class="row bottom-padding">
       <div class="col">
         <div class="input-group">
-          <h3>Base time:</h3>
+          <h3>Tinder: <span id="team_tinder"></span></h3>
           <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="score-change">Change</button>
+            <button class="btn btn-success" type="button" id="tinder-decrement">-</button>
+            <button class="btn btn-success" type="button" id="tinder-increment">+</button>
+            <button class="btn btn-success" type="button" id="tinder-change">Change</button>
           </span>
-          <input type="number" class="form-control" value="0" id="score-adjustment">
+          <input type="number" class="form-control" value="0" id="tinder-adjustment">
         </div>
       </div>
     </div>
     <div class="row bottom-padding">
       <div class="col">
         <div class="input-group">
-          <h3>Penalty time:</h3>
+          <h3>Penalty time: <span id="team_tinder"></span></h3>
           <span class="input-group-btn">
+            <button class="btn btn-info" type="button" id="penalty-5">+5 penalty</button>
             <button class="btn btn-success" type="button" id="penalty-change">Change</button>
           </span>
           <input type="number" class="form-control" value="0" id="penalty-adjustment">
@@ -137,8 +135,10 @@
     <div class="row bottom-padding">
       <div class="col">
         <div class="input-group">
-          <h3>Stamp time:</h3>
+          <h3>Stamp time: <span id="team_tinder"></span></h3>
           <span class="input-group-btn">
+            <button class="btn btn-info" type="button" id="stamp-3">3 stamp</button>
+            <button class="btn btn-info" type="button" id="stamp-5">5 stamp</button>
             <button class="btn btn-success" type="button" id="stamp-change">Change</button>
           </span>
           <input type="number" class="form-control" value="0" id="stamp-adjustment">
@@ -146,6 +146,17 @@
       </div>
     </div>
 
+    <div class="row bottom-padding">
+      <div class="col">
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-info" type="button" id="hit-wall">Hit Wall</button>
+            <button class="btn btn-info" type="button" id="shortcut">Shortcut</button>
+            <button class="btn btn-success" type="button" id="exbtn1">Example button</button>
+          </span>
+        </div>
+      </div>
+    </div>
 
   </div>
 

@@ -312,7 +312,7 @@ def log(Exception):
     global LAST_HEADER
     # if Shepherd.MATCH_NUMBER <= 0:
     #     return
-    now = datetime.datetime.now()
+    now = datetime.now()
     filename = str(now.month) + "-" + str(now.day) + "-" + str(now.year) +\
         "-match-" + str(MATCH_NUMBER) + ".txt"
     print("a normally fatal exception occured, but Shepherd will continue to run")

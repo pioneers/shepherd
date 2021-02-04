@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send # pylint:
 from Utils import *
 from LCM import *
 
-HOST_URL = "127.0.0.1"
+HOST_URL = "0.0.0.0"
 PORT = 5000
 
 app = Flask(__name__)
@@ -30,6 +30,11 @@ def staff_gui():
 @app.route('/stage_control.html/')
 def stage_control():
     return render_template('stage_control.html')
+
+@app.route('/ref_gui.html/')
+def ref_gui():
+    return render_template('ref_gui.html')
+
 
 @socketio.on('join')
 def handle_join(client_name):
