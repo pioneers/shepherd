@@ -180,7 +180,6 @@ class SCOREBOARD_HEADER():
     STAGE = "stage"
     # STAGE{stage, start_time}
     RESET_TIMERS = "reset_timers"
-    ALL_INFO = "all_info"
 
 
 class TABLET_HEADER():

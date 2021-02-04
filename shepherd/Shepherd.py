@@ -281,7 +281,7 @@ def score_adjust(args):
         ROBOT.elapsed_time = time if time is not None else ROBOT.elapsed_time
     ROBOT.penalty = penalty if penalty is not None else ROBOT.penalty
     ROBOT.stamp_time = stamp_time if stamp_time is not None else ROBOT.stamp_time
-    # TODO: send dummy elapsed time if during game
+    # TODO: send dummy elapsed time if during game (-1)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {"time": time, "penalty": penalty, "stamp_time": stamp_time, "score": ROBOT.total_time()})
 
 

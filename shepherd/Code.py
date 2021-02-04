@@ -169,6 +169,7 @@ def get_results(ip):
 
     os.system('clear')
     cr.init(autoreset=True)
+    # TODO: figure out how to import appropriate code file
     testmod(name='tests', verbose=False)
 
 
