@@ -20,6 +20,7 @@ class SHEPHERD_HEADER():
 
     # TODO: fix for 2021
     SETUP_MATCH = "setup_match"
+    # SETUP_MATCH{team_name, team_num, match_num}
     # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
     # sets up the match given the corresponding info about the teams and match number
     # also has {g1_custom_ip, g2_custom_ip, b1_custom_ip, b2_custom_ip}
@@ -32,6 +33,9 @@ class SHEPHERD_HEADER():
     # GET_CONNECTION_STATUS{}: requested from the Staff UI to check robot
     # connection statuses
 
+    SET_CUSTOM_IP = "set_custom_ip"
+    # SET_CUSTOM_IP{custom_ip: str}
+
     SET_GAME_INFO = "set_game_info"
     # SET_GAME_INFO{}: sets tinder/activated buttons
 
@@ -42,10 +46,10 @@ class SHEPHERD_HEADER():
     # UPDATE_TINDER{tinder}: updates the amount of tinder
 
     GET_SCORES = "get_scores"
-    # GET_SCORES{}: get time and penalty time of robot
+    # GET_SCORES{}: get time, penalty and stamps of robot
 
     SCORE_ADJUST = "score_adjust"
-    # SCORE_ADJUST{time, penalty}: adjusts the current scores to the input scores
+    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty - stamp time
 
     STAGE_TIMER_END = "stage_timer_end"
     # STAGE_TIMER_END{}: ends the stage's timer
@@ -102,7 +106,8 @@ class SHEPHERD_HEADER():
     ROBOT_DEHYDRATED_TIMER_END = "robot_dehydrated_timer_end"
 
     # FIRE
-    COLLECT_TINDER = "collect_tinder"
+    # SET_TINDER{tinder: int}
+    SET_TINDER = "set_tinder"
     HYPOTHERMIA_ENTRY = "hypothermia_entry"
     TOGGLE_FIRE = "toggle_fire"
 
@@ -145,6 +150,7 @@ class UI_HEADER():
     These are headers used by Shepherd to send information to the Staff UI.
     """
     TEAMS_INFO = "teams_info"
+    # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip}
     SCORES = "scores"
     # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds]}
     # TODO: update for one robot
@@ -156,6 +162,9 @@ class UI_HEADER():
     # SENSORS_INFO{tinder}
     STAGE = "stage"
     # START_TIMESTAMP{is_auto[boolean], start_time[datetime]}
+    ALL_INFO = "all_info"
+    # ALL_INFO{}
+
 
 # pylint: disable=invalid-name
 
@@ -165,13 +174,11 @@ class SCOREBOARD_HEADER():
     These are headers used by Shepherd to send information to the Scoreboard.
     """
     SCORES = "scores"
-    # SCORES{time, penalty}
+    # SCORES{time, penalty, stamp_time, total_time}
     TEAM = "team"
-    # TEAM{teamname, team#}
+    # TEAM{team_name, team_num}
     STAGE = "stage"
     # STAGE{stage, start_time}
-    STAGE_TIMER_START = "stage_timer_start"
-    STAGE_TIMER_STOP = "stage_timer_stop"
     RESET_TIMERS = "reset_timers"
     ALL_INFO = "all_info"
 

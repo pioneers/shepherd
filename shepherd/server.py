@@ -48,7 +48,7 @@ def ui_to_server_score_request():
 #Main GUI
 @socketio.on('ui-to-server-teams-info-request')
 def ui_to_server_round_info_request(round_info):
-    print("TEAMS I_fo request made")
+    print("TEAMS Info request made")
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO, json.loads(round_info))
 
 @socketio.on('ui-to-server-setup-match')
@@ -67,6 +67,15 @@ def ui_to_server_reset_match():
 def ui_to_server_game_info(game_info):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_GAME_INFO, json.loads(game_info))
 
+@socketio.on('ui-to-server-set-tinder')
+def ui_to_server_set_tinder(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_TINDER, json.loads(args))
+
+@socketio.on('ui-to-server-custom-ip')
+def ui_to_server_custom_ip(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
+
+
 
 def receiver():
     events = gevent.queue.Queue()
@@ -78,7 +87,7 @@ def receiver():
             event = events.get_nowait()
             print("RECEIVED:", event)
             if event[0] == UI_HEADER.TEAMS_INFO:
-                socketio.emit('server-to-ui-teamsinfo', json.dumps(event[1], ensure_ascii=False))
+                socketio.emit('server-to-ui-teams-info', json.dumps(event[1], ensure_ascii=False))
             elif event[0] == UI_HEADER.SCORES:
                 socketio.emit('server-to-ui-scores', json.dumps(event[1], ensure_ascii=False))
             elif event[0] == UI_HEADER.CONNECTIONS:

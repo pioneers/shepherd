@@ -204,14 +204,10 @@ def to_auto(args):
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
-
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
-             {"time": CONSTANTS.AUTO_TIME})
     print("ENTERING AUTO STATE")
 
 
 def reset_round(args=None):
-    # TODO: this should be reset round i.e. go to the tinder and buttons pressed of the previous round.
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
     Should reset all state being tracked by Shepherd.
@@ -249,24 +245,29 @@ def reset_state(args):
 
 def get_round(args):
     '''
-    Retrieves the match based on match number and sends this information to the UI
+    Retrieves all match info based on match number and sends this information to the UI. If not already cached, fetches info from the spreadsheet.
     '''
-    # TODO: ADD EVERYTHING THAT SAM DESIRES
-    global MATCH_NUMBER, ROUND_NUMBER, ROBOT
-    match_num = int(args["match_num"])
-    round_num = int(args["round_num"])
+    # TODO: ADD EVERYTHING THAT SAM DESIRES, check the validation is good
+    global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
+    match_num = MATCH_NUMBER
+    round_num = ROUND_NUMBER
+    if "match_num" in args:
+        match_num = int(args["match_num"])
+        round_num = int(args["round_num"])
+
+    # if robot info is for the correct match, round
     if MATCH_NUMBER == match_num and ROUND_NUMBER == round_num:
         team_num = ROBOT.number
         team_name = ROBOT.name
-    else: 
+    else:
         MATCH_NUMBER = match_num
         ROUND_NUMBER = round_num
         info = Sheet.get_round(match_num, round_num)
         team_num = info["num"]
         team_name = info["name"]
-    
+
     lcm_data = {"match_num": match_num, "round_num": round_num,
-                "team_num": team_num, "team_name": team_name}
+                "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
 
 
@@ -274,15 +275,14 @@ def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    time, penalty, stamps = args["time"], args["penalty"], args["stamp_time"]
-    ROBOT.elapsed_time = time
-    ROBOT.penalty = penalty
-    ROBOT.stamp_time = stamps
-
-    # TODO: update lcm send
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES,
-             {"alliance": ALLIANCES[ALLIANCE_COLOR.BLUE].name,
-              "score": math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score)})
+    global STATE
+    time, penalty, stamp_time = args.get("time"), args.get("penalty"), args.get("stamp_time")
+    if STATE == STATE.END or STATE == STATE.SETUP:
+        ROBOT.elapsed_time = time if time is not None else ROBOT.elapsed_time
+    ROBOT.penalty = penalty if penalty is not None else ROBOT.penalty
+    ROBOT.stamp_time = stamp_time if stamp_time is not None else ROBOT.stamp_time
+    # TODO: send dummy elapsed time if during game
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {"time": time, "penalty": penalty, "stamp_time": stamp_time, "score": ROBOT.total_time()})
 
 
 def get_score(args):
@@ -379,17 +379,6 @@ def disable_robot(args):
             client.set_mode("idle")
     except Exception as exc:
         log(exc)
-
-
-def set_master_robot(args):
-    '''
-    Set the master robot of the alliance
-    '''
-    alliance = args["alliance"]
-    team_number = args["team_num"]
-    MASTER_ROBOTS[alliance] = team_number
-    msg = {"alliance": alliance, "team_number": int(team_number)}
-    lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.MASTER, msg)
 
 
 def final_score(args):
@@ -592,15 +581,15 @@ def dehydration_penalty_timer_end(args):
 # FIRE STAGE
 # ----------
 
-def collect_tinder(args):
+def set_tinder(args):
     '''
-    This method collects one more tinder
+    This method sets the total amount of tinder
     1 tinder = fire is lit for one round.
     2 tinder = fire is lit for two rounds.
     3 tinder = fire is lit for three rounds.
     '''
     global TINDER
-    TINDER += 1
+    TINDER = args["tinder"]
 
 
 def toggle_fire(args):
@@ -609,7 +598,7 @@ def toggle_fire(args):
     '''
     global FIRE_LIT
     if not FIRE_LIT:
-        # TODO: light fire
+        # TODO: light fire on field
         FIRE_LIT = True
     else:
         FIRE_LIT = False
@@ -657,7 +646,7 @@ def to_end(args):
              {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty})
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty})
+             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
@@ -679,6 +668,7 @@ SETUP_FUNCTIONS = {
 
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -689,6 +679,7 @@ AUTO_FUNCTIONS = {
 
 CITY_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -701,6 +692,7 @@ CITY_FUNCTIONS = {
 
 FOREST_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -711,6 +703,7 @@ FOREST_FUNCTIONS = {
 
 SANDSTORM_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -721,6 +714,7 @@ SANDSTORM_FUNCTIONS = {
 
 DEHYDRATION_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -733,11 +727,12 @@ DEHYDRATION_FUNCTIONS = {
 
 FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.COLLECT_TINDER: collect_tinder,
+    SHEPHERD_HEADER.SET_TINDER: set_tinder,
     SHEPHERD_HEADER.TOGGLE_FIRE: toggle_fire,
     SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
@@ -745,6 +740,7 @@ FIRE_FUNCTIONS = {
 
 HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
@@ -754,6 +750,7 @@ HYPOTHERMIA_FUNCTIONS = {
 
 FINAL_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
