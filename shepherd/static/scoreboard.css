@@ -1,5 +1,6 @@
 body {
-    background-color: #00b140;
+    /* background-color: #00b140; */
+    background-color: #008853;
   }
 
   p {
@@ -21,19 +22,18 @@ body {
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 250%;
 }
 
 .time, .penalty {
     flex-direction: column;
     vertical-align: top;
-    font-size: 250%;
     flex-grow: 1;
     flex-wrap: wrap;
 }
 
 .robotinfo {
     flex-grow: 2;
-    font-size: 200%;
 }
 
 .time {
