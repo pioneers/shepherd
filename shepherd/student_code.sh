@@ -1,4 +1,4 @@
 #!/bin/bash
-
-scp pi@$1:/home/pi/runtime/executor/studentcode.py /studentcode/$1.py
+# $1 is the IP
+scp pi@$1:/home/pi/runtime/executor/studentcode.py /student.py
 raspberry
