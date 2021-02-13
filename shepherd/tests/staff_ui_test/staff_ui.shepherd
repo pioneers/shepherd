@@ -1,0 +1,22 @@
+READ LCM_TARGETS.UI
+EMIT SHEPHERD_HEADER.GET_MATCH_INFO TO LCM_TARGETS.SHEPHERD WITH 'match_num' = 1
+WAIT UI_HEADER.TEAMS_INFO FROM LCM_TARGETS.UI WITH b1name = 'b1name' WITH b1num = 'b1num' WITH b2name = 'b2name' WITH b2num = 'b2num' WITH g1name = 'g1name' WITH g1num = 'g1num' WITH g2name = 'g2name' WITH g2num = 'g2num' WITH match_num = 'match_num'
+RUN from Utils import *
+RUN import csv
+RUN import os
+RUN csv_file = open(CONSTANTS.CSV_FILE_NAME, newline='')
+RUN match_reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
+RUN matches = list(match_reader)
+RUN match = matches[1]
+RUN match = " ".join(match)
+RUN match = match.split(',')
+FAIL b1name != match[3]
+FAIL b1num != match[2]
+FAIL b2name != match[5]
+FAIL b2num != match[4]
+FAIL g1name != match[7]
+FAIL g1num != match[6]
+FAIL g2name != match[9]
+FAIL g2num != match[8]
+FAIL int(match_num) != 1
+PASS

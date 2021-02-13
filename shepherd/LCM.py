@@ -1,10 +1,12 @@
 import threading
 import json
-import lcm # pylint: disable=import-error
+import sys
+import lcm  # pylint: disable=import-error
 
 LCM_address = 'udpm://239.255.76.68:7667?ttl=2'
 
-def lcm_start_read(receive_channel, queue, put_json=False):
+
+def lcm_start_read(receive_channel, queue, put_json=False, daemon=False):
     '''
     Takes in receiving channel name (string), queue (Python queue object).
     Takes whether to add received items to queue as JSON or Python dict.
@@ -29,10 +31,11 @@ def lcm_start_read(receive_channel, queue, put_json=False):
         while True:
             comm.handle()
 
-    rec_thread = threading.Thread(target=run)
+    rec_thread = threading.Thread(target=run, daemon=daemon)
     rec_thread.start()
 
-def lcm_send(target_channel, header, dic={}): # pylint: disable=dangerous-default-value
+
+def lcm_send(target_channel, header, dic={}):  # pylint: disable=dangerous-default-value
     '''
     Send header and dictionary to target channel (string)
     '''
