@@ -1,14 +1,14 @@
 import subprocess
-from Utils import *
-
-from doctest import testmod
-import challenges as ch
-from pylint import epylint as lint
-import re
+import doctest
 import os
-import colorama as cr
+from Utils import *
+import importlib
+import re
 
 # TODO: replace with this year's challenges
+
+CH = None
+
 
 def convert_time(num):
     """
@@ -33,7 +33,7 @@ def convert_time(num):
     >>> convert_time(2310) # 23..
     [11, 10]
     """
-    return ch.convert_time(num)
+    return CH.convert_time(num)
 
 
 def eta(pos):
@@ -49,7 +49,7 @@ def eta(pos):
     >>> eta([4, 19]) # one less and one greater
     1
     """
-    return ch.eta(pos)
+    return CH.eta(pos)
 
 
 def wacky_numbers(num):
@@ -65,7 +65,7 @@ def wacky_numbers(num):
     >>> wacky_numbers(0) # 0
     0
     """
-    return ch.wacky_numbers(num)
+    return CH.wacky_numbers(num)
 
 
 def num_increases(num):
@@ -81,7 +81,7 @@ def num_increases(num):
     >>> num_increases(111111111) # flat test case
     0
     """
-    return ch.num_increases(num)
+    return CH.num_increases(num)
 
 
 def wheresArmadillo(animals):
@@ -97,7 +97,7 @@ def wheresArmadillo(animals):
     >>> wheresArmadillo(["dog", "armadillo"])
     2
     """
-    return ch.wheresArmadillo(animals)
+    return CH.wheresArmadillo(animals)
 
 
 def pie_cals_triangle(num):
@@ -111,7 +111,7 @@ def pie_cals_triangle(num):
     >>> pie_cals_triangle(0) # zero case
     0
     """
-    return ch.pie_cals_triangle(num)
+    return CH.pie_cals_triangle(num)
 
 
 def road_trip(d):
@@ -125,7 +125,7 @@ def road_trip(d):
     >>> road_trip(104) # large test
     102
     """
-    return ch.road_trip(d)
+    return CH.road_trip(d)
 
 
 def convertRoman(num):
@@ -141,7 +141,7 @@ def convertRoman(num):
     >>> convertRoman(1952) # four digit number
     'MCMLII'
     """
-    return ch.convertRoman(num)
+    return CH.convertRoman(num)
 
 
 def picky_rat(words):
@@ -161,16 +161,51 @@ def picky_rat(words):
     >>> picky_rat(['a', 'e', 'i', 'o' , 'u'])
     ['', '', '', '', '']
     """
-    return ch.picky_rat(words)
+    return CH.picky_rat(words)
 
 
 def get_results(ip):
-    get_challenges(ip)
+    global CH
+    # get_challenges(ip)
 
     os.system('clear')
-    cr.init(autoreset=True)
-    testmod(name='tests', verbose=False)
+    CH = importlib.import_module("studentcode")
+    doc_tests = doctest.DocTestFinder()
+
+    easy_challenges = [eta, convert_time]
+    hard_challenges = [picky_rat, convertRoman]
+
+    easy_passed = run_set_of_tests(doc_tests, easy_challenges)
+    hard_passed = run_set_of_tests(doc_tests, hard_challenges)
+
+    # TODO: get the challenge results as list of bools ([passed challenge 1, passed challenge 2, etc.])
+
+    #                              list of:
+    # +------+                   +---------+
+    # |module| --DocTestFinder-> | DocTest | --DocTestRunner-> results
+    # +------+    |        ^     +---------+     |       ^    (printed)
+    #             |        |     | Example |     |       |
+    #             v        |     |   ...   |     v       |
+    #            DocTestParser   | Example |   OutputChecker
+    #                            +---------+
 
 
 def get_challenges(ip):
     subprocess.call(['./student_code.sh', ip])
+
+
+def run_set_of_tests(doc_test, test_set):
+    """
+    takes a list of functions, returns True if all doctests pass.
+    """
+    passed = True
+    for test in test_set:
+        passed = passed and run_autograder_on_function(doc_test, test) == 0
+    return passed
+
+
+def run_autograder_on_function(doc_tests, function):
+    failed = 0
+    for doc_test in doc_tests.find(function):
+        failed += doctest.DocTestRunner().run(doc_test)[0]
+    return failed
