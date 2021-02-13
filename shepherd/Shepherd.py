@@ -1,10 +1,9 @@
 import argparse
 import queue
-from Utils import SHEPHERD_HEADER
 import time
-import datetime
 import traceback
 from datetime import datetime
+from Utils import SHEPHERD_HEADER
 from Alliance import *
 from LCM import *
 from Timer import *
@@ -317,6 +316,7 @@ def enable_robots(autonomous):
     which is true if we are entering autonomous mode
     '''
     try:
+        # TODO: why si this "auto" and "telop" instead of 0/1?
         CLIENTS.send_mode("auto" if autonomous else "teleop")
     except Exception as exc:
         for client in CLIENTS.clients:
