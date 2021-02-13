@@ -126,11 +126,19 @@
       
 
       $("#next-round").click(() => {
-        logg("next round [unimplemented]");
+        if(round_num >= 3){
+            round_num = 1;
+            match_num++;
+        } else {
+            round_num++;
+        }
+        $("#select-match-number").val(match_num);
+        $("#select-round-number").val(round_num);
+        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       })
 
       $("#next-match").click(() => {
-        logg("next match [unimplemented]");
+        emit('ui-to-server-reset-match');
       })
 
       $("#select-round").click(() => {
@@ -178,7 +186,7 @@
 
 
       $("#round-reset").click(function () {
-        emit('ui-to-server-reset-match');
+        emit('ui-to-server-reset-round');
       });
       
       $("#custom-ip-change").click(function () {
@@ -240,9 +248,9 @@
         <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
         <h3>Match/Round:</h3>
         <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Next Round</button>
+            aria-hidden="true"></span>Autopopulate Next Round</button>
         <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Next Match</button>
+            aria-hidden="true"></span>Reset Firewood/Buttons</button>
         <div class="form-group">
           <input type="number" class="form-control spaced" id="select-match-number" style="width: 81px;" placeholder="Match #">
         </div>
