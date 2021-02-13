@@ -62,81 +62,126 @@
       var round_num = "";
       var team_num = "";
       var team_name = "";
+      var tinder = "";
+      var buttons = "";
       var custom_ip = "";
 
+      let counter = 1;
+      function logg(str) {
+        let log = document.getElementById("events-log");
+        let m = log.innerHTML.split("\n");
+        if(m.length >= 10) m.shift();
+        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
+      }
+      
+      function emit() {
+        socket.emit(...arguments);
+        let logstr = ""
+        try {
+            for(let a=0;a<arguments.length;a++)
+               logstr += arguments[a];
+        } catch (err){
+            console.log(err);
+            logstr = "[logging error]";
+        }
+        logg(logstr);
+      }
+      
 
       socket.on('connect', function (data) {
-        socket.emit('join', 'staff_gui');
-        socket.emit('ui-to-server-teams-info-request');
+        emit('join', 'staff_gui');
+        emit('ui-to-server-teams-info-request', JSON.stringify({}));
       });
 
-      socket.on('server-to-ui-teamsinfo', function (data) {
-        console.log("server-to-ui-teams-info")
-        parsed_data = JSON.parse(data)
-        console.log(parsed_data)
-        match_num = parsed_data.match_num
-        console.log(match_num)
-        round_num = parsed_data.round_num
-        team_num = parsed_data.team_num
-        team_name = parsed_data.team_name
-        custom_ip = parsed_data.custom_ip // check if this is sent / used
+      socket.on('server-to-ui-teams-info', function (data) {
+        logg("server-to-ui-teams-info"+data);
+        parsed_data = JSON.parse(data);
+        console.log(parsed_data);
+        
+        match_num = parsed_data.match_num;
+        round_num = parsed_data.round_num;
+        team_num  = parsed_data.team_num;
+        team_name = parsed_data.team_name;
+        tinder    = parsed_data.tinder;
+        buttons   = parsed_data.buttons;
+        custom_ip = parsed_data.custom_ip;
         setDefaultTeamsInfo()
       });
+      
+      function setDefaultTeamsInfo() {
+        $("#select-match-number").val(match_num);
+        $("#select-round-number").val(round_num);
+        $("#team-number").val(team_num);
+        $("#team-name").val(team_name);
+        $("#tinder").val(tinder);
+        $("#buttons").val(buttons);
+        $("#custom-ip-adjustment").val(custom_ip);
+      }
+      
+      
 
       $("#next-round").click(() => {
-        console.log("next round button pressed");
+        logg("next round [unimplemented]");
       })
 
       $("#next-match").click(() => {
-        console.log("next match button pressed");
+        logg("next match [unimplemented]");
       })
 
       $("#select-round").click(() => {
-        console.log("populate button pressed");
-        match_num = $("#select-match-number").val();
-        round_num = $("#select-round-number").val();
-        socket.emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+        match_num = parseInt($("#select-match-number").val());
+        round_num = parseInt($("#select-round-number").val());
+        if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
+        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       });
 
       $("#create-match").click(() => {
-        setTeamsInfoVars();
-        socket.emit('ui-to-server-setup-match', JSON.stringify(data));
+        match_num = parseInt($("#select-match-number").val());
+        round_num = parseInt($("#select-round-number").val());
+        team_num = parseInt($("#team-number").val());
+        team_name = $("#team-name").val();
+        if(isNaN(match_num)) { alert("invalid match number"); return; }
+        if(isNaN(round_num)) { alert("invalid round number"); return; }
+        if(isNaN(team_num)) { alert("invalid team number"); return; }
+        if(team_name == "") { alert("empty team name"); return; } 
+        
+        let data = {
+            "match_num": match_num,
+            "round_num": round_num,
+            "team_num": team_num,
+            "team_name": team_name
+        };
+        emit('ui-to-server-setup-match', JSON.stringify(data));
       });
 
 
-
-      function setDefaultTeamsInfo() {
-        $("#match-number").text(match_num);
-        $("#round-number").text(round_num);
-        $("#team-number").text(team_num);
-        $("#team-name").text(team_name);
-      }
-
-      function setTeamsInfoVars() {
-        match_num = $("#match-number").text();
-        round_num = $("#round-number").text();
-        team_num = $("#team-number").text();
-        team_name = $("#team-name").text();
-      }
-
       $("#submit-tinder").click(function () {
-        var tinder = $("#tinder").val();
-        socket.emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
+        let tinder = parseInt($("#tinder").val());
+        if(isNaN(tinder)){ alert("invalid firewood"); return; }
+        emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
       });
 
       $("#submit-buttons").click(function () {
-        var buttons = $("#buttons").val();
-        socket.emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
+        let buttons = parseInt($("#buttons").val());
+        if(isNaN(buttons)){ alert("invalid buttons"); return; }
+        emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
       });
 
       $("#round-start").click(function () {
-        socket.emit('ui-to-server-start-next-stage');
+        emit('ui-to-server-start-next-stage');
       });
 
 
       $("#round-reset").click(function () {
-        socket.emit('ui-to-server-reset-match');
+        emit('ui-to-server-reset-match');
       });
+      
+      $("#custom-ip-change").click(function () {
+        let ip = $("#custom-ip-adjustment").val();
+        if(ip == "") { alert("empty custom ip"); return; } 
+        emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
+      });
+      
       /*
       socket.on('server-to-ui-connections', function (data) {
         //parsed_data = JSON.parse(data);
@@ -186,8 +231,9 @@
 
     <div class="row">
       <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <h3>Match #:</h3><h3 id="match-number"></h3>
-        <h3>Round #:</h3><h3 id="round-number"></h3>
+        <!--<h3>Match #:</h3><h3 id="match-number"></h3> -->
+        <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
+        <h3>Match/Round:</h3>
         <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
             aria-hidden="true"></span>Next Round</button>
         <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
@@ -202,43 +248,46 @@
             aria-hidden="true"></span>Populate</button>
       </div>
     </div>
-
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <h3>Team #:</h3><h3 id="team-number"></h3>
-        <h3>Team Name:</h3><h3 id="team-name"></h3>
-        <div class="form-group">
-          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Tinder">
+    
+    
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Custom IP: </h3>
+          <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
+          <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
+          </span>
+          <span class="spaced">Heartbeat:</span> 
+          <div class="form-group spaced heartbeat-light hb"></div>
         </div>
-        <button type="button" class="btn btn-success spaced" id="submit-tinder"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Submit Tinder</button>
-        <div class="form-group">
-          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
-        </div>
-        <button type="button" class="btn btn-success spaced" id="submit-buttons"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Submit Buttons</button>
-        
       </div>
     </div>
 
     <div class="row bottom-padding">
-      <div class="col">
         <div class="input-group">
-          <h3>Custom IP: <span id="custom-ip"></span></h3>
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="custom-ip-change">Change</button>
-          </span>
-          <input type="url" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+          <h3>Team #:</h3>
+          <input type="number" class="form-control" id="team-number">
         </div>
+    </div>
+    <div class="row bottom-padding">
+        <div class="input-group">
+          <h3>Team Name:</h3>
+          <input type="text" class="form-control" id="team-name">
+        </div>
+    </div>
+    
+
+    <div class="row">
+      <div class="btn-group bottom-padding" role="group" aria-label="...">
+          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
+          <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
+          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
+          <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
       </div>
     </div>
 
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group">
-        <span class="spaced">Heartbeat:</span> 
-        <div class="form-group spaced heartbeat-light hb"></div>
-      </div>
-    </div>
+
 
     <div class="row">
       <div class="btn-group bottom-padding" role="group" aria-label="...">
@@ -250,6 +299,9 @@
             aria-hidden="true"></span>Reset Round</button>
       </div>
     </div>
+    
+    <pre id="events-log"></pre>
+    
   </div>
 </body>
 

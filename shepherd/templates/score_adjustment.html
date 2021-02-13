@@ -34,45 +34,78 @@
   <!-- Javascript -->
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
-      var team_score = 0;
       var socket = io('/');
+
+      let counter = 1;
+      function logg(str) {
+        let log = document.getElementById("events-log");
+        let m = log.innerHTML.split("\n");
+        if(m.length >= 10) m.shift();
+        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
+      }
+      
+      function emit() {
+        socket.emit(...arguments);
+        let logstr = ""
+        try {
+            for(let a=0;a<arguments.length;a++)
+               logstr += arguments[a];
+        } catch (err){
+            console.log(err);
+            logstr = "[logging error]";
+        }
+        logg(logstr);
+      }
 
 
       socket.on('connect', function(data) {
-        socket.emit('join', 'score_adjustment');
-        socket.emit('ui-to-server-score-request');
+        emit('join', 'score_adjustment');
+        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+        emit('ui-to-server-score-request');
       });
 
       socket.on('server-to-ui-scores', function(scores) {
-        console.log(scores);
-        team_score = JSON.parse(scores).team_score;
-        updateScores();
+        logg('server-to-ui-scores' + scores);
+        let parsed_data = JSON.parse(scores);
+        show_score(parsed_data.time * 1000, parsed_data.penalty, parsed_data.stamp_time);
       });
+      
+      function show_score(elapsed, penalty, stamp) {
+        let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
+                      (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
+        $("#team-score").html(
+        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${stamp})</span>`
+        );
+      }
 
-      socket.on('server-to-ui-teamsinfo', function (data) {
-        console.log("server-to-ui-teams-info")
+      socket.on('server-to-ui-teams-info', function (data) {
+        logg("server-to-ui-teams-info"+data);
         parsed_data = JSON.parse(data)
         console.log(parsed_data)
+        
         $("#team-number").text(parsed_data.team_num);
         $("#team_name").text(parsed_data.team_name);
       });
 
-      function updateScores() {
-        $("#team-score").html(team_score);
-      }
-
       $("#score-change").click(() => {
-          team_score = parseInt($("#adjustment").val());
-          updateScores();
+          let t = parseFloat($("#score-adjustment").val());
+          if(isNaN(t)) { alert("invalid time"); return; }
+          emit("ui-to-server-scores", JSON.stringify({ "time": t }));
+          $("#score-adjustment").val("");
       });
-
-      $("#reset-scores").click(() => {
-        socket.emit('ui-to-server-score-request');
+      
+      $("#penalty-change").click(() => {
+          let t = parseInt($("#penalty-adjustment").val());
+          if(isNaN(t)) { alert("invalid time"); return; }
+          emit("ui-to-server-scores", JSON.stringify({ "penalty": t }));
+          $("#penalty-adjustment").val("");
       });
-
-      $("#send-scores").click(() => {
-        data = {"team_score" : team_score};
-        socket.emit('ui-to-server-scores', JSON.stringify(data));
+      
+      $("#stamp-change").click(() => {
+          let t = parseInt($("#stamp-adjustment").val());
+          if(isNaN(t)) { alert("invalid time"); return; }
+          emit("ui-to-server-scores", JSON.stringify({ "stamp_time": t }));
+          $("#stamp-adjustment").val("");
       });
 
     });
@@ -107,46 +140,40 @@
 
 
     <div class="text-center">
-      <h3>Team #: <span id="team-number"></span> Team Name: <span id="team-name"></span></h3>
-      <h2> Team Score: <span id="team-score"></span></h2>
+      <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
+      <h3> Team Score: <span id="team-score"></span></h3>
     </div>
 
 
     <div class="row bottom-padding">
-      <div class="col">
+      <div>
         <div class="input-group">
-          <h3>Base time:</h3>
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="score-change">Change</button>
-          </span>
-          <input type="number" class="form-control" value="0" id="score-adjustment">
+          <h3>Base time (seconds):</h3>
+          <input type="number" class="form-control" id="score-adjustment">
+          <span class="input-group-btn"><button class="btn btn-success" type="button" id="score-change">Change</button></span>
         </div>
       </div>
     </div>
     <div class="row bottom-padding">
-      <div class="col">
+      <div>
         <div class="input-group">
-          <h3>Penalty time:</h3>
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="penalty-change">Change</button>
-          </span>
-          <input type="number" class="form-control" value="0" id="penalty-adjustment">
+          <h3>Penalty time (seconds):</h3>
+          <input type="number" class="form-control" id="penalty-adjustment">
+          <span class="input-group-btn"><button class="btn btn-success" type="button" id="penalty-change">Change</button></span>
         </div>
       </div>
     </div>
     <div class="row bottom-padding">
-      <div class="col">
+      <div>
         <div class="input-group">
-          <h3>Stamp time:</h3>
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="stamp-change">Change</button>
-          </span>
-          <input type="number" class="form-control" value="0" id="stamp-adjustment">
+          <h3>Stamp time (seconds):</h3>
+          <input type="number" class="form-control" id="stamp-adjustment">
+          <span class="input-group-btn"><button class="btn btn-success" type="button" id="stamp-change">Change</button></span>
         </div>
       </div>
     </div>
 
-
+    <pre id="events-log"></pre>
   </div>
 
 </body>
