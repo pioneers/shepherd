@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 from Utils import *
-
+from Code import *
 
 class Robot:
 
@@ -22,18 +22,13 @@ class Robot:
 
     def calculate_time(self):
         if self.end_time is not None and self.start_time is not None:
-            self.elapsed_time = (
-                self.end_time - self.start_time).total_seconds()
+            self.elapsed_time = self.end_time - self.start_time
 
     def total_time(self):
         return self.elapsed_time + self.stamp_time + self.penalty
 
     def reset(self):
         self.connection = False
-
-    def run_coding_challenges(self):
-        # TODO
-        pass
 
     def pass_all_coding_challenges(self):
         return all(self.coding_challenge)
