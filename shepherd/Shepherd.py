@@ -504,6 +504,10 @@ def to_forest(args):
     global GAME_STATE
     GAME_STATE = STATE.FOREST
 
+def drawbridge_shortcut(args):
+    pass
+    #TODO activate the drawbridge
+
 # ----------
 # FOREST STAGE
 # ----------
@@ -687,6 +691,7 @@ CITY_FUNCTIONS = {
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
+    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
     SHEPHERD_HEADER.FOREST_ENTRY: to_forest
 }
 
@@ -698,6 +703,7 @@ FOREST_FUNCTIONS = {
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
+    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
     SHEPHERD_HEADER.DESERT_ENTRY: to_desert
 }
 

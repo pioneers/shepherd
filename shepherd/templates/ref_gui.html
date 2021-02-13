@@ -63,6 +63,11 @@
         logg(logstr);
       }
 
+      $("#log-toggle").click(function(e) {
+        e.preventDefault();
+        let log = document.getElementById("events-log");
+        log.hidden = !log.hidden;
+      });
 
       socket.on('connect', function(data) {
         emit('join', 'ref_gui');
@@ -151,11 +156,11 @@
 
       
       $("#hit-wall").click(() => {
-          emit('ui-to-server-hit-wall'); //TODO right header?
+          emit('ui-to-server-contact-wall');
       });
       
       $("#shortcut").click(() => {
-          emit('ui-to-server-shortcut'); //TODO right header?
+          emit('ui-to-server-drawbridge-shortcut');
       });
       
       $("#exbtn1").click(() => {
@@ -253,7 +258,8 @@
     </div>
 
 
-    <pre id="events-log"></pre>
+    <a href="" id="log-toggle">Toggle log</a>
+    <pre id="events-log" hidden></pre>
 
   </div>
 

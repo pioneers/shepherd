@@ -89,6 +89,7 @@ class SHEPHERD_HEADER():
     STOPLIGHT_TIMER_END = "stoplight_timer_end"
     STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
     STOPLIGHT_PENALTY = "stoplight_penalty"
+    DRAWBRIDGE_SHORTCUT = "drawbridge_shortcut" #could be in city or forest
     FOREST_ENTRY = "forest_entry"
 
     # FOREST

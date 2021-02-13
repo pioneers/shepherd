@@ -80,6 +80,14 @@ def ui_to_server_set_tinder(args):
 def ui_to_server_custom_ip(args):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
+#Ref GUI buttons
+@socketio.on('ui-to-server-contact-wall')
+def ui_to_server_contact_wall():
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.CONTACT_WALL)
+
+@socketio.on('ui-to-server-drawbridge-shortcut')
+def ui_to_server_drawbridge_shortcut():
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT)
 
 
 def receiver():

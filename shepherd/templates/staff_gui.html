@@ -87,6 +87,11 @@
         logg(logstr);
       }
       
+      $("#log-toggle").click(function(e) {
+        e.preventDefault();
+        let log = document.getElementById("events-log");
+        log.hidden = !log.hidden;
+      });
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
@@ -300,7 +305,8 @@
       </div>
     </div>
     
-    <pre id="events-log"></pre>
+    <a href="" id="log-toggle">Toggle log</a>
+    <pre id="events-log" hidden></pre>
     
   </div>
 </body>
