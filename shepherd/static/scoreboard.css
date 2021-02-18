@@ -19,14 +19,14 @@ body {
     height: calc(10vh);
 }
 
-.robotinfo, .time, .penalty {
+.robotinfo, .time, .penalty, .stamps {
     margin: 20px;
     border: solid black;
     background-color: white;
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: 200%;
+    font-size: 250%;
 }
 
 .stagename {
@@ -34,7 +34,7 @@ body {
     width: calc(45vh)
 }
 
-.time, .penalty {
+.time, .penalty, .stamps {
     flex-direction: column;
     vertical-align: top;
     flex-grow: 1;
@@ -51,6 +51,10 @@ body {
 
 .penalty {
     color: red;
+}
+
+.stamps {
+    color: green;
 }
 
 mark.black {
