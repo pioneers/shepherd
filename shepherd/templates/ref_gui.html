@@ -79,7 +79,7 @@
       socket.on('server-to-ui-scores', function(scores) {
         logg('server-to-ui-scores' + scores);
         let parsed_data = JSON.parse(scores);
-        start_time = parseInt(parsed_data.start_time); //TODO is this the right field?
+        start_time = parseInt(parsed_data.start_time);
         penalty = parseInt(parsed_data.penalty);
         stamp_time = parseInt(parsed_data.stamp_time);
         base_time = parseInt(parsed_data.time);

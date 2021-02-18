@@ -38,7 +38,7 @@
       margin:5px;
     }
 
-    .heartbeat-light {
+    #heartbeat-light {
       width: 24px;
       height: 24px;
       border-radius: 50%;
@@ -123,6 +123,14 @@
         $("#custom-ip-adjustment").val(custom_ip);
       }
       
+      socket.on('server-to-ui-heartbeat-status', function (data) { //TODO right header?
+        logg("server-to-ui-heartbeat-status" + data);
+        let connected = JSON.parse(data).connected; //TODO right field?
+        let hbl = document.getElementById("heartbeat-light");
+        hbl.toggleClass("led-green", connected);
+        hbl.toggleClass("led-red",  !connected);
+      });
+      
       
 
       $("#next-round").click(() => {
@@ -195,24 +203,6 @@
         emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
       });
       
-      /*
-      socket.on('server-to-ui-connections', function (data) {
-        //parsed_data = JSON.parse(data);
-        //toggleConnection(parsed_data.robot_connection);
-      });
-
-      // Heartbeat
-      function toggleHeartbeat(connected) {
-        // TODO: add this div, copying other hb divs
-        toggleLed($(".hb"), connected);
-      }
-
-      function toggleLed(lightObj, connected) {
-        lightObj.toggleClass("led-green", connected);
-        lightObj.toggleClass("led-red",  !connected);
-        console.log(lightObj);
-      }
-      */
     });
   </script>
 </head>
@@ -272,7 +262,7 @@
             <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
           </span>
           <span class="spaced">Heartbeat:</span> 
-          <div class="form-group spaced heartbeat-light hb"></div>
+          <div class="form-group spaced" id="heartbeat-light"></div>
         </div>
       </div>
     </div>

@@ -31,7 +31,7 @@ __version__ = (1, 0, 0)
 
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
-ROBOT = None
+ROBOT = Robot("", -1, "")
 
 MATCH_NUMBER = -1
 ROUND_NUMBER = -1
