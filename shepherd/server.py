@@ -83,6 +83,9 @@ def ui_to_server_start_next_stage():
 def ui_to_server_reset_match():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.RESET_MATCH)
 
+@socketio.on('ui-to-server-reset-round')
+def ui_to_server_reset_round():
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.RESET_ROUND)
 
 @socketio.on('ui-to-server-game-info')
 def ui_to_server_game_info(game_info):

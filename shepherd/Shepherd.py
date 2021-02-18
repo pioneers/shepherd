@@ -10,6 +10,7 @@ from Timer import *
 from Utils import *
 from Code import * 
 # TODO: import protos and change things like "auto" to Mode.AUTO
+from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State
 import Sheet
@@ -60,7 +61,7 @@ TINDER = 0
 BUTTONS = Buttons()
 FIRE_LIT = False
 LAST_TINDER = 0
-LAST_BUTTONS = None
+LAST_BUTTONS = Buttons()
 
 ###########################################
 # Evergreen Methods
@@ -163,7 +164,7 @@ def to_setup(args):
     # code_setup()
 
     name, num = args["team_name"], args["team_num"]
-    custom_ip = args["custom_ip"] or None
+    custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
     ROBOT = Robot(name, num, custom_ip)
     BUTTONS = Buttons()
@@ -201,9 +202,9 @@ def to_auto(args):
     ROBOT.start_time = time.time()
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": math.floor(ROBOT.start_time * 1000)})
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": math.floor(ROBOT.start_time * 1000)})
+             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
@@ -267,15 +268,19 @@ def get_round(args):
         try:
             info = Sheet.get_round(match_num, round_num)
         except Exception as e:
-            print(e)
+            print("Exception while reading from sheet:",e)
             info = {"num":-1, "name":""}
         team_num = info["num"]
         team_name = info["name"]
 
     lcm_data = {"match_num": match_num, "round_num": round_num,
-                "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS}
+                "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
 
+def set_custom_ip(args):
+    ROBOT.custom_ip = args["custom_ip"]
+    #TODO can robot be none? 
+    #TODO send back connection status
 
 def score_adjust(args):
     '''
@@ -302,7 +307,8 @@ def get_score(args):
         "time": ROBOT.elapsed_time,
         "penalty": ROBOT.penalty,
         "stamp_time": ROBOT.stamp_time,
-        "score": ROBOT.total_time()
+        "score": ROBOT.total_time(),
+        "start_time": ROBOT.start_time_millis()
     })
 
 
@@ -321,11 +327,11 @@ def enable_robots(autonomous):
     '''
     try:
         # TODO: why si this "auto" and "telop" instead of 0/1?
-        CLIENTS.send_mode("auto" if autonomous else "teleop")
+        CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
     except Exception as exc:
         for client in CLIENTS.clients:
             try:
-                client.set_mode("auto" if autonomous else "teleop")
+                client.set_mode(Mode.AUTO if autonomous else Mode.TELEOP)
             except Exception as exc:
                 print("A robot failed to be enabled! Big sad :(")
                 log(exc)
@@ -336,11 +342,11 @@ def disable_robots():
     Sends message to Dawn to disable all robots
     '''
     try:
-        CLIENTS.set_mode("idle")
+        CLIENTS.send_mode(Mode.IDLE)
     except Exception as exc:
         for client in CLIENTS.clients:
             try:
-                client.set_mode("idle")
+                client.set_mode(Mode.IDLE)
             except Exception as exc:
                 print("a client has disconnected")
         log(exc)
@@ -647,6 +653,7 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
