@@ -1,15 +1,14 @@
 import argparse
 import queue
-from Utils import SHEPHERD_HEADER
 import time
-import datetime
 import traceback
 from datetime import datetime
+from Utils import SHEPHERD_HEADER
 from Alliance import *
 from LCM import *
 from Timer import *
 from Utils import *
-from Code import *
+from Code import * 
 # TODO: import protos and change things like "auto" to Mode.AUTO
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State
@@ -199,12 +198,12 @@ def to_auto(args):
 
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
-    ROBOT.start_time = datetime.now()
+    ROBOT.start_time = time.time()
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": math.floor(ROBOT.start_time * 1000)})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             "stage": GAME_STATE, "start_time": math.floor(ROBOT.start_time * 1000)})
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
@@ -317,6 +316,7 @@ def enable_robots(autonomous):
     which is true if we are entering autonomous mode
     '''
     try:
+        # TODO: why si this "auto" and "telop" instead of 0/1?
         CLIENTS.send_mode("auto" if autonomous else "teleop")
     except Exception as exc:
         for client in CLIENTS.clients:
@@ -464,7 +464,7 @@ def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    if ROBOT.pass_all_coding_challenges():
+    if ROBOT.pass_coding_challenges(n=4, tier=1):
         stoplight_timer_end([])
 
 
@@ -502,7 +502,7 @@ def to_desert(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
-    if ROBOT.pass_coding_challenges(n=1) == 0:
+    if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         # TODO: obscure vision
 
@@ -523,6 +523,7 @@ def to_dehydration(args):
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
+    # TODO: distribution of which challenges are chosen for each button?
     BUTTONS.illuminate_buttons(ROBOT)
 
 # ----------
@@ -620,7 +621,7 @@ def to_end(args):
     LAST_BUTTONS = BUTTONS
     GAME_STATE = STATE.END
     disable_robots()
-    ROBOT.end_time = datetime.now()
+    ROBOT.end_time = time.time()
     ROBOT.calculate_time()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
              {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty})
@@ -641,7 +642,8 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
-    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info
+    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
 AUTO_FUNCTIONS = {
@@ -730,7 +732,7 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
-    SHEPHERD_HEADER.RESET_MATCH: reset_state,
+    SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
 

@@ -8,24 +8,14 @@ class Buttons:
         self.buttons_illuminated = [True] * self.NUM_BUTTONS
         self.correct_button = random.randint(0, 5)
         self.illuminated = self.NUM_BUTTONS
-        # self.shuffled = random.shuffle(list(range(self.NUM_BUTTONS)))
-        # self.correct_button = self.shuffled[0]
 
     def set_num_buttons():
         pass
-    def illuminate_buttons(self, robot):
-        passed = robot.pass_coding_challenges(n=5)
-        for i in range(min(passed, len(self.shuffled) - 1)):
-            self.buttons_illuminated[self.shuffled.pop()] = True
 
     def illuminate_buttons(self, robot):
-        passed = robot.pass_coding_challenges(n=5)
-        to_illuminate = random.sample([i for i in range(self.NUM_BUTTONS) if self.buttons_illuminated[i] or i == self.correct_button], max(1, self.illuminated - passed)) # TODO: this is wrong
-        self.buttons_illuminated = [False] * 6
-        for btn in to_illuminate:
-            self.buttons_illuminated[btn] = True
-            # TODO: illuminate btn
-
+        challenges = random.sample(range(len(robot.coding_challenge)), self.NUM_BUTTONS)
+        for c in range(len(challenges)):
+            self.buttons_illuminated[c] = robot.coding_challenge[challenges[c]]
 
     def press_button_and_check(self, button):
         self.buttons_illuminated[button] = False

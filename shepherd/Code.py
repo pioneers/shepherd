@@ -168,6 +168,8 @@ def get_results(ip):
     global CH
     # get_challenges(ip)
 
+    # TODO: need feedback if they passed visible/hidden tests, also how do we tell them what they failed?
+
     os.system('clear')
     CH = importlib.import_module("studentcode")
     doc_tests = doctest.DocTestFinder()
@@ -177,6 +179,8 @@ def get_results(ip):
 
     easy_passed = run_set_of_tests(doc_tests, easy_challenges)
     hard_passed = run_set_of_tests(doc_tests, hard_challenges)
+    print(easy_passed)
+    print(hard_passed)
 
     # TODO: get the challenge results as list of bools ([passed challenge 1, passed challenge 2, etc.])
 
