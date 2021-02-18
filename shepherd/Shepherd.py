@@ -57,7 +57,7 @@ CODES_USED = []
 # 2020 Game Specific Variables
 ###########################################
 TINDER = 0
-BUTTONS = None
+BUTTONS = Buttons()
 FIRE_LIT = False
 LAST_TINDER = 0
 LAST_BUTTONS = None
@@ -264,7 +264,11 @@ def get_round(args):
     else:
         MATCH_NUMBER = match_num
         ROUND_NUMBER = round_num
-        info = Sheet.get_round(match_num, round_num)
+        try:
+            info = Sheet.get_round(match_num, round_num)
+        except Exception as e:
+            print(e)
+            info = {"num":-1, "name":""}
         team_num = info["num"]
         team_name = info["name"]
 
