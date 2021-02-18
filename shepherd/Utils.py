@@ -156,15 +156,30 @@ class SCOREBOARD_HEADER():
     These are headers used by Shepherd to send information to the Scoreboard.
     """
     SCORES = "scores"
-     # SCORES{time, penalty}
+    # SCORES{time, penalty, stamp_time, total}
+    # overrides (send this at the very end)
+    # time = elapsed time (count up) -> dummy time (DONT SEND) if dont update
+    # penalty = positive time
+    # stamps = negative time (decrement penalty) -> 5 for auto, 3 for tele
+    # TODO:
+    # account for penalty / stamp:
+    #   display penalty / stamp
+    #   update penalty / stamp time
+    # time: change displayed time to this if not null(?)
+
     TEAM = "team"
-     # TEAM{teamname, team#}
+    # TEAM{team_name, team_num}
     STAGE = "stage"
-     # STAGE{stage}
-    STAGE_TIMER_START = "stage_timer_start"
-    STAGE_TIMER_STOP = "stage_timer_stop"
+    # STAGE{stage, start_time}
+    # start_time = timestamp
+    # TODO:
+    # stage: figure out stage to display mapping
+    #   Autonomous vs Teleop
+    # fix the boxes so there's a box for stage
+    # reverse the timer: DONE
+    # calculate the diff between the start_time and our current time (to account for delay): DONE
+    # start the timer from the appropriate time: DONE
     RESET_TIMERS = "reset_timers"
-    ALL_INFO = "all_info"
 
 class TABLET_HEADER():
     TEAMS = "teams"

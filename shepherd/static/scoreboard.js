@@ -17,31 +17,47 @@ socket.on('stage_timer_start', function(secondsInStage) {
     stageTimerStart(time)
 })
 
-socket.on('stage', function(stage_name) {
-  stage = JSON.parse(stage_name).stage
+// STAGE{stage, start_time}
+socket.on('stage', function(stage_details) {
+  stage = JSON.parse(stage_details).stage
+  start_time = JSON.parse(stage_details).start_time
   console.log("got stage header")
   console.log(stage)
   setStageName(stage)
+  setStartTime(start_time)
 })
 
 socket.on("reset_timers", function() {
   resetTimers();
 })
 
-function setScore(alliance, score) {
-  $('#' + alliance + '-score').html(score);
-}
 
 // SCORES{time, penalty, stamp_time, total}
-socket.on("scores", function(scores) {
-  alliance = JSON.parse(scores).alliance;
-  scores = JSON.parse(scores).scores;
-  setScore(alliance, scores)
+socket.on("score", function(scores) {
+  time = JSON.parse(scores).time;
+
+  total = JSON.parse(scores).total;           //displayed?
+  penalty = JSON.parse(scores).penalty;
+  stamp_time = JSON.parse(scores).stamp_time;
+
+  setStamp(stamp_time);
+  setPenalty(penalty);
 })
 
-function testScore(blueScore, goldScore) {
-  $('#blue-score').html(blueScore);
-  $('#gold-score').html(goldScore);
+function setStamp(stamp_time) {
+  $('#stamp_time').html(stamp_time);
+}
+
+function setPenalty(penalty) {
+  $('#penalty').html(penalty);
+}
+
+function setTotal(total) {
+  $('#total').html(total);
+}
+
+function testScore(score) {
+  $('#score').html(score);
 }
 
 function resetTimers(){
@@ -72,17 +88,18 @@ function nextTeam(team_name, team_num){
   // TODO: Figure out how to reset main timer
 }
 
-function stageTimerStart(timeleft) {
+function stageTimerStart(currTime) {
   stageTimer = true;
-  runStageTimer(timeleft);
+  runStageTimer(currTime);
 }
 
-function runStageTimer(timeleft) {
-  if(timeleft >= 0){
+function runStageTimer(currTime) {
+  var maxStageTime = 300;
+  if(currTime <= maxStageTime){
     setTimeout(function() {
-      $('#stage-timer').html(Math.floor(timeleft/60) + ":"+ pad(timeleft%60))
+      $('#stage-timer').html(Math.floor(currTime/60) + ":"+ pad(currTime%60))
       if(stageTimer) {
-        stageTimerStart(timeleft - 1);
+        stageTimerStart(currTime + 1);
       } else {
         stageTimerStart(0)
         $('#stage-timer').html("0:00")
@@ -171,39 +188,6 @@ function runTimer1() {
   launchButtonTimer('.timer1', '.circle_animation1', timerA);
 }
 
-function launchButtonTimer(timerNum, circleNum, timerStatus) { 
-  /* how long the timer will run (seconds) */
-
-  var time = 30;
-  var initialOffset = '440';
-  var i = 1;
-
-  /* Need initial run as interval hasn't yet occured... */
-  $(timerNum).css('stroke-dashoffset', initialOffset-(1*(initialOffset/time)));
-
-  var interval = setInterval(function() {
-      $(timerNum).text(time - i);
-      if (timerNum == '.timer1') {
-        timerStatus = timerA;
-      } else if (timerNum == '.timer2') {
-        timerStatus = timerB;
-      } else if (timerNum == '.timer3') {
-        timerStatus = timerC;
-      } else {
-        timerStatus = timerD;
-      }
-      if (i == time||!timerStatus) {  	
-        clearInterval(interval);
-        $(timerNum).text(0);
-        $(circleNum).css('stroke-dashoffset', '0')
-        return;
-      }
-      $(circleNum).css('stroke-dashoffset', initialOffset-((i+1)*(initialOffset/time)));
-      i++;  
-  }, 1000);
-
-}
-
 function timer1() { 
   /* how long the timer will run (seconds) */
 
@@ -226,4 +210,16 @@ function timer1() {
       i++;
   }, 1000);
 
+}
+
+function setStartTime(start_time) {
+  // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
+  // the difference between the current time and the sent timestamp, and set the starting time 
+  // to be the amount of time given in the round minus the offset.
+  //
+  // Args:
+  // start_time = timestamp sent by Shepherd of when the stage began in seconds
+  var curr_time = new Date().getTime() / 1000;
+
+  stageTimerStart(curr_time - start_time)
 }

@@ -15,6 +15,10 @@ body {
     height: calc(25vh)
 }
 
+#stagename-container {
+    height: calc(10vh);
+}
+
 .robotinfo, .time, .penalty {
     margin: 20px;
     border: solid black;
@@ -22,7 +26,12 @@ body {
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: 250%;
+    font-size: 200%;
+}
+
+.stagename {
+    height: calc(10vh);
+    width: calc(45vh)
 }
 
 .time, .penalty {

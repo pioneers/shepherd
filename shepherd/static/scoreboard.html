@@ -2,23 +2,31 @@
 
 <head>
     <link href="scoreboard.css" rel="stylesheet">
+    <script src="scoreboard.js"></script>
 </head>
 
 <body>
+    <!-- <div class="container" id="stagename-container">
+        
+    </div> -->
     <div class="container">
+        <!-- <div class="stagename">
+            Autonomous
+        </div> -->
+
         <div class="robotinfo">
-            Team 6969<br>
-            Berk. Brocolli Elementary
+            <mark class="black" id="team-num">Team 6969</mark>
+            <div id="team-name">Berk. Brocolli Elementary</div>
         </div>
 
         <div class="time">
             <mark class="black">Time</mark><br>
-            0:00
+            <div id="stage-timer">0:00</div>
         </div>
 
         <div class="penalty">
-            <mark class="black">Penalty</mark><br>
-            +0:05
+            <mark class="black">Penalty | Stamps</mark><br>
+            +0:05 | - 0.05
         </div>
     </div>
 </body>
