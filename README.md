@@ -15,6 +15,12 @@ Shepherd is essentially a [Flask](https://palletsprojects.com/p/flask/) web app 
 
 ## Installing dependencies
 
+### Python dependencies
+Run the following
+```
+pip install -r requirements.txt
+```
+
 ### LCM
 
 #### Linux

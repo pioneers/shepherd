@@ -1,5 +1,5 @@
 <html>
-
+<!--I like cheese-->
 <head>
   <title>Staff UI</title>
   <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
@@ -34,155 +34,175 @@
       flex-flow: row;
     }
 
-    .led-green,
-    .heartbeat-light {
-      width: 24px;
-      height: 24px;
-      background-color: #ABFF00;
-      border-radius: 50%;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+    .spaced {
+      margin:5px;
     }
 
-    .led-red {
+    #heartbeat-light {
       width: 24px;
       height: 24px;
-      background-color: #F00;
       border-radius: 50%;
+      background-color: lightgrey;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
+    }
+    .led-green {
+      background-color: #ABFF00;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+    }
+    .led-red {
+      background-color: #F00;
       box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px;
     }
   </style>
   <script>
     $(document).ready(function () {
 
-      var socket = io('http://127.0.0.1:5000');
+      var socket = io('/');
       var match_num = "";
       var round_num = "";
       var team_num = "";
       var team_name = "";
-
+      var tinder = "";
+      var buttons = "";
       var custom_ip = "";
 
-      function getCookie(cname) {
-        var name = cname + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-          var c = ca[i];
-          while (c.charAt(0) == ' ') c = c.substring(1);
-          if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+      let counter = 1;
+      function logg(str) {
+        let log = document.getElementById("events-log");
+        let m = log.innerHTML.split("\n");
+        if(m.length >= 10) m.shift();
+        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
+      }
+      
+      function emit() {
+        socket.emit(...arguments);
+        let logstr = ""
+        try {
+            for(let a=0;a<arguments.length;a++)
+               logstr += arguments[a];
+        } catch (err){
+            console.log(err);
+            logstr = "[logging error]";
         }
-        return "";
+        logg(logstr);
       }
-
-      if (getCookie("match_num") != "") {
-        match_num = parseInt(decodeURIComponent(getCookie("match_num")))
-        blue_1_name = decodeURIComponent(getCookie("team_name"))
-        blue_2_num = parseInt(decodeURIComponent(getCookie("team_num")))
-
-        custom_ip = decodeURIComponent(getCookie("custom_ip"))
-        setDefaultTeamsInfo()
-      }
-
-      socket.on('connect', function (data) {
-        socket.emit('join', 'staff_gui');
+      
+      $("#log-toggle").click(function(e) {
+        e.preventDefault();
+        let log = document.getElementById("events-log");
+        log.hidden = !log.hidden;
       });
 
+      socket.on('connect', function (data) {
+        emit('join', 'staff_gui');
+        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+      });
+
+      socket.on('server-to-ui-teams-info', function (data) {
+        logg("server-to-ui-teams-info"+data);
+        parsed_data = JSON.parse(data);
+        console.log(parsed_data);
+        
+        match_num = parsed_data.match_num;
+        round_num = parsed_data.round_num;
+        team_num  = parsed_data.team_num;
+        team_name = parsed_data.team_name;
+        tinder    = parsed_data.tinder;
+        buttons   = parsed_data.buttons;
+        custom_ip = parsed_data.custom_ip;
+        setDefaultTeamsInfo()
+      });
+      
+      function setDefaultTeamsInfo() {
+        $("#select-match-number").val(match_num);
+        $("#select-round-number").val(round_num);
+        $("#team-number").val(team_num);
+        $("#team-name").val(team_name);
+        $("#tinder").val(tinder);
+        $("#buttons").val(buttons);
+        $("#custom-ip-adjustment").val(custom_ip);
+      }
+      
+      socket.on('server-to-ui-heartbeat-status', function (data) { //TODO right header?
+        logg("server-to-ui-heartbeat-status" + data);
+        let connected = JSON.parse(data).connected; //TODO right field?
+        let hbl = document.getElementById("heartbeat-light");
+        hbl.toggleClass("led-green", connected);
+        hbl.toggleClass("led-red",  !connected);
+      });
+      
+      
+
+      $("#next-round").click(() => {
+        if(round_num >= 3){
+            round_num = 1;
+            match_num++;
+        } else {
+            round_num++;
+        }
+        $("#select-match-number").val(match_num);
+        $("#select-round-number").val(round_num);
+        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+      })
+
+      $("#next-match").click(() => {
+        emit('ui-to-server-reset-match');
+      })
+
       $("#select-round").click(() => {
-        match_num = $("#select-match-number").val();
-        round_num = $("#select-round-number").val();
-        console.log("populate button pressed");
-        socket.emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+        match_num = parseInt($("#select-match-number").val());
+        round_num = parseInt($("#select-round-number").val());
+        if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
+        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       });
 
       $("#create-match").click(() => {
-        setTeamsInfoVars()
-        data = {
-          "match_num": match_num,
-          "team_num": team_num, "team_name": team_name,
-          "custom_ip": custom_ip
-        }
-        socket.emit('ui-to-server-setup-match', JSON.stringify(data))
-        document.cookie = "match_num=" + match_num
-        document.cookie = "team_num=" + team_num
-        document.cookie = "team_name=" + team_name
-
-        document.cookie = "custom_ip" + custom_ip
+        match_num = parseInt($("#select-match-number").val());
+        round_num = parseInt($("#select-round-number").val());
+        team_num = parseInt($("#team-number").val());
+        team_name = $("#team-name").val();
+        if(isNaN(match_num)) { alert("invalid match number"); return; }
+        if(isNaN(round_num)) { alert("invalid round number"); return; }
+        if(isNaN(team_num)) { alert("invalid team number"); return; }
+        if(team_name == "") { alert("empty team name"); return; } 
+        
+        let data = {
+            "match_num": match_num,
+            "round_num": round_num,
+            "team_num": team_num,
+            "team_name": team_name
+        };
+        emit('ui-to-server-setup-match', JSON.stringify(data));
       });
 
-      socket.on('server-to-ui-teamsinfo', function (data) {
-        console.log("server-to-ui-teams-info")
-        parsed_data = JSON.parse(data)
-        console.log(parsed_data)
-        match_num = parsed_data.match_num
-        console.log(match_num)
-        round_num = parsed_data.round_num
-        team_num = parsed_data.team_num
-        team_name = parsed_data.team_name
-        custom_ip = parsed_data.custom_ip // check if this is sent / used
-        setDefaultTeamsInfo()
-      });
-
-      function setDefaultTeamsInfo() {
-        $("#match-number").text(match_num);
-        $("#round-number").text(round_num);
-        $("#team-number").text(team_num);
-        $("#team-name").text(team_name);
-      }
-
-      function setTeamsInfoVars() {
-        match_num = $("#match-number").text();
-        round_num = $("#round-number").text();
-        team_num = $("#team-number").text();
-        team_name = $("#team-name").text();
-      }
 
       $("#submit-tinder").click(function () {
-        var tinder = $("#tinder").val();
-        socket.emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
+        let tinder = parseInt($("#tinder").val());
+        if(isNaN(tinder)){ alert("invalid firewood"); return; }
+        emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
       });
 
       $("#submit-buttons").click(function () {
-        var buttons = $("#buttons").val();
-        socket.emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
+        let buttons = parseInt($("#buttons").val());
+        if(isNaN(buttons)){ alert("invalid buttons"); return; }
+        emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
       });
 
       $("#round-start").click(function () {
-        socket.emit('ui-to-server-start-next-stage');
+        emit('ui-to-server-start-next-stage');
       });
 
-      /** $("#match-next-stage").click(function() {
-         socket.emit('ui-to-server-start-next-stage')
-     });**/
-
-      /** $("#match-reset-stage").click(function() {
-         socket.emit('ui-to-server-reset-stage')
-     });**/
 
       $("#round-reset").click(function () {
-        socket.emit('ui-to-server-reset-match');
+        emit('ui-to-server-reset-round');
       });
-
-      socket.on('server-to-ui-connections', function (data) {
-        parsed_data = JSON.parse(data);
-        toggleConnection(parsed_data.robot_connection);
-        // toggleBlue1(parsed_data.b_1_connection)
-        // toggleBlue2(parsed_data.b_2_connection)
-        // toggleGold1(parsed_data.g_1_connection)
-        // toggleGold2(parsed_data.g_2_connection)
+      
+      $("#custom-ip-change").click(function () {
+        let ip = $("#custom-ip-adjustment").val();
+        if(ip == "") { alert("empty custom ip"); return; } 
+        emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
       });
-
-      // Heartbeat
-      function toggleHeartbeat(connected) {
-        // TODO: add this div, copying other hb divs
-        toggleLed($(".hb"), connected);
-      }
-
-      function toggleLed(lightObj, connected) {
-        if (connected) {
-          lightObj.toggleClass("led-red", false);
-        } else {
-          lightObj.toggleClass("led-red", true);
-        }
-      }
+      
     });
   </script>
 </head>
@@ -204,7 +224,7 @@
           <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="../stage_control.html">Stage Control</a>
+          <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
         </li>
       </ul>
     </div>
@@ -214,52 +234,78 @@
 
     <div class="row">
       <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <h3 id="match-number">Match #</h3>
-        <h3 id="round-number">Round #</h3>
-        <button type="button" class="btn btn-success" id="next-round"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Next Round</button>
-        <button type="button" class="btn btn-success" id="next-match"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Next Match</button>
-        <button type="button" class="btn btn-success" id="select-round"><span class="glyphicon glyphicon-play"
+        <!--<h3>Match #:</h3><h3 id="match-number"></h3> -->
+        <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
+        <h3>Match/Round:</h3>
+        <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Autopopulate Next Round</button>
+        <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Reset Firewood/Buttons</button>
+        <div class="form-group">
+          <input type="number" class="form-control spaced" id="select-match-number" style="width: 81px;" placeholder="Match #">
+        </div>
+        <div class="form-group">
+          <input type="number" class="form-control spaced" id="select-round-number" style="width: 81px;" placeholder="Round #">
+        </div>
+        <button type="button" class="btn btn-success spaced" id="select-round"><span class="glyphicon glyphicon-play"
             aria-hidden="true"></span>Populate</button>
-        <div class="form-group">
-          <input type="number" class="form-control" id="select-match-number" style="width: 81px;" placeholder="Match #">
-        </div>
-        <div class="form-group">
-          <input type="number" class="form-control" id="select-round-number" style="width: 81px;" placeholder="Round #">
+      </div>
+    </div>
+    
+    
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Custom IP: </h3>
+          <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
+          <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
+          </span>
+          <span class="spaced">Heartbeat:</span> 
+          <div class="form-group spaced" id="heartbeat-light"></div>
         </div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <h3 id="team-number">Team Number</h3>
-        <h3 id="team-name">Team Name</h3>
-        <div class="form-group">
-          <input type="number" class="form-control" id="tinder" style="width: 81px;" placeholder="Tinder">
+    <div class="row bottom-padding">
+        <div class="input-group">
+          <h3>Team #:</h3>
+          <input type="number" class="form-control" id="team-number">
         </div>
-        <button type="button" class="btn btn-success" id="submit-tinder"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Submit Tinder</button>
-        <div class="form-group">
-          <input type="number" class="form-control" id="buttons" style="width: 81px;" placeholder="Buttons">
-        </div>
-        <button type="button" class="btn btn-success" id="submit-buttons"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Submit Buttons</button>
-        <div class="form-group heartbeat-light hb"></div>
-      </div>
     </div>
+    <div class="row bottom-padding">
+        <div class="input-group">
+          <h3>Team Name:</h3>
+          <input type="text" class="form-control" id="team-name">
+        </div>
+    </div>
+    
 
     <div class="row">
       <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <button type="button" class="btn btn-success" id="create-match"><span class="glyphicon glyphicon-play"
+          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
+          <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
+          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
+          <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
+      </div>
+    </div>
+
+
+
+    <div class="row">
+      <div class="btn-group bottom-padding" role="group" aria-label="...">
+        <button type="button" class="btn btn-success spaced" id="create-match"><span class="glyphicon glyphicon-play"
             aria-hidden="true"></span>Create Match</button>
-        <button type="button" class="btn btn-success" id="round-start"><span class="glyphicon glyphicon-play"
+        <button type="button" class="btn btn-success spaced" id="round-start"><span class="glyphicon glyphicon-play"
             aria-hidden="true"></span>Start Round</button>
-        <button type="button" class="btn btn-danger" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
+        <button type="button" class="btn btn-danger spaced" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
             aria-hidden="true"></span>Reset Round</button>
-
       </div>
     </div>
+    
+    <a href="" id="log-toggle">Toggle log</a>
+    <pre id="events-log" hidden></pre>
+    
   </div>
 </body>
 
