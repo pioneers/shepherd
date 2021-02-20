@@ -65,7 +65,7 @@
 
       socket.on('connect', function(data) {
         emit('join', 'score_adjustment');
-        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+        emit('ui-to-server-teams-info-request-no-args');
         emit('ui-to-server-score-request');
       });
 
@@ -85,8 +85,7 @@
 
       socket.on('server-to-ui-teams-info', function (data) {
         logg("server-to-ui-teams-info"+data);
-        parsed_data = JSON.parse(data)
-        console.log(parsed_data)
+        parsed_data = JSON.parse(data);
         
         $("#team-number").text(parsed_data.team_num);
         $("#team-name").text(parsed_data.team_name);

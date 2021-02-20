@@ -95,13 +95,12 @@
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
-        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+        emit('ui-to-server-teams-info-request-no-args');
       });
 
       socket.on('server-to-ui-teams-info', function (data) {
         logg("server-to-ui-teams-info"+data);
         parsed_data = JSON.parse(data);
-        console.log(parsed_data);
         
         match_num = parsed_data.match_num;
         round_num = parsed_data.round_num;

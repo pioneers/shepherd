@@ -58,26 +58,28 @@ def ui_to_server_scores(scores):
 def ui_to_server_score_request():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_SCORES)
 
+
 # Main GUI
 
+@socketio.on('ui-to-server-teams-info-request-no-args')
+def ui_to_server_round_info_request_no_args():
+    print("TEAMS Info request on load made")
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS)
 
 @socketio.on('ui-to-server-teams-info-request')
 def ui_to_server_round_info_request(round_info):
     print("TEAMS Info request made")
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO,
-             json.loads(round_info))
-
+            json.loads(round_info))
 
 @socketio.on('ui-to-server-setup-match')
 def ui_to_server_setup_match(teams_info):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SETUP_MATCH,
              json.loads(teams_info))
 
-
 @socketio.on('ui-to-server-start-next-stage')
 def ui_to_server_start_next_stage():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.START_NEXT_STAGE)
-
 
 @socketio.on('ui-to-server-reset-match')
 def ui_to_server_reset_match():
@@ -92,11 +94,9 @@ def ui_to_server_game_info(game_info):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_GAME_INFO,
              json.loads(game_info))
 
-
 @socketio.on('ui-to-server-set-tinder')
 def ui_to_server_set_tinder(args):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_TINDER, json.loads(args))
-
 
 @socketio.on('ui-to-server-custom-ip')
 def ui_to_server_custom_ip(args):
@@ -104,6 +104,7 @@ def ui_to_server_custom_ip(args):
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
 #Ref GUI buttons
+
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.CONTACT_WALL)

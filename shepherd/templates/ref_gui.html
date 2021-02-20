@@ -37,8 +37,8 @@
       var socket = io('/');
       var start_time = NaN;
       var base_time = NaN;
-      var penalty = 1000;
-      var stamp = 2000;
+      var penalty_time = 1000;
+      var stamp_time = 2000;
       var tinder = 3000;
       
 
@@ -71,7 +71,7 @@
 
       socket.on('connect', function(data) {
         emit('join', 'ref_gui');
-        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+        emit('ui-to-server-teams-info-request-no-args');
         emit('ui-to-server-score-request');
       });
 
@@ -80,7 +80,7 @@
         logg('server-to-ui-scores' + scores);
         let parsed_data = JSON.parse(scores);
         start_time = parseInt(parsed_data.start_time);
-        penalty = parseInt(parsed_data.penalty);
+        penalty_time = parseInt(parsed_data.penalty);
         stamp_time = parseInt(parsed_data.stamp_time);
         base_time = parseInt(parsed_data.time);
         update_score();
@@ -88,7 +88,7 @@
 
       function update_score() {
         let elapsed = base_time || (isNaN(start_time) ? 0 : new Date().getTime() - start_time);
-        show_score(elapsed, penalty, stamp_time);
+        show_score(elapsed, penalty_time, stamp_time);
         requestAnimationFrame(update_score);
       }
       
@@ -103,8 +103,7 @@
       
       socket.on('server-to-ui-teams-info', function (data) {
         logg("server-to-ui-teams-info" + data);
-        let parsed_data = JSON.parse(data)
-        console.log(parsed_data)
+        let parsed_data = JSON.parse(data);
         
         $("#team-number").text(parsed_data.team_num);
         $("#team_name").text(parsed_data.team_name);
@@ -121,7 +120,7 @@
       });
       
       $("#penalty-5").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty+5 }));
+          emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty_time+5 }));
       });
       
       $("#stamp-change").click(() => {
@@ -132,11 +131,11 @@
       });
       
       $("#stamp-3").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp+3 }));
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time+3 }));
       });
       
       $("#stamp-5").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp+5 }));
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time+5 }));
       });
       
       $("#tinder-change").click(() => {

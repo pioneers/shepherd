@@ -85,66 +85,31 @@ def start():
         payload = EVENTS.get(True)
         LAST_HEADER = payload
         print(payload)
-        if GAME_STATE == STATE.SETUP:
-            func = SETUP_FUNCTIONS.get(payload[0])
+
+        funcmappings = {
+            STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
+            STATE.AUTO: (AUTO_FUNCTIONS, "Auto"),
+            STATE.CITY: (CITY_FUNCTIONS, "City"),
+            STATE.FOREST: (FOREST_FUNCTIONS, "Forest"),
+            STATE.SANDSTORM: (SANDSTORM_FUNCTIONS, "Sandstorm"),
+            STATE.DEHYDRATION: (DEHYDRATION_FUNCTIONS, "Dehydration"),
+            STATE.FIRE: (FIRE_FUNCTIONS, "Fire"),
+            STATE.HYPOTHERMIA: (HYPOTHERMIA_FUNCTIONS, "Hypothermia"),
+            STATE.FINAL: (FINAL_FUNCTIONS, "Final"),
+            STATE.END: (END_FUNCTIONS, "End"),
+        }
+
+        if GAME_STATE in funcmappings:
+            func_list, state_name = funcmappings.get(GAME_STATE)
+            func = func_list.get(payload[0]) or EVERYWHERE_FUNCTIONS.get(payload[0])
             if func is not None:
                 func(payload[1])
             else:
-                print("Invalid Event in Setup")
-        elif GAME_STATE == STATE.AUTO:
-            func = AUTO_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Auto")
-        elif GAME_STATE == STATE.CITY:
-            func = CITY_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in City")
-        elif GAME_STATE == STATE.FOREST:
-            func = FOREST_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Forest")
-        elif GAME_STATE == STATE.SANDSTORM:
-            func = SANDSTORM_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Sandstorm")
-        elif GAME_STATE == STATE.DEHYDRATION:
-            func = DEHYDRATION_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Dehydration")
-        elif GAME_STATE == STATE.FIRE:
-            func = FIRE_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Fire")
-        elif GAME_STATE == STATE.HYPOTHERMIA:
-            func = HYPOTHERMIA_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Hypothermia")
-        elif GAME_STATE == STATE.FINAL:
-            func = FINAL_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Final")
-        elif GAME_STATE == STATE.END:
-            func = END_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in End")
+                print("Invalid Event in {0}".format(state_name))
+        else:
+            print("Invalid State: {}".format(GAME_STATE))
+
+
 
 #pylint: disable=too-many-locals
 
@@ -259,10 +224,7 @@ def get_round(args):
         round_num = int(args["round_num"])
 
     # if robot info is for the correct match, round
-    if MATCH_NUMBER == match_num and ROUND_NUMBER == round_num:
-        team_num = ROBOT.number
-        team_name = ROBOT.name
-    else:
+    if not (MATCH_NUMBER == match_num and ROUND_NUMBER == round_num):
         MATCH_NUMBER = match_num
         ROUND_NUMBER = round_num
         try:
@@ -270,12 +232,23 @@ def get_round(args):
         except Exception as e:
             print("Exception while reading from sheet:",e)
             info = {"num":-1, "name":""}
-        team_num = info["num"]
-        team_name = info["name"]
+        ROBOT.number = info["num"]
+        ROBOT.name = info["name"]
 
-    lcm_data = {"match_num": match_num, "round_num": round_num,
+    send_round_info()
+    
+
+def send_round_info(args = None):
+    '''
+    Sends all match info to the UI
+    '''
+    global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
+    team_num = ROBOT.number
+    team_name = ROBOT.name
+    lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
@@ -296,7 +269,7 @@ def score_adjust(args):
     # TODO: send dummy elapsed time if during game (-1) maybe this should be none
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {
              "time": time, "penalty": penalty, "stamp_time": stamp_time, "score": ROBOT.total_time()})
-
+    get_score({})
 
 def get_score(args):
     '''
@@ -581,6 +554,7 @@ def set_tinder(args):
     '''
     global TINDER
     TINDER = args["tinder"]
+    send_round_info()
 
 
 def toggle_fire(args):
@@ -648,8 +622,6 @@ def to_end(args):
 ###########################################
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
@@ -658,8 +630,6 @@ SETUP_FUNCTIONS = {
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city,
@@ -667,8 +637,6 @@ AUTO_FUNCTIONS = {
 }
 
 CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
@@ -679,8 +647,6 @@ CITY_FUNCTIONS = {
 }
 
 FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
@@ -689,8 +655,6 @@ FOREST_FUNCTIONS = {
 }
 
 SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration,
@@ -698,8 +662,6 @@ SANDSTORM_FUNCTIONS = {
 }
 
 DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
@@ -709,8 +671,6 @@ DEHYDRATION_FUNCTIONS = {
 }
 
 FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
@@ -720,30 +680,30 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.FINAL_ENTRY: to_final
 }
 
 FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end
 }
 
 END_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
-    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.GET_SCORES: get_score,
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.RESET_MATCH: reset_state
+}
+
+EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
+    SHEPHERD_HEADER.GET_SCORES: get_score,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round
 }
 
 
