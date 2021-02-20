@@ -217,11 +217,8 @@ def get_round(args):
     '''
     # TODO: ADD EVERYTHING THAT SAM DESIRES, check the validation is good
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
-    match_num = MATCH_NUMBER
-    round_num = ROUND_NUMBER
-    if "match_num" in args:
-        match_num = int(args["match_num"])
-        round_num = int(args["round_num"])
+    match_num = int(args["match_num"])
+    round_num = int(args["round_num"])
 
     # if robot info is for the correct match, round
     if not (MATCH_NUMBER == match_num and ROUND_NUMBER == round_num):
@@ -263,26 +260,32 @@ def score_adjust(args):
     time, penalty, stamp_time = args.get("time"), args.get(
         "penalty"), args.get("stamp_time")
     if STATE == STATE.END or STATE == STATE.SETUP:
-        ROBOT.elapsed_time = time if time is not None else ROBOT.elapsed_time
-    ROBOT.penalty = penalty if penalty is not None else ROBOT.penalty
-    ROBOT.stamp_time = stamp_time if stamp_time is not None else ROBOT.stamp_time
+        if time is not None:
+            ROBOT.set_elapsed_time(time)
+        # TODO: set_elapsed_time is not working for some reason during score adjust after a round
+    if penalty is not None:
+        ROBOT.penalty = penalty
+    if stamp_time is not None:
+        ROBOT.stamp_time = stamp_time
     # TODO: send dummy elapsed time if during game (-1) maybe this should be none
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {
-             "time": time, "penalty": penalty, "stamp_time": stamp_time, "score": ROBOT.total_time()})
-    get_score({})
+    send_score()
 
-def get_score(args):
+def send_score(args = None):
     '''
-    Send the current score to the UI.
+    Send the current score to the UI and scoreboard.
     '''
-    ROBOT.calculate_time()
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, {
-        "time": ROBOT.elapsed_time,
+
+    data = {
+        "time": ROBOT.elapsed_time(),
         "penalty": ROBOT.penalty,
         "stamp_time": ROBOT.stamp_time,
         "score": ROBOT.total_time(),
         "start_time": ROBOT.start_time_millis()
-    })
+    }
+    #TODO: check to see if this messes up scoreboard
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
+
 
 
 def flush_scores():
@@ -373,9 +376,8 @@ def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    ROBOT.calculate_time()
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {
-             "time": ROBOT.elapsed_time, "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+             "time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
 
 
 def set_game_info(args):
@@ -606,12 +608,10 @@ def to_end(args):
     GAME_STATE = STATE.END
     disable_robots()
     ROBOT.end_time = time.time()
-    ROBOT.calculate_time()
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-             {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty})
+    send_score()
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time, "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
@@ -701,7 +701,7 @@ END_FUNCTIONS = {
 
 EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
-    SHEPHERD_HEADER.GET_SCORES: get_score,
+    SHEPHERD_HEADER.GET_SCORES: send_score,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.RESET_ROUND: reset_round
 }

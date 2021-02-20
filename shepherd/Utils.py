@@ -19,7 +19,7 @@ class SHEPHERD_HEADER():
     # GET_ROUND_INFO{match_num, round_num}: gets match info for given match number
 
     GET_ROUND_INFO_NO_ARGS = "get_round_info_no_args"
-    # GET_ROUND_INFO_NO_ARGS{}: gets cached match info 
+    # GET_ROUND_INFO_NO_ARGS{}: gets cached match info (called on UI page load)
 
     # TODO: fix for 2021
     SETUP_MATCH = "setup_match"

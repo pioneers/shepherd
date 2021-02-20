@@ -19,19 +19,24 @@ class Robot:
     def init_times(self):
         self.start_time: datetime = None
         self.end_time = None
-        self.elapsed_time = None
         self.stamp_time = 0
         self.penalty = 0
         self.stamp_time = 0
 
-    def calculate_time(self):
+    def set_elapsed_time(self, new_time):
+        if self.start_time:
+            self.end_time = self.start_time + new_time
+
+    def elapsed_time(self):
         if self.end_time is not None and self.start_time is not None:
-            self.elapsed_time = self.end_time - self.start_time
+            return self.end_time - self.start_time
+        return None    
 
     def total_time(self):
-        if self.elapsed_time is None:
+        elapsed = self.elapsed_time()
+        if elapsed is None:
             return None
-        return self.elapsed_time + self.stamp_time + self.penalty
+        return elapsed + self.stamp_time + self.penalty
 
     def start_time_millis(self):
         if self.start_time is None:
