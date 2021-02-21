@@ -1,54 +1,70 @@
 import time
 import threading
-import collections
-import heapq
 import LCM
 from Utils import *
 
-class busyThread(threading.Thread):
+class TimerThread(threading.Thread):
     '''
     Subclass that is the actual thread that will be running.
-    There will only be one for the entire class.
+    There will only be one for the entire Timer class.
     '''
-    def __init__(self, queue):
+    def __init__(self):
         super().__init__()
-        self.queue = queue
-        self.stop = threading.Event()
 
     def run(self):
         '''
-        When started, thread will run and process Timers in queue until manually stopped
-        TODO: Add how to send message via LCM in the case of match timer
+        When started, thread will run and process Timers in queue until the queue is empty.
         '''
-        while not self.stop.isSet():
-            if self.queue and self.queue[0].end_time < time.time():
-                Timer.queueLock.acquire()
-                event = heapq.heappop(self.queue)
-                if event.timer_type is not None and event.timer_type["NEEDS_FUNCTION"]:
-                    LCM.lcm_send(LCM_TARGETS.SHEPHERD, event.timer_type["FUNCTION"])
-                event.active = False
-                Timer.queueLock.release()
-        for timer in self.queue:
-            timer.active = False
+        while len(Timer.eventQueue) > 0:
+            timetowait = Timer.update_all()
+            if timetowait > 0:
+                time.sleep(0.99 * timetowait) 
+                # 0.99 makes it run a few extra cycles, but more accurate
 
-    def join(self, timeout=None):
-        '''Stops this thread. Must be called from different thread (Main Thread)'''
-        self.stop.set()
-        super().join(timeout)
-        Timer.running = False
 
 class Timer:
     """
     This class should spawn another thread that will keep track of a target time
     and compare it to the current system time in order to see how much time is left
     """
-
+    MIN_TIMER_TIME = 1 # TODO: put this in Utils.py
     eventQueue = []
-    thread = busyThread(eventQueue)
-    running = False
     queueLock = threading.Lock()
-    globalResetCount = 0
-    reset_all_count = 0
+    thread = TimerThread()
+
+
+    @classmethod
+    def update_all(cls):
+        """
+        Checks to see if any of the timers has run out, and does the timer's callback if so (may run multiple callbacks). 
+        Returns the time remaining until the next timer (could be negative if timers expire at the same time). 
+        This assumes that a timer will never have its end_time spontanously decrease, and that all timers last at least MIN_TIMER_TIME
+        TODO: Add how to send message via LCM in the case of match timer
+        """
+        finished = []
+        keep = []
+        current_time = time.time()
+        cls.queueLock.acquire()
+        for t in cls.eventQueue:
+            (finished if t.end_time < current_time else keep).append(t)
+        cls.eventQueue = keep
+        cls.queueLock.release()
+        for t in finished:
+            t.end_timer() # timer's callback can introduce deadlock, want this outside the lock
+        current_time = time.time() # lcm sends might take a while
+        min_time = min([t.end_time - current_time for t in cls.eventQueue] + [cls.MIN_TIMER_TIME])
+        return min_time
+
+
+    @classmethod
+    def reset_all(cls):
+        """Resets Timer Thread when game changes"""
+        cls.queueLock.acquire()
+        for t in cls.eventQueue:
+            t.active = False
+        cls.eventQueue = []
+        cls.queueLock.release()
+        # since queue is empty, timer thread will stop
 
     def __init__(self, timer_type):
         """
@@ -58,59 +74,51 @@ class Timer:
         self.active = False
         self.timer_type = timer_type
         self.end_time = None
-        self.reset_all_count = Timer.globalResetCount
+
 
     def start_timer(self, duration):
         """Starts a new timer with the duration (seconds) and sets timer to active.
            If Timer is already running, adds duration to Timer"""
-        self.reset_all_count = Timer.globalResetCount
+        Timer.queueLock.acquire()
         if self.active:
-            Timer.queueLock.acquire()
             self.end_time += duration
-            heapq.heapify(Timer.eventQueue)
-            Timer.queueLock.release()
         else:
-            if not Timer.running:
-                Timer.running = True
-                Timer.thread.start()
-            Timer.queueLock.acquire()
             self.end_time = time.time() + duration
-            heapq.heappush(Timer.eventQueue, self)
+            Timer.eventQueue.append(self)
             self.active = True
-            Timer.queueLock.release()
+
+        if not Timer.thread.is_alive():
+            Timer.thread = TimerThread()
+            Timer.thread.start()
+        Timer.queueLock.release()
+
+
+    def end_timer(self):
+        """Does the callback for current timer and sets it to inactive.
+           Note that it should not be in the event queue, as to not introduce deadlock"""
+        if self.active and \
+            self.timer_type is not None and \
+            self.timer_type["NEEDS_FUNCTION"]:
+            LCM.lcm_send(LCM_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
+        self.active = False
+
 
     def reset(self):
         """Stops the current timer (if any) and sets timer to inactive"""
-        if self.active and self.reset_all_count == Timer.globalResetCount:
-            Timer.queueLock.acquire()
-            Timer.eventQueue.remove(self)
-            heapq.heapify(Timer.eventQueue)
+        Timer.queueLock.acquire()
+        if self.active:
+            if self in Timer.eventQueue:
+                Timer.eventQueue.remove(self)
             self.active = False
-            Timer.queueLock.release()
+        Timer.queueLock.release()
+
 
     def is_running(self):
-        """Returns true if the timer is currently running"""
+        """
+        Returns true if the timer is currently running.
+        Specifically, returns true if it's in the event queue, 
+        or about to do its callback
+        """
         return self.active
 
-    @classmethod
-    def reset_all(cls):
-        """Resets Timer Thread when game changes"""
-        if cls.running:
-            cls.thread.join()
-            cls.eventQueue = []
-            cls.thread = busyThread(cls.eventQueue)
-            cls.running = False
-            cls.queueLock = threading.Lock()
-            cls.globalResetCount = cls.globalResetCount + 1
 
-    ###########################################
-    # Timer Comparison Methods
-    ###########################################
-    def __lt__(self, other):
-        return self.end_time < other.end_time
-
-    def __gt__(self, other):
-        return self.end_time > other.end_time
-
-    def __eq__(self, other):
-        return self.end_time == other.end_time

@@ -6,7 +6,7 @@ from datetime import datetime
 from Utils import SHEPHERD_HEADER
 from Alliance import *
 from LCM import *
-from Timer import *
+from Timer import Timer
 from Utils import *
 from Code import * 
 # TODO: import protos and change things like "auto" to Mode.AUTO
