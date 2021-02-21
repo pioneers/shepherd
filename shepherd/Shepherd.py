@@ -137,6 +137,9 @@ def to_setup(args):
     # note that reset state will be called from the UI when necessary and reset_state + reset_round = reset match
     reset_round()
 
+    # so if there are other UIs open they get the update
+    send_round_info()
+
     # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
@@ -168,8 +171,9 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    #lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
+    #         "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    send_score()
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
@@ -256,13 +260,12 @@ def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    global STATE
+    global GAME_STATE
     time, penalty, stamp_time = args.get("time"), args.get(
         "penalty"), args.get("stamp_time")
-    if STATE == STATE.END or STATE == STATE.SETUP:
+    if GAME_STATE == STATE.END or GAME_STATE == STATE.SETUP:
         if time is not None:
             ROBOT.set_elapsed_time(time)
-        # TODO: set_elapsed_time is not working for some reason during score adjust after a round
     if penalty is not None:
         ROBOT.penalty = penalty
     if stamp_time is not None:
@@ -282,7 +285,7 @@ def send_score(args = None):
         "score": ROBOT.total_time(),
         "start_time": ROBOT.start_time_millis()
     }
-    #TODO: check to see if this messes up scoreboard
+    #TODO: check to see if this messes up scoreboard, especially in to_auto
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
 

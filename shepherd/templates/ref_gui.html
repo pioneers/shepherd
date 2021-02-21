@@ -82,12 +82,12 @@
         start_time = parseInt(parsed_data.start_time);
         penalty_time = parseInt(parsed_data.penalty);
         stamp_time = parseInt(parsed_data.stamp_time);
-        base_time = parseInt(parsed_data.time);
+        base_time = parseFloat(parsed_data.time);
         update_score();
       });
 
       function update_score() {
-        let elapsed = base_time || (isNaN(start_time) ? 0 : new Date().getTime() - start_time);
+        let elapsed = base_time * 1000 || (isNaN(start_time) ? 0 : new Date().getTime() - start_time);
         show_score(elapsed, penalty_time, stamp_time);
         requestAnimationFrame(update_score);
       }
@@ -96,7 +96,7 @@
         let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
                       (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
         $("#team-score").html(
-        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${stamp})</span>`
+        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
         );
       }
       
@@ -115,6 +115,7 @@
       $("#penalty-change").click(() => {
           let v = parseInt($("#penalty-adjustment").val());
           if(isNaN(v)) { alert("invalid input"); return; }
+          if(v < 0) { alert("Penalty time should be a positive number"); return; }
           emit('ui-to-server-scores', JSON.stringify({ "penalty": v }));
           $("#penalty-adjustment").val("");
       });
@@ -126,16 +127,17 @@
       $("#stamp-change").click(() => {
           let v = parseInt($("#stamp-adjustment").val());
           if(isNaN(v)) { alert("invalid input"); return; }
+          if(v > 0) { alert("Stamp time should be a negative number"); return; }
           emit('ui-to-server-scores', JSON.stringify({ "stamp_time": v }));
           $("#stamp-adjustment").val("");
       });
       
       $("#stamp-3").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time+3 }));
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-3 }));
       });
       
       $("#stamp-5").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time+5 }));
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-5 }));
       });
       
       $("#tinder-change").click(() => {

@@ -72,14 +72,14 @@
       socket.on('server-to-ui-scores', function(scores) {
         logg('server-to-ui-scores' + scores);
         let parsed_data = JSON.parse(scores);
-        show_score(parsed_data.time * 1000, parsed_data.penalty, parsed_data.stamp_time);
+        show_score(parseFloat(parsed_data.time * 1000), parsed_data.penalty, parsed_data.stamp_time);
       });
       
       function show_score(elapsed, penalty, stamp) {
         let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
                       (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
         $("#team-score").html(
-        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${stamp})</span>`
+        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
         );
       }
 
@@ -101,6 +101,7 @@
       $("#penalty-change").click(() => {
           let t = parseInt($("#penalty-adjustment").val());
           if(isNaN(t)) { alert("invalid time"); return; }
+          if(t < 0) { alert("Penalty time should be a positive number"); return; }
           emit("ui-to-server-scores", JSON.stringify({ "penalty": t }));
           $("#penalty-adjustment").val("");
       });
@@ -108,6 +109,7 @@
       $("#stamp-change").click(() => {
           let t = parseInt($("#stamp-adjustment").val());
           if(isNaN(t)) { alert("invalid time"); return; }
+          if(t > 0) { alert("Stamp time should be a negative number"); return; }
           emit("ui-to-server-scores", JSON.stringify({ "stamp_time": t }));
           $("#stamp-adjustment").val("");
       });

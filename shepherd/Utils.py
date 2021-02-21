@@ -52,7 +52,7 @@ class SHEPHERD_HEADER():
     # GET_SCORES{}: get time, penalty and stamps of robot
 
     SCORE_ADJUST = "score_adjust"
-    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty - stamp time
+    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty + stamp time
 
     STAGE_TIMER_END = "stage_timer_end"
     # STAGE_TIMER_END{}: ends the stage's timer
