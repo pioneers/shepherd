@@ -1,7 +1,7 @@
 import time
 import threading
 import LCM
-from Utils import *
+from Utils import LCM_TARGETS
 
 class TimerThread(threading.Thread):
     '''
@@ -11,10 +11,9 @@ class TimerThread(threading.Thread):
     def __init__(self):
         super().__init__()
 
+
     def run(self):
-        '''
-        When started, thread will run and process Timers in queue until the queue is empty.
-        '''
+        """When started, thread will run and process Timers in queue until the queue is empty."""
         while len(Timer.eventQueue) > 0:
             timetowait = Timer.update_all()
             if timetowait > 0:
@@ -41,19 +40,16 @@ class Timer:
         This assumes that a timer will never have its end_time spontanously decrease, and that all timers last at least MIN_TIMER_TIME
         TODO: Add how to send message via LCM in the case of match timer
         """
-        finished = []
-        keep = []
-        current_time = time.time()
         cls.queueLock.acquire()
-        for t in cls.eventQueue:
-            (finished if t.end_time < current_time else keep).append(t)
+        current_time = time.time()
+        finished = [t for t in cls.eventQueue if t.end_time <  current_time]
+        keep     = [t for t in cls.eventQueue if t.end_time >= current_time]
+        min_time = current_time if len(keep) == 0 else min((t.end_time for t in keep)) #want to end immediately if queue is empty
         cls.eventQueue = keep
         cls.queueLock.release()
         for t in finished:
             t.end_timer() # timer's callback can introduce deadlock, want this outside the lock
-        current_time = time.time() # lcm sends might take a while
-        min_time = min([t.end_time - current_time for t in cls.eventQueue] + [cls.MIN_TIMER_TIME])
-        return min_time
+        return min(cls.MIN_TIMER_TIME, min_time - time.time()) #current time is recalculated for accuracy
 
 
     @classmethod
@@ -65,6 +61,7 @@ class Timer:
         cls.eventQueue = []
         cls.queueLock.release()
         # since queue is empty, timer thread will stop
+
 
     def __init__(self, timer_type):
         """
@@ -120,5 +117,3 @@ class Timer:
         or about to do its callback
         """
         return self.active
-
-
