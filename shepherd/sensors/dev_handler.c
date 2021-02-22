@@ -5,9 +5,8 @@
 
 #include <termios.h>  // for POSIX terminal control definitions in serialport_open()
 
-#include "../logger/logger.h"
-#include "../runtime_util/runtime_util.h"
-#include "../shm_wrapper/shm_wrapper.h"
+#include "shepherd_util.h"
+#include "shm_wrapper.h"
 #include "message.h"
 
 // ********************************* CONFIG ********************************* //
@@ -80,8 +79,6 @@ pthread_mutex_t used_ports_lock;  // poll_connected_devices() and relay_clean_up
 
 // Initialize logger, shm, and mutexes
 void init() {
-    // Init logger
-    logger_init(DEV_HANDLER);
     // Init shared memory
     shm_init();
     // Initialize lock on global variable USED_PORTS
