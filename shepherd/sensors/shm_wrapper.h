@@ -13,15 +13,6 @@
 #define CMDMAP_MUTEX_NAME "/cmap-sem"  // name of semaphore used as a mutex on the command bitmap
 #define SUBMAP_MUTEX_NAME "/smap-sem"  // name of semaphore used as a mutex on the various subcription bitmaps
 
-#define INPUTS_SHM_NAME "/inputs-shm"    // name of shared memory block for inputs
-#define INPUTS_MUTEX_NAME "/inputs-sem"  // name of semaphore used as mutex over inputs shm
-
-#define ROBOT_DESC_SHM_NAME "/rd-shm"  // name of shared memory block for robot description
-#define RD_MUTEX_NAME "/rd-sem"        // name of semaphore used as mutex over robot description shm
-
-#define LOG_DATA_SHM "/log-data-shm"    // name of shared memory block for Robot.log data
-#define LOG_DATA_MUTEX "/log-data-sem"  // name of semaphore used as mutex over Robot.log shm
-
 #define SNAME_SIZE 32  // size of buffers that hold semaphore names, in bytes
 
 // *********************************** SHM TYPEDEFS  ****************************************************** //
@@ -49,32 +40,6 @@ typedef struct {
 } dual_sem_t;
 
 
-// struct describing an input
-typedef struct {
-    uint64_t buttons;           // bitmap for which buttons are pressed
-    float joysticks[4];         // array to hold joystick positions, only for gamepad
-    robot_desc_field_t source;  // which hardware device the command came from, either GAMEPAD or KEYBOARD
-} input_t;
-
-// shared memory for gamepad and keyboard inputs
-typedef struct {
-    input_t inputs[2];  // Index 0 is for GAMEPAD, index 1 is for KEYBOARD, like in the enum. can be modified in the future
-} input_shm_t;
-
-// shared memory for robot description
-typedef struct {
-    uint8_t fields[NUM_DESC_FIELDS];  // array to hold the robot state (each is a enum stored as a uint8_t)
-} robot_desc_shm_t;
-
-
-// shared memory for Robot.log data
-typedef struct {
-    uint8_t num_params;                     // number of quantities the student wants to log
-    char names[UCHAR_MAX][LOG_KEY_LENGTH];  // keys (names) of quantities that student wants to log
-    param_val_t params[UCHAR_MAX];          // values of quantities that student wants to log
-    param_type_t types[UCHAR_MAX];          // types of the values that student wants to log
-} log_data_shm_t;
-
 // *********************************** SHM EXTERNAL VARIABLES  ******************************************** //
 
 // DO NOT USE THESE UNDER NORMAL CIRCUMSTANCES
@@ -85,14 +50,6 @@ extern dev_shm_t* dev_shm_ptr;        // points to memory-mapped shared memory b
 extern sem_t* catalog_sem;            // semaphore used as a mutex on the catalog
 extern sem_t* cmd_map_sem;            // semaphore used as a mutex on the command bitmap
 extern sem_t* sub_map_sem;            // semaphore used as a mutex on the subscription bitmap
-
-extern input_shm_t* input_shm_ptr;    // points to memory-mapped shared memory block for user inputs
-extern robot_desc_shm_t* rd_shm_ptr;  // points to memory-mapped shared memory block for robot description
-extern sem_t* input_sem;              // semaphore used as a mutex on the inputs
-extern sem_t* rd_sem;                 // semaphore used as a mutex on the robot description
-
-extern log_data_shm_t* log_data_shm_ptr;  // points to shared memory block for log data specified by executor
-extern sem_t* log_data_sem;               // semaphore used as a mutex on the log data
 
 // ******************************************* WRAPPER FUNCTIONS ****************************************** //
 
@@ -130,7 +87,7 @@ void shm_init();
  *    dev_ix: the index that the device was assigned will be put here
  * Returns device index of connected device in dev_ix on success; sets *dev_ix = -1 on failure
  */
-void device_connect(dev_id_t dev_id, int* dev_ix);
+void device_connect(dev_id_t* dev_id, int* dev_ix);
 
 /**
  * Should only be called from device handler
@@ -235,70 +192,37 @@ void get_device_identifiers(dev_id_t dev_ids[MAX_DEVICES]);
  */
 void get_catalog(uint32_t* catalog);
 
-/**
- * Reads the specified robot description field. Blocks on the robot description semaphore.
- * Arguments:
- *    field: one of the robot_desc_val_t's defined above to read from
- * Returns one of the robot_desc_val_t's defined in runtime_util that is the current value of the requested field.
- */
-robot_desc_val_t robot_desc_read(robot_desc_field_t field);
 
-/**
- * Writes the specified value into the specified field. Blocks on the robot description semaphore.
- * Arguments:
- *    field: one of the robot_desc_val_t's defined above to write val to
- *    val: one of the robot_desc_vals defined in runtime_util.c to write to the specified field
- */
-void robot_desc_write(robot_desc_field_t field, robot_desc_val_t val);
+/********************* PRINTING FUNCTIONS *******************/
 
-/**
- * Reads current state of the gamepad to the provided pointers.
- * Blocks on both the gamepad semaphore and device description semaphore (to check if gamepad connected).
- * Arguments:
- *    pressed_buttons: pointer to 64-bit bitmap to which the current button bitmap state will be read into
- *    joystick_vals[4]: array of 4 floats to which the current joystick states will be read into
- *    source: which input source to read from, either GAMEPAD or KEYBOARD
- * Returns:
- *    0 on success
- *    -1 if input is not connected
- */
-int input_read(uint64_t* pressed_buttons, float joystick_vals[4], robot_desc_field_t source);
+/**	
+ * Prints the current values in the command bitmap	
+ */	
+void print_cmd_map();	
 
-/**
- * This function writes the given state of the gamepad to shared memory.
- * Blocks on both the gamepad semaphore and device description semaphore (to check if gamepad connected).
- * Arguments:
- *    pressed_buttons: a 64-bit bitmap that corresponds to which buttons are currently pressed. 
- *                     only some of the bits are used, depending on the input source
- *    joystick_vals[4]: array of 4 floats that contain the values to write to the joystick
- *    source: which input source to write to, either GAMEPAD or KEYBOARD
- * Returns:
- *    0 on success
- *    -1 if gamepad is not connected
- */
-int input_write(uint64_t pressed_buttons, float joystick_vals[4], robot_desc_field_t source);
+/**	
+ * Prints the current values in the subscription bitmap	
+ */	
+void print_sub_map();	
 
-/**
- * Write the given custom parameter to shared memory. 
- * Arguments:
- *    key: name of the parameter. Must be at most LOG_KEY_LENGTH characters, including the null terminator
- *    type: type of the parameter
- *    value: value of the parameter, with the corresponding type filled with data
- * Returns:
- *    0 on success
- *   -1 when maximum number of custom parameters is reached
- *   -2 when the given key is longer than LOG_KEY_LENGTH characters, including the null terminator
- */
-int log_data_write(char* key, param_type_t type, param_val_t value);
+/**	
+ * Prints the device identification info of the currently attached devices	
+ */	
+void print_dev_ids();	
 
-/**
- * Reads the custom log data from shared memory.
- * Arguments:
- *    num_params: pointer to an int that will get filled with the number of custom parameters
- *    names: 2D char array that will be filled with the parameter names, up to `num_params`. Ever name is at most LOG_KEY_LENGTH characters long
- *    types: array that will be filled with the parameter types, up to `num_params`
- *    values: array that will be filled with the parameter values, up to `num_params`
- */
-void log_data_read(uint8_t* num_params, char names[UCHAR_MAX][LOG_KEY_LENGTH], param_type_t types[UCHAR_MAX], param_val_t values[UCHAR_MAX]);
+/**	
+ * Prints the catalog (i.e. how many and at which indices devices are currently attached)	
+ */	
+void print_catalog();	
+
+/**	
+ * Prints the params of the specified devices	
+ * Arguments:	
+ *    devices: bitmap specifying which devices should have their parameters printed	
+ *        (specifying nonexistent devices will be ignored without error)	
+ */	
+void print_params(uint32_t devices);	
+
+
 
 #endif

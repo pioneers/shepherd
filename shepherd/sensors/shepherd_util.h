@@ -30,23 +30,11 @@
 #define NUM_DESC_FIELDS_TEMP 3  // Number of temporary fields in the robot description (related to game)
 #define NUM_DESC_FIELDS (NUM_DESC_FIELDS_PERM + NUM_DESC_FIELDS_TEMP)
 
-#define LOG_KEY_LENGTH 64  // Max length of a key for custom Robot.log data
-
-#define NUM_GAMEPAD_BUTTONS 17
-#define NUM_KEYBOARD_BUTTONS 47
-
-#define NUM_GAMEPAD_JOYSTICKS 4
-
-#define MAX_LOG_LEN 512  // The maximum number of characters in a log message
-
-#define CHALLENGE_LEN 128  // The maximum input/output string length for a challenge
-#define CHALLENGE_SOCKET "/tmp/challenge.sock"
-
 // The interval (microseconds) at which we wait between detecting connects/disconnects
 #define POLL_INTERVAL 200000
 
 
-/************** LOG_PRINTF STUB ***********/
+/******************** LOG_PRINTF STUB *******************/
 
 // Copied from logger.h for Shepherd
 typedef enum log_level {
@@ -60,7 +48,7 @@ typedef enum log_level {
 
 void log_printf(int level, char* format, ...);
 
-/*****************************************/
+// ***************************** CUSTOM TYPES ***************************** //
 
 // enumerated names of processes
 typedef enum process {
@@ -71,47 +59,6 @@ typedef enum process {
     TEST
 } process_t;
 
-// enumerated names for the joystick params of the gamepad
-typedef enum gp_joysticks {
-    JOYSTICK_LEFT_X,
-    JOYSTICK_LEFT_Y,
-    JOYSTICK_RIGHT_X,
-    JOYSTICK_RIGHT_Y
-} gp_joystick_t;
-
-// enumerated names for the fields in the robot description
-typedef enum robot_descs {
-    // permanent fields
-    RUN_MODE,
-    DAWN,
-    SHEPHERD,
-    GAMEPAD,
-    KEYBOARD,
-    START_POS,
-    // temporary fields
-    HYPOTHERMIA,
-    POISON_IVY,
-    DEHYDRATION
-} robot_desc_field_t;
-
-// enumerated names for the different values the robot description fields can take on
-typedef enum robot_desc_vals {
-    // values for robot.run_mode
-    IDLE,
-    AUTO,
-    TELEOP,
-    CHALLENGE,
-    // values for robot.dawn, robot.shepherd, robot.gamepad
-    CONNECTED,
-    DISCONNECTED,
-    // values for robot.startpos
-    LEFT,
-    RIGHT,
-    // values for robot.hypothermia, robot.poison_ivy, robot.dehydration
-    ACTIVE,
-    INACTIVE
-} robot_desc_val_t;
-
 // enumerated names for the data types device parameters can be
 typedef enum param_type {
     INT,
@@ -119,7 +66,6 @@ typedef enum param_type {
     BOOL
 } param_type_t;
 
-// ***************************** CUSTOM STRUCTS ***************************** //
 
 // hold a single param value. One-to-one mapping to param_val_t enum
 typedef union {
@@ -204,55 +150,6 @@ param_desc_t* get_param_desc(uint8_t dev_type, char* param_name);
  *    -1 if the device doesn't exist or the parameter doesn't exist.
  */
 int8_t get_param_idx(uint8_t dev_type, char* param_name);
-
-/**
- * Returns an array of button names.
- */
-char** get_button_names();
-
-/**
- * Returns an array of joystick names.
- */
-char** get_joystick_names();
-
-/**
- * Get the list of key names corresponding to the keyboard button bitmap.
- */
-char** get_key_names();
-
-/**
- * Get the bit corresponding to a gamepad button name.
- * 
- * Args:
- *     button_name: string representation of a button, matching the name in BUTTON_NAMES
- * Returns:
- *     the bit shifted to the index corresponding to the button
- *     -1 on error if given button_name doesn't exist
- */
-uint64_t get_button_bit(char* button_name);
-
-/**
- * Get the bit corresponding to a keyboard key name.
- * 
- * Args:
- *     key_name: string representation of a key, matching the name in KEY_NAMES
- * Returns:
- *     the bit shifted to the index corresponding to the key 
- *     -1 on error if given key_name doesn't exist
- */
-uint64_t get_key_bit(char* key_name);
-
-
-/**
- * Convert the robot_desc_field_t to its string representation.
- * 
- * Args:
- *      field: the robot description field to convert
- * Returns:
- *      string corresponding to the enum or NULL if string representation doesn't exist yet
- * 
- */
-char* field_to_string(robot_desc_field_t field);
 
 
 // ********************************** TIME ********************************** //

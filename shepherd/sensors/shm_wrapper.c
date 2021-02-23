@@ -8,14 +8,6 @@ sem_t* catalog_sem;            // semaphore used as a mutex on the catalog
 sem_t* cmd_map_sem;            // semaphore used as a mutex on the command bitmap
 sem_t* sub_map_sem;            // semaphore used as a mutex on the subscription bitmap
 
-input_shm_t* input_shm_ptr;    // points to memory-mapped shared memory block for user inputs
-robot_desc_shm_t* rd_shm_ptr;  // points to memory-mapped shared memory block for robot description
-sem_t* input_sem;              // semaphore used as a mutex on the inputs
-sem_t* rd_sem;                 // semaphore used as a mutex on the robot description
-
-log_data_shm_t* log_data_shm_ptr;  // points to shared memory block for log data specified by executor
-sem_t* log_data_sem;               // semaphore used as a mutex on the log data
-
 // ****************************************** SEMAPHORE UTILITIES ***************************************** //
 
 /**
@@ -43,16 +35,17 @@ static void my_sem_post(sem_t* sem, char* sem_desc) {
 }
 
 /**
- * Custom wrapper function for sem_open. Prints out descriptive logging message on failure
- * exits (not being able to open a semaphore is fatal to Runtime).
+ * Custom wrapper function for sem_open with create flag. Prints out descriptive logging message on failure
+ * exits (not being able to create and open a semaphore is fatal).
  * Arguments:
- *    sem_name: name of a semaphore to be opened
- *    sem_desc: string that describes the semaphore being opened, displayed with error message
- * Returns a pointer to the semaphore that was opened.
+ *    sem_name: name of a semaphore to be created and opened
+ *    sem_desc: string that describes the semaphore being created and opened, displayed with error message
+ * Returns a pointer to the semaphore that was created and opened.
  */
+// my_sem_open_create from shm_start.c
 static sem_t* my_sem_open(char* sem_name, char* sem_desc) {
     sem_t* ret;
-    if ((ret = sem_open(sem_name, 0, 0, 0)) == SEM_FAILED) {
+    if ((ret = sem_open(sem_name, O_CREAT, 0660, 1)) == SEM_FAILED) {
         log_printf(FATAL, "sem_open: %s. %s", sem_desc, strerror(errno));
         exit(1);
     }
@@ -68,6 +61,30 @@ static sem_t* my_sem_open(char* sem_name, char* sem_desc) {
 static void my_sem_close(sem_t* sem, char* sem_desc) {
     if (sem_close(sem) == -1) {
         log_printf(ERROR, "sem_close: %s. %s", sem_desc, strerror(errno));
+    }
+}
+
+/**
+ * Unlinks a semaphore (so it will be removed from the system once all processes call sem_close() on it)
+ * Arguments:
+ *    sem_name: name of semaphore (ex. "/ct-mutex")
+ *    sem_desc: description of semaphore, to be printed with descriptive error message should sem_unlink() fail
+ */
+static void my_sem_unlink(char* sem_name, char* sem_desc) {
+    if (sem_unlink(sem_name) == -1) {
+        log_printf(ERROR, "sem_unlink: %s. %s", sem_desc, strerror(errno));
+    }
+}
+
+/**
+ * Unlinks a block of shared memory (so it will be removed from the system once all processes call shm_close() on it)
+ * Arguments:
+ *    shm_name: name of shared memory block (ex. "/dev-shm")
+ *    shm_desc: description of shared memory block, to be printed with descriptive error message should shm_unlink() fail
+ */
+static void my_shm_unlink(char* shm_name, char* shm_desc) {
+    if (shm_unlink(shm_name) == -1) {
+        log_printf(ERROR, "shm_unlink: %s. %s", shm_desc, strerror(errno));
     }
 }
 
@@ -172,6 +189,7 @@ static void device_write_helper(int dev_ix, process_t process, stream_t stream, 
  * This function will be called when process that called shm_init() exits
  * Closes all semaphores; unmaps all shared memory (but does not unlink anything)
  */
+// From shm_stop.c
 static void shm_close() {
     // close all the semaphores
     for (int i = 0; i < MAX_DEVICES; i++) {
@@ -181,22 +199,30 @@ static void shm_close() {
     my_sem_close(catalog_sem, "catalog sem");
     my_sem_close(cmd_map_sem, "cmd map sem");
     my_sem_close(sub_map_sem, "sub map sem");
-    my_sem_close(input_sem, "inputs_mutex");
-    my_sem_close(rd_sem, "robot_desc_mutex");
-    my_sem_close(log_data_sem, "log data mutex");
 
     // unmap all shared memory blocks
     if (munmap(dev_shm_ptr, sizeof(dev_shm_t)) == -1) {
         log_printf(ERROR, "munmap: dev_shm. %s", strerror(errno));
     }
-    if (munmap(input_shm_ptr, sizeof(input_shm_t)) == -1) {
-        log_printf(ERROR, "munmap: input_shm. %s", strerror(errno));
-    }
-    if (munmap(rd_shm_ptr, sizeof(robot_desc_shm_t)) == -1) {
-        log_printf(ERROR, "munmap: robot_desc_shm. %s", strerror(errno));
-    }
-    if (munmap(log_data_shm_ptr, sizeof(log_data_shm_t)) == -1) {
-        log_printf(ERROR, "munmap: log_data_shm_ptr. %s", strerror(errno));
+
+    // unlink shared memory blocks
+    my_shm_unlink(DEV_SHM_NAME, "dev_shm");
+
+    // unlink all semaphores
+    my_sem_unlink(CATALOG_MUTEX_NAME, "catalog mutex");
+    my_sem_unlink(CMDMAP_MUTEX_NAME, "cmd map mutex");
+    my_sem_unlink(SUBMAP_MUTEX_NAME, "sub map mutex");
+
+    char sname[SNAME_SIZE];
+    for (int i = 0; i < MAX_DEVICES; i++) {
+        generate_sem_name(DATA, i, sname);
+        if (sem_unlink((const char*) sname) == -1) {
+            log_printf(ERROR, "sem_unlink: data_sem for dev_ix %d. %s", i, strerror(errno));
+        }
+        generate_sem_name(COMMAND, i, sname);
+        if (sem_unlink((const char*) sname) == -1) {
+            log_printf(ERROR, "sem_unlink: command_sem for dev_ix %d. %s", i, strerror(errno));
+        }
     }
 }
 
@@ -222,6 +248,7 @@ int get_dev_ix_from_uid(uint64_t dev_uid) {
     return dev_ix;
 }
 
+// from shm_start.c
 void shm_init() {
     int fd_shm;              // file descriptor of the memory-mapped shared memory
     char sname[SNAME_SIZE];  // for holding semaphore names
@@ -230,76 +257,40 @@ void shm_init() {
     catalog_sem = my_sem_open(CATALOG_MUTEX_NAME, "catalog mutex");
     cmd_map_sem = my_sem_open(CMDMAP_MUTEX_NAME, "cmd map mutex");
     sub_map_sem = my_sem_open(SUBMAP_MUTEX_NAME, "sub map mutex");
-    input_sem = my_sem_open(INPUTS_MUTEX_NAME, "inputs mutex");
-    rd_sem = my_sem_open(RD_MUTEX_NAME, "robot desc mutex");
-    log_data_sem = my_sem_open(LOG_DATA_MUTEX, "log data mutex");
     for (int i = 0; i < MAX_DEVICES; i++) {
         generate_sem_name(DATA, i, sname);  // get the data name
-        if ((sems[i].data_sem = sem_open((const char*) sname, 0, 0, 0)) == SEM_FAILED) {
-            log_printf(ERROR, "sem_open: data sem for dev_ix %d: %s", i, strerror(errno));
+        if ((sems[i].data_sem = sem_open((const char*) sname, O_CREAT, 0660, 1)) == SEM_FAILED) {
+            log_printf(FATAL, "sem_open: data sem for dev_ix %d: %s", i, strerror(errno));
+            exit(1);
         }
         generate_sem_name(COMMAND, i, sname);  // get the command name
-        if ((sems[i].command_sem = sem_open((const char*) sname, 0, 0, 0)) == SEM_FAILED) {
-            log_printf(ERROR, "sem_open: command sem for dev_ix %d: %s", i, strerror(errno));
+        if ((sems[i].command_sem = sem_open((const char*) sname, O_CREAT, 0660, 1)) == SEM_FAILED) {
+            log_printf(FATAL, "sem_open: command sem for dev_ix %d: %s", i, strerror(errno));
+            exit(1);
         }
     }
 
-    // open dev shm block and map to client process virtual memory
-    if ((fd_shm = shm_open(DEV_SHM_NAME, O_RDWR, 0)) == -1) {  // no O_CREAT
-        log_printf(FATAL, "shm_open dev_shm: %s", strerror(errno));
+    // create device shm block
+    if ((fd_shm = shm_open(DEV_SHM_NAME, O_RDWR | O_CREAT, 0660)) == -1) {
+        log_printf(FATAL, "shm_open devices: %s", strerror(errno));
+        exit(1);
+    }
+    if (ftruncate(fd_shm, sizeof(dev_shm_t)) == -1) {
+        log_printf(FATAL, "ftruncate devices: %s", strerror(errno));
         exit(1);
     }
     if ((dev_shm_ptr = mmap(NULL, sizeof(dev_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0)) == MAP_FAILED) {
-        log_printf(FATAL, "mmap dev_shm: %s", strerror(errno));
+        log_printf(FATAL, "mmap devices: %s", strerror(errno));
         exit(1);
     }
     if (close(fd_shm) == -1) {
-        log_printf(ERROR, "close dev_shm: %s", strerror(errno));
-    }
-
-    // open gamepad shm block and map to client process virtual memory
-    if ((fd_shm = shm_open(INPUTS_SHM_NAME, O_RDWR, 0)) == -1) {  // no O_CREAT
-        log_printf(FATAL, "shm_open: input_shm. %s", strerror(errno));
-        exit(1);
-    }
-    if ((input_shm_ptr = mmap(NULL, sizeof(input_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0)) == MAP_FAILED) {
-        log_printf(FATAL, "mmap: input_shm. %s", strerror(errno));
-        exit(1);
-    }
-    if (close(fd_shm) == -1) {
-        log_printf(ERROR, "close: input_shm. %s", strerror(errno));
-    }
-
-    // open robot desc shm block and map to client process virtual memory
-    if ((fd_shm = shm_open(ROBOT_DESC_SHM_NAME, O_RDWR, 0)) == -1) {  // no O_CREAT
-        log_printf(FATAL, "shm_open: robot_desc_shm. %s", strerror(errno));
-        exit(1);
-    }
-    if ((rd_shm_ptr = mmap(NULL, sizeof(robot_desc_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0)) == MAP_FAILED) {
-        log_printf(FATAL, "mmap: robot_desc_shm. %s", strerror(errno));
-        exit(1);
-    }
-    if (close(fd_shm) == -1) {
-        log_printf(ERROR, "close: robot_desc_shm. %s", strerror(errno));
-    }
-
-    // create log data shm block and map to client process virtual memory
-    if ((fd_shm = shm_open(LOG_DATA_SHM, O_RDWR | O_CREAT, 0660)) == -1) {
-        log_printf(FATAL, "shm_open log_data_shm: %s", strerror(errno));  // no O_CREAT
-        exit(1);
-    }
-    if ((log_data_shm_ptr = mmap(NULL, sizeof(log_data_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0)) == MAP_FAILED) {
-        log_printf(FATAL, "mmap log_data_shm: %s", strerror(errno));
-        exit(1);
-    }
-    if (close(fd_shm) == -1) {
-        log_printf(ERROR, "close log_data_shm: %s", strerror(errno));
+        log_printf(ERROR, "close devices: %s", strerror(errno));
     }
 
     atexit(shm_close);
 }
 
-void device_connect(dev_id_t dev_id, int* dev_ix) {
+void device_connect(dev_id_t* dev_id, int* dev_ix) {
     // wait on catalog_sem
     my_sem_wait(catalog_sem, "catalog_sem");
 
@@ -322,9 +313,9 @@ void device_connect(dev_id_t dev_id, int* dev_ix) {
     my_sem_wait(sub_map_sem, "sub_map_sem");
 
     // fill in dev_id for that device with provided values
-    dev_shm_ptr->dev_ids[*dev_ix].type = dev_id.type;
-    dev_shm_ptr->dev_ids[*dev_ix].year = dev_id.year;
-    dev_shm_ptr->dev_ids[*dev_ix].uid = dev_id.uid;
+    dev_shm_ptr->dev_ids[*dev_ix].type = dev_id->type;
+    dev_shm_ptr->dev_ids[*dev_ix].year = dev_id->year;
+    dev_shm_ptr->dev_ids[*dev_ix].uid = dev_id->uid;
 
     // update the catalog
     dev_shm_ptr->catalog |= (1 << *dev_ix);
@@ -536,154 +527,120 @@ void get_catalog(uint32_t* catalog) {
     my_sem_post(catalog_sem, "catalog_sem");
 }
 
-robot_desc_val_t robot_desc_read(robot_desc_field_t field) {
-    robot_desc_val_t ret;
 
-    // wait on rd_sem
-    my_sem_wait(rd_sem, "robot_desc_mutex");
 
-    // read the value out, and turn off the appropriate element
-    ret = rd_shm_ptr->fields[field];
+/***************** PRINTING FUNCTIONS *******************/
 
-    // release rd_sem
-    my_sem_post(rd_sem, "robot_desc_mutex");
-
-    return ret;
+/**	
+ * Function that prints a bitmap in human-readable way (in binary, with literal 1s and 0s)	
+ * Arguments:	
+ *    num_bits: number of bits to print (max 32 bitS, although that can be increased by changing the size of BITMAP)	
+ *    bitmap: bitmap to print	
+ */	
+static void print_bitmap(int num_bits, uint32_t bitmap) {	
+    for (int i = 0; i < num_bits; i++) {	
+        printf("%d", (bitmap & (1 << i)) ? 1 : 0);	
+    }	
+    printf("\n");	
 }
 
-void robot_desc_write(robot_desc_field_t field, robot_desc_val_t val) {
-    // wait on rd_sem
-    my_sem_wait(rd_sem, "robot_desc_mutex");
+void print_cmd_map() {	
+    uint32_t cmd_map[MAX_DEVICES + 1];	
+    get_cmd_map(cmd_map);	
 
-    // write the val into the field, and set appropriate pending element to 1
-    rd_shm_ptr->fields[field] = val;
+    printf("Changed devices: ");	
+    print_bitmap(MAX_DEVICES, cmd_map[0]);	
 
-    // release rd_sem
-    my_sem_post(rd_sem, "robot_desc_mutex");
-}
+    printf("Changed params:\n");	
+    for (int i = 1; i < 33; i++) {	
+        if (cmd_map[0] & (1 << (i - 1))) {	
+            printf("\tDevice %d: ", i - 1);	
+            print_bitmap(MAX_PARAMS, cmd_map[i]);	
+        }	
+    }	
+}	
 
-int input_read(uint64_t* pressed_buttons, float joystick_vals[4], robot_desc_field_t source) {
-    if (source != GAMEPAD && source != KEYBOARD) {
-        log_printf(FATAL, "input_read: incorrect API usage, can only read inputs for GAMEPAD and KEYBOARD.");
-        exit(1);
-    }
+void print_sub_map(process_t process) {	
+    uint32_t sub_map[MAX_DEVICES + 1];	
+    get_sub_requests(sub_map, process);	
 
-    // wait on rd_sem
-    my_sem_wait(rd_sem, "robot_desc_mutex");
+    printf("Requested devices: ");	
+    print_bitmap(MAX_DEVICES, sub_map[0]);	
 
-    // if input isn't connected, then release rd_sem and return
-    if (rd_shm_ptr->fields[source] == DISCONNECTED) {
-        log_printf(ERROR, "input_read: no %s connected", field_to_string(source));
-        my_sem_post(rd_sem, "robot_desc_mutex");
-        return -1;
-    }
+    printf("Requested params:\n");	
+    for (int i = 1; i < 33; i++) {	
+        if (sub_map[0] & (1 << (i - 1))) {	
+            printf("\tDevice %d: ", i - 1);	
+            print_bitmap(MAX_PARAMS, sub_map[i]);	
+        }	
+    }	
+}	
 
-    // release rd_sem
-    my_sem_post(rd_sem, "robot_desc_mutex");
+void print_dev_ids() {	
+    dev_id_t dev_ids[MAX_DEVICES];	
+    uint32_t catalog;	
 
-    // wait on gp_sem
-    my_sem_wait(input_sem, "input_mutex");
+    get_device_identifiers(dev_ids);	
+    get_catalog(&catalog);	
 
-    int index = (source == GAMEPAD) ? 0 : 1;
-    *pressed_buttons = input_shm_ptr->inputs[index].buttons;
-    if (source == GAMEPAD) {
-        for (int i = 0; i < 4; i++) {
-            joystick_vals[i] = input_shm_ptr->inputs[index].joysticks[i];
-        }
-    }
+    if (catalog == 0) {	
+        printf("no connected devices\n");	
+    } else {	
+        for (int i = 0; i < MAX_DEVICES; i++) {	
+            if (catalog & (1 << i)) {	
+                printf("dev_ix = %d: type = %d, year = %d, uid = %llu\n", i, dev_ids[i].type, dev_ids[i].year, dev_ids[i].uid);	
+            }	
+        }	
+    }	
+}	
 
+void print_catalog() {	
+    uint32_t catalog;	
 
-    // release gp_sem
-    my_sem_post(input_sem, "input_mutex");
+    get_catalog(&catalog);	
+    print_bitmap(MAX_DEVICES, catalog);	
+}	
 
-    return 0;
-}
+void print_params(uint32_t devices) {	
+    dev_id_t dev_ids[MAX_DEVICES];	
+    uint32_t catalog;	
+    device_t* device;	
 
-int input_write(uint64_t pressed_buttons, float joystick_vals[4], robot_desc_field_t source) {
-    if (source != GAMEPAD && source != KEYBOARD) {
-        log_printf(FATAL, "input_write: incorrect API usage, can only write inputs for GAMEPAD and KEYBOARD.");
-        exit(1);
-    }
+    get_device_identifiers(dev_ids);	
+    get_catalog(&catalog);	
 
-    // wait on rd_sem
-    my_sem_wait(rd_sem, "robot_desc_mutex");
+    for (int i = 0; i < MAX_DEVICES; i++) {	
+        if ((catalog & (1 << i)) && (devices & (1 << i))) {	
+            device = get_device(dev_ids[i].type);	
+            if (device == NULL) {	
+                printf("Device at index %d with type %d is invalid\n", i, dev_ids[i].type);	
+                continue;	
+            }	
+            printf("dev_ix = %d: name = %s, type = %d, year = %d, uid = %llu\n", i, device->name, dev_ids[i].type, dev_ids[i].year, dev_ids[i].uid);	
 
-    // if input isn't connected, then release rd_sem and return
-    if (rd_shm_ptr->fields[source] == DISCONNECTED) {
-        log_printf(ERROR, "input_write: no %s connected", field_to_string(source));
-        my_sem_post(rd_sem, "robot_desc_mutex");
-        return -1;
-    }
+            for (int s = 0; s < 2; s++) {	
+                //print out the stream header	
+                if (s == 0) {	
+                    printf("\tDATA stream:\n");	
+                } else if (s == 1) {	
+                    printf("\tCOMMAND stream:\n");	
+                }	
 
-    // release rd_sem
-    my_sem_post(rd_sem, "robot_desc_mutex");
-
-    // wait on gp_sem
-    my_sem_wait(input_sem, "input_mutex");
-
-    int index = (source == GAMEPAD) ? 0 : 1;
-    input_shm_ptr->inputs[index].buttons = pressed_buttons;
-    for (int i = 0; i < 4; i++) {
-        input_shm_ptr->inputs[index].joysticks[i] = joystick_vals[i];
-    }
-
-    // release gp_sem
-    my_sem_post(input_sem, "input_mutex");
-
-    return 0;
-}
-
-int log_data_write(char* key, param_type_t type, param_val_t value) {
-    // wait on log_data_sem
-    my_sem_wait(log_data_sem, "log_data_mutex");
-
-    // find the index corresponding to this key in the log_data shm block
-    int idx = 0;
-    for (; idx < log_data_shm_ptr->num_params; idx++) {
-        if (strcmp(key, log_data_shm_ptr->names[idx]) == 0) {
-            break;
-        }
-    }
-
-    // return if we ran out of keys for log data
-    if (idx == UCHAR_MAX) {
-        log_printf(ERROR, "Maximum number of %d log data keys reached. can't add key %s", UCHAR_MAX, key);
-        return -1;
-    }
-
-    if (strlen(key) >= LOG_KEY_LENGTH) {
-        log_printf(ERROR, "Key name %s for log data is longer than %d characters", key, LOG_KEY_LENGTH);
-        return -2;
-    }
-
-    // copy over the name, type, and parameter of the log data into the shared memory block
-    strcpy(log_data_shm_ptr->names[idx], key);
-    log_data_shm_ptr->types[idx] = type;
-    log_data_shm_ptr->params[idx] = value;
-
-    // if this a new parameter, increment the number of parameters in log data shared memory block
-    if (idx == log_data_shm_ptr->num_params) {
-        log_data_shm_ptr->num_params++;
-    }
-
-    // release log_data_sem
-    my_sem_post(log_data_sem, "log_data_mutex");
-
-    return 0;
-}
-
-void log_data_read(uint8_t* num_params, char names[UCHAR_MAX][LOG_KEY_LENGTH], param_type_t types[UCHAR_MAX], param_val_t values[UCHAR_MAX]) {
-    // wait on log_data_sem
-    my_sem_wait(log_data_sem, "log_data_mutex");
-
-    // read all of the data in the log data shared memory block into provided pointers
-    *num_params = log_data_shm_ptr->num_params;
-    for (int i = 0; i < *num_params; i++) {
-        strcpy(names[i], log_data_shm_ptr->names[i]);
-        types[i] = log_data_shm_ptr->types[i];
-        values[i] = log_data_shm_ptr->params[i];
-    }
-
-    // release log_data_sem
-    my_sem_post(log_data_sem, "log_data_mutex");
+                //print all params for the device for that stream	
+                for (int j = 0; j < device->num_params; j++) {	
+                    switch (device->params[j].type) {	
+                        case INT:	
+                            printf("\t\tparam_idx = %d, name = %s, value = %d\n", j, device->params[j].name, dev_shm_ptr->params[s][i][j].p_i);	
+                            break;	
+                        case FLOAT:	
+                            printf("\t\tparam_idx = %d, name = %s, value = %f\n", j, device->params[j].name, dev_shm_ptr->params[s][i][j].p_f);	
+                            break;	
+                        case BOOL:	
+                            printf("\t\tparam_idx = %d, name = %s, value = %s\n", j, device->params[j].name, (dev_shm_ptr->params[s][i][j].p_b) ? "True" : "False");	
+                            break;	
+                    }	
+                }	
+            }	
+        }	
+    }	
 }

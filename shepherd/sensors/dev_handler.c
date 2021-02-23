@@ -81,6 +81,7 @@ pthread_mutex_t used_ports_lock;  // poll_connected_devices() and relay_clean_up
 void init() {
     // Init shared memory
     shm_init();
+
     // Initialize lock on global variable USED_PORTS
     if (pthread_mutex_init(&used_ports_lock, NULL) != 0) {
         log_printf(FATAL, "init: Couldn't init USED_PORTS_LOCK");
@@ -243,7 +244,7 @@ void* relayer(void* relay_cast) {
     // At this point, the device is confirmed to be a lowcar device!
 
     // Connect the lowcar device to shared memory
-    device_connect(relay->dev_id, &relay->shm_dev_idx);
+    device_connect(&relay->dev_id, &relay->shm_dev_idx);
     if (relay->shm_dev_idx == -1) {
         relay_clean_up(relay);
         return NULL;

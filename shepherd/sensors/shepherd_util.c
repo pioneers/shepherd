@@ -258,67 +258,6 @@ int8_t get_param_idx(uint8_t dev_type, char* param_name) {
     return -1;
 }
 
-char* BUTTON_NAMES[NUM_GAMEPAD_BUTTONS] = {
-    "button_a", "button_b", "button_x", "button_y", "l_bumper", "r_bumper", "l_trigger", "r_trigger",
-    "button_back", "button_start", "l_stick", "r_stick", "dpad_up", "dpad_down", "dpad_left", "dpad_right", "button_xbox"};
-
-char* JOYSTICK_NAMES[] = {
-    "joystick_left_x", "joystick_left_y", "joystick_right_x", "joystick_right_y"};
-
-char** get_button_names() {
-    return BUTTON_NAMES;
-}
-
-char** get_joystick_names() {
-    return JOYSTICK_NAMES;
-}
-
-uint64_t get_button_bit(char* button_name) {
-    for (int i = 0; i < NUM_GAMEPAD_BUTTONS; i++) {
-        if (strcmp(button_name, BUTTON_NAMES[i]) == 0) {
-            return 1 << i;
-        }
-    }
-    return -1;
-}
-
-char* KEY_NAMES[NUM_KEYBOARD_BUTTONS] = {
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
-    "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ",", ".", "/", ";", "'", "[", "]", "left_arrow", "right_arrow", "up_arrow", "down_arrow"};
-
-char** get_key_names() {
-    return KEY_NAMES;
-}
-
-uint64_t get_key_bit(char* key_name) {
-    for (int i = 0; i < NUM_KEYBOARD_BUTTONS; i++) {
-        if (strcmp(key_name, KEY_NAMES[i]) == 0) {
-            return 1 << i;
-        }
-    }
-    return -1;
-}
-
-
-char* field_to_string(robot_desc_field_t field) {
-    switch (field) {
-        case GAMEPAD:
-            return "Gamepad";
-        case KEYBOARD:
-            return "Keyboard";
-        case RUN_MODE:
-            return "Run Mode";
-        case DAWN:
-            return "Dawn";
-        case SHEPHERD:
-            return "Shepherd";
-        case START_POS:
-            return "Start Pos";
-        default:
-            return NULL;
-    }
-}
-
 // ********************************** TIME ********************************** //
 
 /* Returns the number of milliseconds since the Unix Epoch */
@@ -381,7 +320,15 @@ int writen(int fd, void* buf, uint16_t n) {
 void log_printf(int level, char* format, ...) {
     va_list args;
     va_start(args, format);
-    vprintf(format, args);
+    
+    int length = strlen(format) + 1;
+    char buf[length + 1];
+    strncpy(buf, format, length);
+    if (buf[length-2] != '\n') {
+        buf[length-1] = '\n';
+        buf[length] = 0;
+    }
+    vprintf(buf, args);
     va_end(args);
 }
 
