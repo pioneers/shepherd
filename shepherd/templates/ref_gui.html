@@ -1,0 +1,269 @@
+<html>
+
+<head>
+  <title>Score Adjustment</title>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+  <script type="text/javascript" src={{url_for( 'static', filename='jquery-1.12.3.min.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='tabletop.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='lcm_ws_bridge.js' )}}></script>
+  <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script>
+  <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script> -->
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+
+  <!-- Styles -->
+  <style>
+    /*Disables spinning on number forms*/
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .bottom-padding {
+      margin-bottom: 15px;
+    }
+  </style>
+
+  <!-- Javascript -->
+  <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+      var socket = io('/');
+      var start_time = NaN;
+      var base_time = NaN;
+      var penalty_time = 1000;
+      var stamp_time = 2000;
+      var tinder = 3000;
+      
+
+      let counter = 1;
+      function logg(str) {
+        let log = document.getElementById("events-log");
+        let m = log.innerHTML.split("\n");
+        if(m.length >= 10) m.shift();
+        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
+      }
+      
+      function emit() {
+        socket.emit(...arguments);
+        let logstr = ""
+        try {
+            for(let a=0;a<arguments.length;a++)
+               logstr += arguments[a];
+        } catch (err){
+            console.log(err);
+            logstr = "[logging error]";
+        }
+        logg(logstr);
+      }
+
+      $("#log-toggle").click(function(e) {
+        e.preventDefault();
+        let log = document.getElementById("events-log");
+        log.hidden = !log.hidden;
+      });
+
+      socket.on('connect', function(data) {
+        emit('join', 'ref_gui');
+        emit('ui-to-server-teams-info-request-no-args');
+        emit('ui-to-server-score-request');
+      });
+
+
+      socket.on('server-to-ui-scores', function(scores) {
+        logg('server-to-ui-scores' + scores);
+        let parsed_data = JSON.parse(scores);
+        start_time = parseInt(parsed_data.start_time);
+        penalty_time = parseInt(parsed_data.penalty);
+        stamp_time = parseInt(parsed_data.stamp_time);
+        base_time = parseFloat(parsed_data.time);
+        update_score();
+      });
+
+      function update_score() {
+        let elapsed = base_time * 1000 || (isNaN(start_time) ? 0 : new Date().getTime() - start_time);
+        show_score(elapsed, penalty_time, stamp_time);
+        requestAnimationFrame(update_score);
+      }
+      
+      function show_score(elapsed, penalty, stamp) {
+        let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
+                      (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
+        $("#team-score").html(
+        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
+        );
+      }
+      
+      
+      socket.on('server-to-ui-teams-info', function (data) {
+        logg("server-to-ui-teams-info" + data);
+        let parsed_data = JSON.parse(data);
+        
+        $("#team-number").text(parsed_data.team_num);
+        $("#team_name").text(parsed_data.team_name);
+        $("#tinder").text(parsed_data.tinder);
+        tinder = parseInt(parsed_data.tinder);
+      });
+
+
+      $("#penalty-change").click(() => {
+          let v = parseInt($("#penalty-adjustment").val());
+          if(isNaN(v)) { alert("invalid input"); return; }
+          if(v < 0) { alert("Penalty time should be a positive number"); return; }
+          emit('ui-to-server-scores', JSON.stringify({ "penalty": v }));
+          $("#penalty-adjustment").val("");
+      });
+      
+      $("#penalty-5").click(() => {
+          emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty_time+5 }));
+      });
+      
+      $("#stamp-change").click(() => {
+          let v = parseInt($("#stamp-adjustment").val());
+          if(isNaN(v)) { alert("invalid input"); return; }
+          if(v > 0) { alert("Stamp time should be a negative number"); return; }
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": v }));
+          $("#stamp-adjustment").val("");
+      });
+      
+      $("#stamp-3").click(() => {
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-3 }));
+      });
+      
+      $("#stamp-5").click(() => {
+          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-5 }));
+      });
+      
+      $("#tinder-change").click(() => {
+          let v = parseInt($("#tinder-adjustment").val());
+          if(isNaN(v)) { alert("invalid input"); return; }
+          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": v }));
+          $("#tinder-adjustment").val("");
+      });
+      
+      $("#tinder-decrement").click(() => {
+          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder-1 }));
+      });
+      
+      $("#tinder-increment").click(() => {
+          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder+1 }));
+      });
+
+      
+      $("#hit-wall").click(() => {
+          emit('ui-to-server-contact-wall');
+      });
+      
+      $("#shortcut").click(() => {
+          emit('ui-to-server-drawbridge-shortcut');
+      });
+      
+      $("#exbtn1").click(() => {
+          logg('example button [unimplemented]');
+      });
+
+      
+
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-sm navbar-light bg-light">
+  <a class="navbar-brand" href="#">Staff UI</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="../staff_gui.html">Match Creator</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
+      </li>
+    </ul>
+  </div>
+  </nav>
+
+  <div class="container">
+    <div class="row container">
+      <h1>Ref GUI</h1>
+    </div>
+
+
+    <div class="text-center">
+      <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
+      <h3> Team Score: <span id="team-score"></span></h3>
+      <h3> Firewood: <span id="tinder"></span></h3>
+    </div>
+
+
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Penalty:</h3>
+          <input type="number" class="form-control" id="penalty-adjustment">
+          <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="penalty-change">Change</button>
+            <button class="btn btn-info" type="button" id="penalty-5">+5 Penalty</button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Stamp:</h3>
+          <input type="number" class="form-control" id="stamp-adjustment">
+          <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="stamp-change">Change</button>
+            <button class="btn btn-info" type="button" id="stamp-3">Add 3 stamp</button>
+            <button class="btn btn-info" type="button" id="stamp-5">Add 5 stamp</button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Firewood:</h3>
+          <input type="number" class="form-control" id="tinder-adjustment">
+          <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="tinder-change">Change</button>
+            <button class="btn btn-info" type="button" id="tinder-decrement">-</button>
+            <button class="btn btn-info" type="button" id="tinder-increment">+</button>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="row bottom-padding">
+      <div class="col">
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button class="btn btn-info" type="button" id="hit-wall">Hit Wall</button>
+            <button class="btn btn-info" type="button" id="shortcut">Shortcut</button>
+            <button class="btn btn-success" type="button" id="exbtn1">Example button</button>
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+    <a href="" id="log-toggle">Toggle log</a>
+    <pre id="events-log" hidden></pre>
+
+  </div>
+
+</body>
+
+</html>

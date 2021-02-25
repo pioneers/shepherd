@@ -1,5 +1,6 @@
 from datetime import datetime
 import random
+import math
 from Utils import *
 from Code import *
 
@@ -13,21 +14,37 @@ class Robot:
         print(self.custom_ip)
 
         self.coding_challenge = [False] * 8
+        self.init_times()
+    
+    def init_times(self):
         self.start_time: datetime = None
         self.end_time = None
-        self.elapsed_time = None
         self.stamp_time = 0
         self.penalty = 0
         self.stamp_time = 0
 
-    def calculate_time(self):
+    def set_elapsed_time(self, new_time):
+        if self.start_time:
+            self.end_time = self.start_time + new_time
+
+    def elapsed_time(self):
         if self.end_time is not None and self.start_time is not None:
-            self.elapsed_time = self.end_time - self.start_time
+            return self.end_time - self.start_time
+        return None    
 
     def total_time(self):
-        return self.elapsed_time + self.stamp_time + self.penalty
+        elapsed = self.elapsed_time()
+        if elapsed is None:
+            return None
+        return elapsed + self.stamp_time + self.penalty
+
+    def start_time_millis(self):
+        if self.start_time is None:
+            return None
+        return math.floor(self.start_time * 1000)
 
     def reset(self):
+        self.init_times()
         self.connection = False
 
     def pass_all_coding_challenges(self):

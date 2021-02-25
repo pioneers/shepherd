@@ -95,14 +95,12 @@
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
-        emit('ui-to-server-teams-info-request', JSON.stringify({}));
+        emit('ui-to-server-teams-info-request-no-args');
       });
 
       socket.on('server-to-ui-teams-info', function (data) {
         logg("server-to-ui-teams-info"+data);
         parsed_data = JSON.parse(data);
-        console.log(parsed_data);
-        
         match_num = parsed_data.match_num;
         round_num = parsed_data.round_num;
         team_num  = parsed_data.team_num;
@@ -267,6 +265,17 @@
       </div>
     </div>
 
+
+    <div class="row">
+      <div class="btn-group bottom-padding" role="group" aria-label="...">
+          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
+          <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
+          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
+          <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
+      </div>
+    </div>
+
+
     <div class="row bottom-padding">
         <div class="input-group">
           <h3>Team #:</h3>
@@ -281,15 +290,6 @@
     </div>
     
 
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
-          <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
-          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
-          <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
-      </div>
-    </div>
-
 
 
     <div class="row">
@@ -302,6 +302,7 @@
             aria-hidden="true"></span>Reset Round</button>
       </div>
     </div>
+    
     
     <a href="" id="log-toggle">Toggle log</a>
     <pre id="events-log" hidden></pre>

@@ -18,6 +18,9 @@ class SHEPHERD_HEADER():
     GET_ROUND_INFO = "get_round_info"
     # GET_ROUND_INFO{match_num, round_num}: gets match info for given match number
 
+    GET_ROUND_INFO_NO_ARGS = "get_round_info_no_args"
+    # GET_ROUND_INFO_NO_ARGS{}: gets cached match info (called on UI page load)
+
     # TODO: fix for 2021
     SETUP_MATCH = "setup_match"
     # SETUP_MATCH{team_name, team_num, match_num}
@@ -49,7 +52,7 @@ class SHEPHERD_HEADER():
     # GET_SCORES{}: get time, penalty and stamps of robot
 
     SCORE_ADJUST = "score_adjust"
-    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty - stamp time
+    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty + stamp time
 
     STAGE_TIMER_END = "stage_timer_end"
     # STAGE_TIMER_END{}: ends the stage's timer
@@ -89,6 +92,7 @@ class SHEPHERD_HEADER():
     STOPLIGHT_TIMER_END = "stoplight_timer_end"
     STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
     STOPLIGHT_PENALTY = "stoplight_penalty"
+    DRAWBRIDGE_SHORTCUT = "drawbridge_shortcut" #could be in city or forest
     FOREST_ENTRY = "forest_entry"
 
     # FOREST
