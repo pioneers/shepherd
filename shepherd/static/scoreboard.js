@@ -1,48 +1,63 @@
-var socket = io('http://192.168.128.129:5500'); // io('http://127.0.0.1:5500')
+var socket = io('/'); // io('http://127.0.0.1:5500')
 var stageTimer = true;
 var timerA = true;
+var globaltime = 0;
+var startTime = 0;
 
-socket.on('connect', function(data) {
+socket.on('connect', (data) => {
     socket.emit('join', 'scoreboard');
-  });
+});
 
-socket.on('team', function(match_info) {
-  team_name = JSON.parse(match_info).team_name
-  team_num = JSON.parse(match_info).team_num
+socket.on('team', (match_info) => {
+  console.log(`received team header with info ${match_info}`);
+  match_info = JSON.parse(match_info)
+  team_name = match_info.team_name
+  team_num = match_info.team_num
   nextTeam(team_name, team_num)
 })
 
-socket.on('stage_timer_start', function(secondsInStage) {
+socket.on('stage_timer_start', (secondsInStage) => {
     time = JSON.parse(secondsInStage).time
     stageTimerStart(time)
 })
 
 // STAGE{stage, start_time}
-socket.on('stage', function(stage_details) {
+socket.on('stage', (stage_details) => {
   stage = JSON.parse(stage_details).stage
   start_time = JSON.parse(stage_details).start_time
   console.log("got stage header")
-  console.log(stage)
+  console.log(stage_details)
   setStageName(stage)
   setStartTime(start_time)
 })
 
-socket.on("reset_timers", function() {
+socket.on("reset_timers", () => {
   resetTimers();
 })
 
 
-// SCORES{time, penalty, stamp_time, total}
-socket.on("score", function(scores) {
-  time = JSON.parse(scores).time;
-
-  total = JSON.parse(scores).total;           //displayed?
-  penalty = JSON.parse(scores).penalty;
-  stamp_time = JSON.parse(scores).stamp_time;
-
+// SCORES{time, penalty, stamp_time, score, start_time}
+socket.on("score", (scores) => {
+  console.log("receiving score");
+  scores = JSON.parse(scores);
+  console.log(`scores are ${JSON.stringify(scores)}`);
+  ({time, penalty, stamp_time} = scores);
+  if (time) {
+    setTime(time);
+  }
   setStamp(stamp_time);
   setPenalty(penalty);
+  if (time && stamp_time && penalty) {
+    setTotal(time - stamp_time + penalty)
+  }
 })
+
+function setTime(time) {
+  stageTimer = false;
+  globaltime = time;
+  time = Math.floor(time * 100) / 100;
+  $('#stage-timer').html(Math.floor(time/60) + ":"+ pad(time%60))
+}
 
 function setStamp(stamp_time) {
   $('#stamp_time').html(stamp_time);
@@ -53,6 +68,7 @@ function setPenalty(penalty) {
 }
 
 function setTotal(total) {
+  // Hypothetically make it visible here
   $('#total').html(total);
 }
 
@@ -97,14 +113,17 @@ function runStageTimer(currTime) {
   var maxStageTime = 300;
   if(currTime <= maxStageTime){
     setTimeout(function() {
-      $('#stage-timer').html(Math.floor(currTime/60) + ":"+ pad(currTime%60))
+      const currTime = new Date().getTime();
+      const time = (currTime - startTime) / 1000;
+      $('#stage-timer').html(Math.floor(time/60) + ":"+ pad(time%60))
       if(stageTimer) {
-        stageTimerStart(currTime + 1);
+        runStageTimer(currTime + 1);
       } else {
-        stageTimerStart(0)
-        $('#stage-timer').html("0:00")
+        // supposedly do nothing
+        // runStageTimer(0)
+        return
       }
-  }, 1000);
+  }, 100);
   }
 }
 
@@ -219,9 +238,10 @@ function setStartTime(start_time) {
   //
   // Args:
   // start_time = timestamp sent by Shepherd of when the stage began in seconds
+  start_time = start_time / 1000;
   var curr_time = new Date().getTime() / 1000;
 
-  stageTimerStart(curr_time - start_time)
+  stageTimerStart(Math.floor(curr_time - start_time))
 }
 
 /* FOR TESTING: */
