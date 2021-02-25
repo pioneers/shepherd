@@ -170,9 +170,7 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    #lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-    #         "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    send_score()
+    send_score_to_ui()
     enable_robots(True)
 
     BUTTONS.illuminate_buttons(ROBOT)
@@ -218,7 +216,6 @@ def get_round(args):
     '''
     Retrieves all match info based on match number and sends this information to the UI. If not already cached, fetches info from the spreadsheet.
     '''
-    # TODO: ADD EVERYTHING THAT SAM DESIRES, check the validation is good
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     match_num = int(args["match_num"])
     round_num = int(args["round_num"])
@@ -240,7 +237,7 @@ def get_round(args):
 
 def send_round_info(args = None):
     '''
-    Sends all match info to the UI
+    Sends all match info to the UI and scoreboard
     '''
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     team_num = ROBOT.number
@@ -248,6 +245,7 @@ def send_round_info(args = None):
     lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
 
 
 def set_custom_ip(args):
@@ -270,11 +268,12 @@ def score_adjust(args):
     if stamp_time is not None:
         ROBOT.stamp_time = stamp_time
     # TODO: send dummy elapsed time if during game (-1) maybe this should be none
-    send_score()
+    send_score_to_scoreboard()
+    send_score_to_ui()
 
-def send_score(args = None):
+def send_score_to_ui(args = None):
     '''
-    Send the current score to the UI and scoreboard.
+    Send the current score to the UI.
     '''
 
     data = {
@@ -284,11 +283,20 @@ def send_score(args = None):
         "score": ROBOT.total_time(),
         "start_time": ROBOT.start_time_millis()
     }
-    #TODO: check to see if this messes up scoreboard, especially in to_auto
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
 
-
+def send_score_to_scoreboard(args=None):
+    """
+    Send the current score to the scoreboard.
+    """
+    data = {
+        "time": ROBOT.elapsed_time(),
+        "penalty": ROBOT.penalty,
+        "stamp_time": ROBOT.stamp_time,
+        "score": ROBOT.total_time(),
+        "start_time": ROBOT.start_time_millis()
+    }
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
 
 def flush_scores():
     '''
@@ -378,8 +386,7 @@ def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {
-             "time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+    send_score_to_scoreboard()
 
 
 def set_game_info(args):
@@ -432,9 +439,9 @@ def to_city(args):
         stoplight_penalty()
     GAME_STATE = STATE.CITY
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     print("ENTERING CITY STATE")
 
 # ----------
@@ -610,12 +617,11 @@ def to_end(args):
     GAME_STATE = STATE.END
     disable_robots()
     ROBOT.end_time = time.time()
-    send_score()
     GAME_STATE = STATE.END
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+    send_score_to_ui()
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
 
@@ -703,7 +709,7 @@ END_FUNCTIONS = {
 
 EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
-    SHEPHERD_HEADER.GET_SCORES: send_score,
+    SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.RESET_ROUND: reset_round
 }

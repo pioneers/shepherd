@@ -25,7 +25,7 @@ def scoreboard():
 
 def receiver():
     events = gevent.queue.Queue()
-    lcm_start_read(str.encode(LCM_TARGETS.UI), events)
+    lcm_start_read(str.encode(LCM_TARGETS.SCOREBOARD), events)
 
     while True:
 

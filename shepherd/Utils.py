@@ -156,7 +156,7 @@ class UI_HEADER():
     TEAMS_INFO = "teams_info"
     # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip}
     SCORES = "scores"
-    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds]}
+    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
     # TODO: update for one robot
     CONNECTIONS = "connections"  # TODO: ask Matt why this function is commented out
     # CONNECTIONS{robot_connection[True/False]}
@@ -178,7 +178,7 @@ class SCOREBOARD_HEADER():
     These are headers used by Shepherd to send information to the Scoreboard.
     """
     SCORES = "scores"
-    # SCORES{time, penalty, stamp_time, total}
+    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
     # overrides (send this at the very end)
     # time = elapsed time (count up) -> dummy time (DONT SEND) if dont update
     # penalty = positive time
@@ -190,7 +190,7 @@ class SCOREBOARD_HEADER():
     # time: change displayed time to this if not null(?)
 
     TEAM = "team"
-    # TEAM{team_name, team_num}
+    # TEAM{match_num, round_num, team_num, team_name, custom_ip}
     STAGE = "stage"
     # STAGE{stage, start_time}
     # start_time = timestamp
