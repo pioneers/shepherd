@@ -24,8 +24,8 @@ class RuntimeClient:
         self.robot: Robot = robot
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.is_alive = False
-        self.connect_tcp()
         self.client_exists = True
+        self.connect_tcp()
         # send 0 byte so that Runtime knows it's Shepherd
         if self.is_alive:
             self.sock.send(bytes([0]))
@@ -134,7 +134,6 @@ class RuntimeClient:
         then tries to reconnect infinitely until either self.client_exists
         is False or the thread is closed in garbage collection.
         """
-        # TODO: add docstring
         while self.client_exists:
             received = self.sock.recv(1)
             print("RECIEVED IS ", received)
