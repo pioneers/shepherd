@@ -25,10 +25,10 @@ class RuntimeClient:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.is_alive = False
         self.connect_tcp()
+        self.client_exists = True
         # send 0 byte so that Runtime knows it's Shepherd
         if self.is_alive:
             self.sock.send(bytes([0]))
-            self.client_exists = True
 
     def receive_challenge_data(self):
         """
@@ -101,7 +101,13 @@ class RuntimeClient:
         self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
 
-    def connect_tcp(self):
+    def connect_tcp(self) -> bool:
+        """
+        - Attempts to connect to the Rasberry PI
+        - sets self.is_alive to the connection status
+        - sends connection status to UI
+        - starts a receiving thread that reads incoming messages and provides heartbeat
+        """
         # self.sock.connect(("127.0.0.1", int(self.host_url)))
         connected = True
         try:
@@ -111,8 +117,10 @@ class RuntimeClient:
             print(f"Error connecting to Robot {self.robot}: {exc}")
         self.is_alive = connected
         lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
-        thr = threading.Thread(target=self.start_recv)
-        thr.start()
+        if connected:
+            thr = threading.Thread(target=self.start_recv)
+            thr.start()
+        return connected
 
     def close_connection(self):
         self.is_alive = False
@@ -120,6 +128,12 @@ class RuntimeClient:
         self.sock.close() # deallocates
 
     def start_recv(self):
+        """
+        While the client exists (controlled by RuntimeClientManager),
+        waits to receive an incoming message. If connection fails,
+        then tries to reconnect infinitely until either self.client_exists
+        is False or the thread is closed in garbage collection.
+        """
         # TODO: add docstring
         while self.client_exists:
             received = self.sock.recv(1)
@@ -129,8 +143,11 @@ class RuntimeClient:
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
                 self.close_connection()
-                if self.client_exists:
-                    self.connect_tcp()
+                while self.client_exists:
+                    print(f"Attempting to reconnect to robot {self.robot}")
+                    if self.connect_tcp():
+                        return
+                    time.sleep(1)
                 return
             else:
                 self.is_alive = True
@@ -193,8 +210,8 @@ class RuntimeClientManager:
 
     def reset(self):
         for client in self.clients:
-            client.close_connection()
             client.client_exists = False
+            client.close_connection()
         self.clients: List[RuntimeClient] = []
 
 
