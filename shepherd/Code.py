@@ -166,7 +166,9 @@ def picky_rat(words):
 
 def get_results(ip):
     global CH
-    # get_challenges(ip)
+    get_challenges(ip)
+
+    """
 
     # TODO: need feedback if they passed visible/hidden tests, also how do we tell them what they failed?
 
@@ -181,6 +183,10 @@ def get_results(ip):
     hard_passed = run_set_of_tests(doc_tests, hard_challenges)
     print(easy_passed)
     print(hard_passed)
+
+    """
+
+    return []
 
     # TODO: get the challenge results as list of bools ([passed challenge 1, passed challenge 2, etc.])
 

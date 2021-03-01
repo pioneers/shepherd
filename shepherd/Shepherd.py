@@ -125,6 +125,7 @@ def to_setup(args):
     global STARTING_SPOTS
     global ROBOT
     global BUTTONS
+    global CLIENTS
 
     # code_setup()
 
@@ -133,6 +134,8 @@ def to_setup(args):
 
     ROBOT = Robot(name, num, custom_ip)
     BUTTONS = Buttons()
+    CLIENTS = RuntimeClientManager()
+    connect()
 
     # note that reset state will be called from the UI when necessary and reset_state + reset_round = reset match
     reset_round()
@@ -176,6 +179,7 @@ def to_auto(args):
     #         "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     send_score()
     enable_robots(True)
+    check_code()
 
     BUTTONS.illuminate_buttons(ROBOT)
     print("ENTERING AUTO STATE")
@@ -253,13 +257,11 @@ def send_round_info(args = None):
 
 
 def set_custom_ip(args):
-    global CLIENTS
     ROBOT.custom_ip = args["custom_ip"]
-    CLIENTS = RuntimeClientManager()
+    connect()
+
+def connect():
     CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-    
-    #TODO can robot be none? 
-    #TODO send back connection status
 
 def score_adjust(args):
     '''
@@ -397,7 +399,7 @@ def set_game_info(args):
 # SETUP STAGE
 # ----------
 
-def check_code(args):
+def check_code():
     '''
     Check the coding challenges and act appropriately
     '''
@@ -597,6 +599,7 @@ def to_end(args):
     LAST_BUTTONS = BUTTONS
     GAME_STATE = STATE.END
     disable_robots()
+    CLIENTS.reset()
     ROBOT.end_time = time.time()
     send_score()
     GAME_STATE = STATE.END
@@ -613,7 +616,6 @@ def to_end(args):
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
-    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state

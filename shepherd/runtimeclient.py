@@ -8,6 +8,7 @@ from Utils import *
 from LCM import *
 from Robot import Robot
 import socket
+from typing import List
 
 PORT_RASPI = 8101
 
@@ -120,10 +121,11 @@ class RuntimeClient:
         while True:
             received = self.sock.recv(1)
             print("RECIEVED IS ", received)
-            if received == "":
+            if received == b'':
                 # socket has been closed oops
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
+                self.close_connection()
                 self.connect_tcp()
             else:
                 self.is_alive = True
@@ -133,7 +135,7 @@ class RuntimeClient:
 class RuntimeClientManager:
 
     def __init__(self):
-        self.clients = []
+        self.clients: List[RuntimeClient] = []
 
     def __get_client(self, host_url, robot):
         """
@@ -144,9 +146,14 @@ class RuntimeClientManager:
         if client.is_alive:
             self.clients.append(client)
 
-    def get_clients(self, host_urls, robots):
+    def get_clients(self, host_urls, robots: List[Robot]):
         for i in range(len(host_urls)):
-            thr = threading.Thread(target=self.__get_client, args=[host_urls[i], robots[i]])
+            robot, host_url = robots[i], host_urls[i]
+            robot_nums = [c.robot.number for c in self.clients]
+            if robot.number in robot_nums:
+                index = robot_nums.index(robot.number)
+                self.clients.pop(index)
+            thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
             thr.start()
 
     def receive_challenge_data(self, client):
@@ -176,10 +183,10 @@ class RuntimeClientManager:
     def send_game_state(self, state):
         for client in self.clients:
             client.send_game_state(state)
-        
+
     def reset(self):
         for client in self.clients:
-            client.close()
+            client.close_connection()
         self.clients = []
 
 

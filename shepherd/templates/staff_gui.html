@@ -108,7 +108,9 @@
         team_name = parsed_data.team_name;
         tinder    = parsed_data.tinder;
         buttons   = parsed_data.buttons;
-        custom_ip = parsed_data.custom_ip;
+        if ($("#custom-ip-adjustment").val() === "") {
+          custom_ip = parsed_data.custom_ip;
+        }
         setDefaultTeamsInfo()
       });
       
@@ -124,8 +126,13 @@
 
       function toggleHeartbeat(connected) {
         const hbl = $("#heartbeat-light");
-        hbl.toggleClass("led-green", connected);
-        hbl.toggleClass("led-red",  !connected);
+        if (connected == null) {
+          hbl.toggleClass("led-green", false);
+          hbl.toggleClass("led-red",  false);
+        } else {
+          hbl.toggleClass("led-green", connected);
+          hbl.toggleClass("led-red",  !connected);
+        }
       }
       
       socket.on('server-to-ui-robot-connection', function (data) { //TODO right header?
@@ -167,17 +174,22 @@
         round_num = parseInt($("#select-round-number").val());
         team_num = parseInt($("#team-number").val());
         team_name = $("#team-name").val();
+        custom_ip = $("#custom-ip-adjustment").val();
+
         if(isNaN(match_num)) { alert("invalid match number"); return; }
         if(isNaN(round_num)) { alert("invalid round number"); return; }
         if(isNaN(team_num)) { alert("invalid team number"); return; }
-        if(team_name == "") { alert("empty team name"); return; } 
-        
+        if(team_name === "") { alert("empty team name"); return; } 
+        toggleHeartbeat(null);
         let data = {
             "match_num": match_num,
             "round_num": round_num,
             "team_num": team_num,
-            "team_name": team_name
+            "team_name": team_name,
         };
+        if (custom_ip !== "") {
+          data["custom_ip"] = custom_ip;
+        }
         emit('ui-to-server-setup-match', JSON.stringify(data));
       });
 
