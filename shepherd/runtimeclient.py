@@ -120,6 +120,7 @@ class RuntimeClient:
         # check for eof
         while True:
             file_desc = self.sock.fileno()
+            print(f"FILE DESC: {file_desc}")
             if file_desc == -1:
                 # socket has been closed oops
                 self.is_alive = False

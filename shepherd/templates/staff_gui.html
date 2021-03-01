@@ -46,12 +46,12 @@
       box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
     }
     .led-green {
-      background-color: #ABFF00;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px;
+      background-color: #ABFF00 !important;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px !important;
     }
     .led-red {
-      background-color: #F00;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px;
+      background-color: #F00 !important;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px !important;
     }
   </style>
   <script>
@@ -123,7 +123,7 @@
       }
 
       function toggleHeartbeat(connected) {
-        const hbl = document.getElementById("heartbeat-light");
+        const hbl = $("#heartbeat-light");
         hbl.toggleClass("led-green", connected);
         hbl.toggleClass("led-red",  !connected);
       }
