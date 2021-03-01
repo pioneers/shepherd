@@ -28,7 +28,7 @@ class RuntimeClient:
         if self.is_alive:
             self.sock.send(bytes([0]))
             self.client_exists = True
-            thr = threading.Thread(target=self.start_heartbeat)
+            thr = threading.Thread(target=self.start_recv)
             thr.start()
 
     def receive_challenge_data(self):
@@ -118,7 +118,7 @@ class RuntimeClient:
         self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
         self.sock.close() # deallocates
 
-    def start_heartbeat(self):
+    def start_recv(self):
         # TODO: add docstring
         while self.client_exists:
             received = self.sock.recv(1)
@@ -154,6 +154,7 @@ class RuntimeClientManager:
             robot_nums = [c.robot.number for c in self.clients]
             if robot.number in robot_nums:
                 index = robot_nums.index(robot.number)
+                self.clients[index].client_exists = False
                 self.clients.pop(index)
             thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
             thr.start()
@@ -188,8 +189,8 @@ class RuntimeClientManager:
 
     def reset(self):
         for client in self.clients:
-            client.close_connection()
             client.client_exists = False
+            client.close_connection()
         self.clients = []
 
 

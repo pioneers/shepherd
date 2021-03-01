@@ -160,14 +160,7 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global CLIENTS
-    # moved the below code to set_custom_ip
-    # try:
-    #     CLIENTS = RuntimeClientManager()
-    #     CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-    # except Exception as exc:
-    #     log(exc)
-    #     return
-    CLIENTS.receive_all_challenge_data()
+    # CLIENTS.receive_all_challenge_data()
 
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
