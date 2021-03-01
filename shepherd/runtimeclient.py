@@ -100,7 +100,7 @@ class RuntimeClient:
         self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
 
-    def connect_tcp(self) -> bool:
+    def connect_tcp(self, silent=False) -> bool:
         """
         - Attempts to connect to the Rasberry PI
         - sets self.is_alive to the connection status
@@ -112,9 +112,12 @@ class RuntimeClient:
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.host_url, PORT_RASPI))
+            message = f"Successfully connected to Robot {self.robot}"
         except Exception as exc:
             connected = False
-            print(f"Error connecting to Robot {self.robot}: {exc}")
+            message = f"Error connecting to Robot {self.robot}: {exc}"
+        if not silent:
+            print(message)
         self.is_alive = connected
         lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
         if connected:
@@ -139,16 +142,22 @@ class RuntimeClient:
         is False or the thread is closed in garbage collection.
         """
         while self.client_exists:
-            received = self.sock.recv(1)
-            print("RECIEVED IS ", received)
+            try:
+                received = self.sock.recv(1)
+            except ConnectionResetError as e:
+                print(f"Connection reset error while reading from socket: {e}")
+                received = False
+            print(f"Received message from Robot {self.robot}: ", received)
             if not received:
                 # socket has been closed oops
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
                 self.close_connection()
-                while self.client_exists:
+                if self.client_exists:
                     print(f"Attempting to reconnect to robot {self.robot}")
-                    if self.connect_tcp():
+                while self.client_exists:
+                    if self.connect_tcp(silent=True):
+                        print(f"Successfully reconnected to robot {self.robot}")
                         return
                     time.sleep(1)
                 return
