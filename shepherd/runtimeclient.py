@@ -20,11 +20,11 @@ class RuntimeClient:
    
     def __init__(self, host_url, robot):
         self.host_url = host_url
+        self.robot: Robot = robot
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect_tcp()
         # send 0 byte so that Runtime knows it's Shepherd
         self.sock.send(bytes([0]))
-        self.robot: Robot = robot
         if self.is_alive:
             thr = threading.Thread(target=self.start_heartbeat)
             thr.start()
