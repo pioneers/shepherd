@@ -23,13 +23,12 @@ class RuntimeClient:
         self.host_url = host_url
         self.robot: Robot = robot
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.is_alive = False
         self.connect_tcp()
         # send 0 byte so that Runtime knows it's Shepherd
         if self.is_alive:
             self.sock.send(bytes([0]))
             self.client_exists = True
-            thr = threading.Thread(target=self.start_recv)
-            thr.start()
 
     def receive_challenge_data(self):
         """
@@ -112,6 +111,8 @@ class RuntimeClient:
             print(f"Error connecting to Robot {self.robot}: {exc}")
         self.is_alive = connected
         lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
+        thr = threading.Thread(target=self.start_recv)
+        thr.start()
 
     def close_connection(self):
         self.is_alive = False
@@ -128,7 +129,9 @@ class RuntimeClient:
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
                 self.close_connection()
-                self.connect_tcp()
+                if self.client_exists:
+                    self.connect_tcp()
+                return
             else:
                 self.is_alive = True
 
@@ -155,6 +158,7 @@ class RuntimeClientManager:
             if robot.number in robot_nums:
                 index = robot_nums.index(robot.number)
                 self.clients[index].client_exists = False
+                self.clients[index].close_connection()
                 self.clients.pop(index)
             thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
             thr.start()
@@ -189,9 +193,9 @@ class RuntimeClientManager:
 
     def reset(self):
         for client in self.clients:
-            client.client_exists = False
             client.close_connection()
-        self.clients = []
+            client.client_exists = False
+        self.clients: List[RuntimeClient] = []
 
 
 """
