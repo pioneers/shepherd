@@ -117,19 +117,16 @@ class RuntimeClient:
 
     def start_heartbeat(self):
         # TODO: add docstring
-        # check for eof
         while True:
-            file_desc = self.sock.fileno()
-            print(f"FILE DESC: {file_desc}")
-            if file_desc == -1:
+            received = self.sock.recv(1)
+            print("RECIEVED IS ", received)
+            if received == "":
                 # socket has been closed oops
-                self.is_alive = False
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
-                print(f"Connection Lost to Robot {self.robot}, trying again.")
+                print(f"Connection lost to Robot {self.robot}, trying again.")
                 self.connect_tcp()
             else:
                 self.is_alive = True
-            time.sleep(1)
 
 
 
