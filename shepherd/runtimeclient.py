@@ -16,13 +16,12 @@ PORT_RASPI = 8101
 class RuntimeClient:
     """
     This is a client that connects to the server running on a Raspberry Pi. 
-    xOne client is initialized per robot.
+    One client is initialized per robot.
     """
    
     def __init__(self, host_url, robot):
         self.host_url = host_url
         self.robot: Robot = robot
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.is_alive = False
         self.client_exists = True
         self.connect_tcp()
@@ -111,6 +110,7 @@ class RuntimeClient:
         # self.sock.connect(("127.0.0.1", int(self.host_url)))
         connected = True
         try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.host_url, PORT_RASPI))
         except Exception as exc:
             connected = False
@@ -123,9 +123,13 @@ class RuntimeClient:
         return connected
 
     def close_connection(self):
+        """
+        Closes the connection if not already closed.
+        """
         self.is_alive = False
-        self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
-        self.sock.close() # deallocates
+        if self.sock.fileno() != -1:
+            self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
+            self.sock.close() # deallocates
 
     def start_recv(self):
         """
