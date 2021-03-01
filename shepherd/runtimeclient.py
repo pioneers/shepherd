@@ -25,9 +25,9 @@ class RuntimeClient:
         # send 0 byte so that Runtime knows it's Shepherd
         self.sock.send(bytes([0]))
         self.robot: Robot = robot
-        self.is_alive = True
-        thr = threading.Thread(target=self.start_heartbeat)
-        thr.start()
+        if self.is_alive:
+            thr = threading.Thread(target=self.start_heartbeat)
+            thr.start()
 
     def receive_challenge_data(self):
         """
@@ -102,8 +102,14 @@ class RuntimeClient:
 
     def connect_tcp(self):
         # self.sock.connect(("127.0.0.1", int(self.host_url)))
-        self.sock.connect((self.host_url, PORT_RASPI))
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": True})
+        connected = True
+        try:
+            self.sock.connect((self.host_url, PORT_RASPI))
+        except Exception as exc:
+            connected = False
+            print(f"Error connecting to Robot {self.robot}: {exc}")
+        self.is_alive = connected
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
 
     def close_connection(self):
         self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
@@ -137,7 +143,8 @@ class RuntimeClientManager:
         """
         print("client " + str(host_url) + " started")
         client = RuntimeClient(host_url, robot)
-        self.clients.append(client)
+        if client.is_alive:
+            self.clients.append(client)
 
     def get_clients(self, host_urls, robots):
         for i in range(len(host_urls)):
