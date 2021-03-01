@@ -173,7 +173,7 @@ def get_results(ip):
     # TODO: need feedback if they passed visible/hidden tests, also how do we tell them what they failed?
 
     os.system('clear')
-    CH = importlib.import_module("studentcode")
+    CH = importlib.import_module("student")
     doc_tests = doctest.DocTestFinder()
 
     easy_challenges = [eta, convert_time]

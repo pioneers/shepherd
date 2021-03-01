@@ -27,6 +27,7 @@ class RuntimeClient:
         # send 0 byte so that Runtime knows it's Shepherd
         if self.is_alive:
             self.sock.send(bytes([0]))
+            self.client_exists = True
             thr = threading.Thread(target=self.start_heartbeat)
             thr.start()
 
@@ -113,15 +114,16 @@ class RuntimeClient:
         lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
 
     def close_connection(self):
+        self.is_alive = False
         self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
         self.sock.close() # deallocates
 
     def start_heartbeat(self):
         # TODO: add docstring
-        while True:
+        while self.client_exists:
             received = self.sock.recv(1)
             print("RECIEVED IS ", received)
-            if received == b'':
+            if not received:
                 # socket has been closed oops
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
@@ -187,6 +189,7 @@ class RuntimeClientManager:
     def reset(self):
         for client in self.clients:
             client.close_connection()
+            client.client_exists = False
         self.clients = []
 
 
