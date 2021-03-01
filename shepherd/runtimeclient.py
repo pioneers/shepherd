@@ -129,8 +129,8 @@ class RuntimeClient:
         """
         Closes the connection if not already closed.
         """
-        self.is_alive = False
-        if self.sock.fileno() != -1:
+        if self.is_alive:
+            self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
 
@@ -162,7 +162,9 @@ class RuntimeClient:
                     time.sleep(1)
                 return
             else:
-                self.is_alive = True
+                # This is where one would process received data, ideally using some function mapping
+                # similar to the way it is done in Shepherd.
+                pass
 
 
 
