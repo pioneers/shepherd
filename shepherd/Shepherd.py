@@ -157,12 +157,13 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global CLIENTS
-    try:
-        CLIENTS = RuntimeClientManager()
-        CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-    except Exception as exc:
-        log(exc)
-        return
+    # moved the below code to set_custom_ip
+    # try:
+    #     CLIENTS = RuntimeClientManager()
+    #     CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
+    # except Exception as exc:
+    #     log(exc)
+    #     return
     CLIENTS.receive_all_challenge_data()
 
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
@@ -252,7 +253,11 @@ def send_round_info(args = None):
 
 
 def set_custom_ip(args):
+    global CLIENTS
     ROBOT.custom_ip = args["custom_ip"]
+    CLIENTS = RuntimeClientManager()
+    CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
+    
     #TODO can robot be none? 
     #TODO send back connection status
 
@@ -304,32 +309,14 @@ def enable_robots(autonomous):
     Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
-    try:
-        # TODO: why si this "auto" and "telop" instead of 0/1?
-        CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-            except Exception as exc:
-                print("A robot failed to be enabled! Big sad :(")
-                log(exc)
+    CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
 
 
 def disable_robots():
     '''
     Sends message to Dawn to disable all robots
     '''
-    try:
-        CLIENTS.send_mode(Mode.IDLE)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.IDLE)
-            except Exception as exc:
-                print("a client has disconnected")
-        log(exc)
-        print(exc)
+    CLIENTS.send_mode(Mode.IDLE)
 
 #pylint: disable=redefined-builtin
 

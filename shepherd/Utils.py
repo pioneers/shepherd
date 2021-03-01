@@ -158,8 +158,8 @@ class UI_HEADER():
     SCORES = "scores"
     # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds]}
     # TODO: update for one robot
-    CONNECTIONS = "connections"  # TODO: ask Matt why this function is commented out
-    # CONNECTIONS{robot_connection[True/False]}
+    ROBOT_CONNECTION = "robot_connection"  # TODO: ask Matt why this function is commented out
+    # CONNECTIONS{team_num: int, connected: bool}
     GAME_INFO = "game_info"
     # GAME_INFO{tinder, buttons activated}
     SENSORS_INFO = "sensors_info"
@@ -200,8 +200,8 @@ class TABLET_HEADER():
 
 
 class CONSTANTS():
-    AUTO_TIME = 5  # 20
-    TELEOP_TIME = 10  # 280
+    AUTO_TIME = 10  # 20
+    TELEOP_TIME = 20  # 280
     STOPLIGHT_TIME = 5  # 30
     SANDSTORM_COVER_TIME = 10
     DEHYRATION_TIME = 30

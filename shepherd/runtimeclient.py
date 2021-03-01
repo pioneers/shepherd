@@ -1,9 +1,11 @@
+import time
 import threading
 from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
 from Utils import *
+from LCM import *
 from Robot import Robot
 import socket
 
@@ -23,6 +25,9 @@ class RuntimeClient:
         # send 0 byte so that Runtime knows it's Shepherd
         self.sock.send(bytes([0]))
         self.robot: Robot = robot
+        self.is_alive = True
+        thr = threading.Thread(target=self.start_heartbeat)
+        thr.start()
 
     def receive_challenge_data(self):
         """
@@ -98,10 +103,27 @@ class RuntimeClient:
     def connect_tcp(self):
         # self.sock.connect(("127.0.0.1", int(self.host_url)))
         self.sock.connect((self.host_url, PORT_RASPI))
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": True})
 
     def close_connection(self):
         self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
         self.sock.close() # deallocates
+
+    def start_heartbeat(self):
+        # TODO: add docstring
+        # check for eof
+        while True:
+            file_desc = self.sock.fileno()
+            if file_desc == -1:
+                # socket has been closed oops
+                self.is_alive = False
+                lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
+                print(f"Connection Lost to Robot {self.robot}, trying again.")
+                self.connect_tcp()
+            else:
+                self.is_alive = True
+            time.sleep(1)
+
 
 
 class RuntimeClientManager:
@@ -133,7 +155,10 @@ class RuntimeClientManager:
 
     def send_mode(self, mode):
         for client in self.clients:
-            client.send_mode(mode)
+            try:
+                client.send_mode(mode)
+            except Exception as exc:
+                print(f"Robot {client} failed to be enabled! Big sad :(")
 
     def send_start_pos(self, pos):
         for client in self.clients:
