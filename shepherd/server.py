@@ -43,7 +43,7 @@ def ref_gui():
 @socketio.on('join')
 def handle_join(client_name):
     print('confirmed join: ' + client_name)
-    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.REQUEST_CONNECTIONS)
+
 
 # Score Adjustment
 
@@ -71,6 +71,10 @@ def ui_to_server_round_info_request(round_info):
     print("TEAMS Info request made")
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO,
             json.loads(round_info))
+
+@socketio.on('ui-to-server-request-connections')
+def ui_to_server_request_connections():
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.REQUEST_CONNECTIONS)
 
 @socketio.on('ui-to-server-setup-match')
 def ui_to_server_setup_match(teams_info):
@@ -102,6 +106,10 @@ def ui_to_server_set_tinder(args):
 def ui_to_server_custom_ip(args):
     lcm_send(LCM_TARGETS.SHEPHERD, 
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
+
+@socketio.on('ui-to-server-robot-off')
+def ui_to_server_robot_off(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_OFF, json.loads(args))
 
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')

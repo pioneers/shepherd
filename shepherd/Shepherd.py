@@ -120,7 +120,7 @@ def to_setup(args):
     load the teams for the upcoming match, reset all state, and send information to scoreboard.
     By the end, should be ready to start match.
     '''
-    global MATCH_NUMBER
+    global MATCH_NUMBER, ROUND_NUMBER
     global GAME_STATE
     global STARTING_SPOTS
     global ROBOT
@@ -129,6 +129,7 @@ def to_setup(args):
 
     # code_setup()
 
+    MATCH_NUMBER, ROUND_NUMBER = args["match_num"], args["round_num"]
     name, num = args["team_name"], args["team_num"]
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 

@@ -95,6 +95,7 @@
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
+        emit('ui-to-server-request-connections');
         emit('ui-to-server-teams-info-request-no-args');
       });
 
@@ -220,6 +221,12 @@
         emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
         toggleHeartbeat(false);
       });
+
+      $("#stop-robot").click(function () {
+        let team_number = parseInt($("#team-number").val());
+        if(isNaN(team_number)) { alert("invalid team number"); return; }
+        emit('ui-to-server-robot-off', JSON.stringify({ "team_number": team_number }));
+      });
       
     });
   </script>
@@ -278,6 +285,9 @@
           <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
           <span class="input-group-btn">
             <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
+          </span>
+          <span class="input-group-btn">
+            <button class="btn btn-danger" type="button" id="stop-robot" style="margin-left:5px;margin-right:5px;">Stop Robot</button>
           </span>
           <span class="spaced">Heartbeat:</span> 
           <div class="form-group spaced" id="heartbeat-light"></div>
