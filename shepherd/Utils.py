@@ -156,10 +156,10 @@ class UI_HEADER():
     TEAMS_INFO = "teams_info"
     # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip}
     SCORES = "scores"
-    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds]}
+    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
     # TODO: update for one robot
-    CONNECTIONS = "connections"  # TODO: ask Matt why this function is commented out
-    # CONNECTIONS{robot_connection[True/False]}
+    ROBOT_CONNECTION = "robot_connection"  # TODO: ask Matt why this function is commented out
+    # CONNECTIONS{team_num: int, connected: bool}
     GAME_INFO = "game_info"
     # GAME_INFO{tinder, buttons activated}
     SENSORS_INFO = "sensors_info"
@@ -178,13 +178,30 @@ class SCOREBOARD_HEADER():
     These are headers used by Shepherd to send information to the Scoreboard.
     """
     SCORES = "scores"
-    # SCORES{time, penalty, stamp_time, total_time}
+    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
+    # overrides (send this at the very end)
+    # time = elapsed time (count up) -> dummy time (DONT SEND) if dont update
+    # penalty = positive time
+    # stamps = negative time (decrement penalty) -> 5 for auto, 3 for tele
+    # TODO:
+    # account for penalty / stamp:
+    #   display penalty / stamp
+    #   update penalty / stamp time
+    # time: change displayed time to this if not null(?)
+
     TEAM = "team"
-    # TEAM{team_name, team_num}
+    # TEAM{match_num, round_num, team_num, team_name, custom_ip}
     STAGE = "stage"
     # STAGE{stage, start_time}
+    # start_time = timestamp
+    # TODO:
+    # stage: figure out stage to display mapping
+    #   Autonomous vs Teleop
+    # fix the boxes so there's a box for stage
+    # reverse the timer: DONE
+    # calculate the diff between the start_time and our current time (to account for delay): DONE
+    # start the timer from the appropriate time: DONE
     RESET_TIMERS = "reset_timers"
-
 
 class TABLET_HEADER():
     TEAMS = "teams"
@@ -200,8 +217,8 @@ class TABLET_HEADER():
 
 
 class CONSTANTS():
-    AUTO_TIME = 5  # 20
-    TELEOP_TIME = 10  # 280
+    AUTO_TIME = 10  # 20
+    TELEOP_TIME = 20  # 280
     STOPLIGHT_TIME = 5  # 30
     SANDSTORM_COVER_TIME = 10
     DEHYRATION_TIME = 30

@@ -1,11 +1,14 @@
+import time
 import threading
 from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
 from Utils import *
+from LCM import *
 from Robot import Robot
 import socket
+from typing import List
 
 PORT_RASPI = 8101
 
@@ -13,16 +16,18 @@ PORT_RASPI = 8101
 class RuntimeClient:
     """
     This is a client that connects to the server running on a Raspberry Pi. 
-    xOne client is initialized per robot.
+    One client is initialized per robot.
     """
    
     def __init__(self, host_url, robot):
         self.host_url = host_url
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.robot: Robot = robot
+        self.is_alive = False
+        self.client_exists = True
         self.connect_tcp()
         # send 0 byte so that Runtime knows it's Shepherd
-        self.sock.send(bytes([0]))
-        self.robot: Robot = robot
+        if self.is_alive:
+            self.sock.send(bytes([0]))
 
     def receive_challenge_data(self):
         """
@@ -95,19 +100,78 @@ class RuntimeClient:
         self.sock.send(len(bytearr).to_bytes(2, "little"))
         self.sock.send(bytearr)
 
-    def connect_tcp(self):
+    def connect_tcp(self, silent=False) -> bool:
+        """
+        - Attempts to connect to the Rasberry PI
+        - sets self.is_alive to the connection status
+        - sends connection status to UI
+        - starts a receiving thread that reads incoming messages and provides heartbeat
+        """
         # self.sock.connect(("127.0.0.1", int(self.host_url)))
-        self.sock.connect((self.host_url, PORT_RASPI))
+        connected = True
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((self.host_url, PORT_RASPI))
+            message = f"Successfully connected to Robot {self.robot}"
+        except Exception as exc:
+            connected = False
+            message = f"Error connecting to Robot {self.robot}: {exc}"
+        if not silent:
+            print(message)
+        self.is_alive = connected
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
+        if connected:
+            thr = threading.Thread(target=self.start_recv)
+            thr.start()
+        return connected
 
     def close_connection(self):
-        self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
-        self.sock.close() # deallocates
+        """
+        Closes the connection if not already closed.
+        """
+        if self.is_alive:
+            self.is_alive = False
+            self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
+            self.sock.close() # deallocates
+
+    def start_recv(self):
+        """
+        While the client exists (controlled by RuntimeClientManager),
+        waits to receive an incoming message. If connection fails,
+        then tries to reconnect infinitely until either self.client_exists
+        is False or the thread is closed in garbage collection.
+        """
+        while self.client_exists:
+            try:
+                received = self.sock.recv(1)
+            except ConnectionResetError as e:
+                print(f"Connection reset error while reading from socket: {e}")
+                received = False
+            print(f"Received message from Robot {self.robot}: ", received)
+            if not received:
+                # socket has been closed oops
+                lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
+                print(f"Connection lost to Robot {self.robot}, trying again.")
+                self.close_connection()
+                if self.client_exists:
+                    print(f"Attempting to reconnect to robot {self.robot}")
+                while self.client_exists:
+                    if self.connect_tcp(silent=True):
+                        print(f"Successfully reconnected to robot {self.robot}")
+                        return
+                    time.sleep(1)
+                return
+            else:
+                # This is where one would process received data, ideally using some function mapping
+                # similar to the way it is done in Shepherd.
+                pass
+
 
 
 class RuntimeClientManager:
 
     def __init__(self):
-        self.clients = []
+        self.clients: List[RuntimeClient] = []
 
     def __get_client(self, host_url, robot):
         """
@@ -115,11 +179,19 @@ class RuntimeClientManager:
         """
         print("client " + str(host_url) + " started")
         client = RuntimeClient(host_url, robot)
-        self.clients.append(client)
+        if client.is_alive:
+            self.clients.append(client)
 
-    def get_clients(self, host_urls, robots):
+    def get_clients(self, host_urls, robots: List[Robot]):
         for i in range(len(host_urls)):
-            thr = threading.Thread(target=self.__get_client, args=[host_urls[i], robots[i]])
+            robot, host_url = robots[i], host_urls[i]
+            robot_nums = [c.robot.number for c in self.clients]
+            if robot.number in robot_nums:
+                index = robot_nums.index(robot.number)
+                self.clients[index].client_exists = False
+                self.clients[index].close_connection()
+                self.clients.pop(index)
+            thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
             thr.start()
 
     def receive_challenge_data(self, client):
@@ -133,7 +205,10 @@ class RuntimeClientManager:
 
     def send_mode(self, mode):
         for client in self.clients:
-            client.send_mode(mode)
+            try:
+                client.send_mode(mode)
+            except Exception as exc:
+                print(f"Robot {client} failed to be enabled! Big sad :(")
 
     def send_start_pos(self, pos):
         for client in self.clients:
@@ -146,11 +221,12 @@ class RuntimeClientManager:
     def send_game_state(self, state):
         for client in self.clients:
             client.send_game_state(state)
-        
+
     def reset(self):
         for client in self.clients:
-            client.close()
-        self.clients = []
+            client.client_exists = False
+            client.close_connection()
+        self.clients: List[RuntimeClient] = []
 
 
 """
