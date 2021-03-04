@@ -14,6 +14,8 @@ socket.on('team', (match_info) => {
   team_name = match_info.team_name
   team_num = match_info.team_num
   updateTeam(team_name, team_num)
+  setImageVisible('#total', false);
+  setImageVisible('.totalinfo', false);
 })
 
 socket.on('stage_timer_start', (secondsInStage) => {
@@ -48,14 +50,21 @@ socket.on("score", (scores) => {
   scores = JSON.parse(scores);
   console.log(`scores are ${JSON.stringify(scores)}`);
   ({ time, penalty, stamp_time } = scores);
+
+  console.log("THIS SHOULD PRINT")
+  console.log(time)
   if (time) {
+    console.log("Setting time")
     setTime(time);
+    setTotal(time + stamp_time + penalty)
   }
   setStamp(stamp_time);
   setPenalty(penalty);
-  if (time && stamp_time && penalty) {
-    setTotal(time - stamp_time + penalty)
-  }
+  console.log(time)
+  // if (time) {
+  //   console.log("Setting total")
+  //   setTotal(time - stamp_time + penalty)
+  // }
 })
 
 function setTime(time) {
@@ -74,7 +83,10 @@ function setPenalty(penalty) {
 
 function setTotal(total) {
   // Hypothetically make it visible here
-  $('#total').html(total);
+  console.log("Inside setTotal")
+  $('#total').html(secondsToTimeString(total));
+  setImageVisible('#total', true);
+  setImageVisible('.totalinfo', true);
 }
 
 function testScore(score) {
@@ -135,15 +147,16 @@ function pad(number) {
 
 function secondsToTimeString(seconds) {
   if (seconds < 0) {
-    time = Math.floor(-1 * seconds * 100) / 100;
+    const time = Math.floor(-1 * seconds * 100) / 100;
     return "-" + Math.floor(time / 60) + ":" + pad(Math.floor(time % 60));
   } else {
-    time = Math.floor(seconds * 100) / 100;
+    const time = Math.floor(seconds * 100) / 100;
     return Math.floor(time / 60) + ":" + pad(Math.floor(time % 60));
   }
 }
 
 function setImageVisible(id, visible) {
+  console.log("Set visible/invisible")
   $(id).css("visibility", (visible ? 'visible' : 'hidden'));
 }
 

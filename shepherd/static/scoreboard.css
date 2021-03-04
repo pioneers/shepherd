@@ -12,7 +12,16 @@ body {
     align-items: stretch;
     flex-direction: row;
     padding: 10px;
-    height: calc(25vh)
+    height: calc(20vh);
+}
+
+.total-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: stretch;
+    flex-direction: row;
+    padding: 10px;
+    height: calc(25vh);
 }
 
 #stagename-container {
@@ -26,8 +35,26 @@ body {
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: 250%;
+    font-size: 200%;
 }
+
+.totalinfo {
+    margin: 15px;
+    border: solid black;
+    background-color: white;
+    border-radius: 25px;
+    text-align: center;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    width: calc(40vh);
+    visibility: visible;
+    font-size: 200%
+}
+
+#total {
+    visibility: visible;
+    font-size: 200%
+}
+
 
 .stagename {
     height: calc(10vh);
