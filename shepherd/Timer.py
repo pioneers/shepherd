@@ -92,12 +92,11 @@ class Timer:
 
     def end_timer(self):
         """Does the callback for current timer and sets it to inactive.
-           Note that it should not be in the event queue, as to not introduce deadlock"""
-        if self.active and \
-            self.timer_type is not None and \
-            self.timer_type["NEEDS_FUNCTION"]:
+           Note that current timer should not be in the event queue, to avoid deadlock"""
+        if not self.active: return #if timer was just reset
+        self.active = False #in case callback restarts the timer, do this first
+        if self.timer_type is not None and self.timer_type["NEEDS_FUNCTION"]:
             LCM.lcm_send(LCM_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
-        self.active = False
 
 
     def reset(self):
