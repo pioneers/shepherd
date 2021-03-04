@@ -125,6 +125,7 @@ def to_setup(args):
     global STARTING_SPOTS
     global ROBOT
     global BUTTONS
+    global CLIENTS
 
     # code_setup()
 
@@ -133,6 +134,8 @@ def to_setup(args):
 
     ROBOT = Robot(name, num, custom_ip)
     BUTTONS = Buttons()
+    CLIENTS = RuntimeClientManager()
+    connect()
 
     # note that reset state will be called from the UI when necessary and reset_state + reset_round = reset match
     reset_round()
@@ -157,13 +160,8 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global CLIENTS
-    try:
-        CLIENTS = RuntimeClientManager()
-        CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-    except Exception as exc:
-        log(exc)
-        return
-    CLIENTS.receive_all_challenge_data()
+    # CLIENTS.receive_all_challenge_data()
+
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = time.time()
@@ -172,6 +170,7 @@ def to_auto(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     send_score_to_ui()
     enable_robots(True)
+    check_code()
 
     BUTTONS.illuminate_buttons(ROBOT)
     print("ENTERING AUTO STATE")
@@ -250,8 +249,10 @@ def send_round_info(args = None):
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
-    #TODO can robot be none? 
-    #TODO send back connection status
+    connect()
+
+def connect():
+    CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
 
 def score_adjust(args):
     '''
@@ -311,32 +312,14 @@ def enable_robots(autonomous):
     Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
-    try:
-        # TODO: why si this "auto" and "telop" instead of 0/1?
-        CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-            except Exception as exc:
-                print("A robot failed to be enabled! Big sad :(")
-                log(exc)
+    CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
 
 
 def disable_robots():
     '''
     Sends message to Dawn to disable all robots
     '''
-    try:
-        CLIENTS.send_mode(Mode.IDLE)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.IDLE)
-            except Exception as exc:
-                print("a client has disconnected")
-        log(exc)
-        print(exc)
+    CLIENTS.send_mode(Mode.IDLE)
 
 #pylint: disable=redefined-builtin
 
@@ -416,7 +399,7 @@ def set_game_info(args):
 # SETUP STAGE
 # ----------
 
-def check_code(args):
+def check_code():
     '''
     Check the coding challenges and act appropriately
     '''
@@ -616,6 +599,7 @@ def to_end(args):
     LAST_BUTTONS = BUTTONS
     GAME_STATE = STATE.END
     disable_robots()
+    CLIENTS.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
     send_score_to_ui()
@@ -631,7 +615,6 @@ def to_end(args):
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
-    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state

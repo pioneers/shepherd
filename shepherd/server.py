@@ -128,6 +128,9 @@ def receiver():
             elif event[0] == UI_HEADER.SCORES:
                 socketio.emit('server-to-ui-scores',
                               json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.ROBOT_CONNECTION:
+                socketio.emit('server-to-ui-robot-connection',
+                              json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
 
