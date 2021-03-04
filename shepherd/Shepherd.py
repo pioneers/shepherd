@@ -125,6 +125,7 @@ def to_setup(args):
     global STARTING_SPOTS
     global ROBOT
     global BUTTONS
+    global CLIENTS
 
     # code_setup()
 
@@ -133,6 +134,8 @@ def to_setup(args):
 
     ROBOT = Robot(name, num, custom_ip)
     BUTTONS = Buttons()
+    CLIENTS = RuntimeClientManager()
+    connect()
 
     # note that reset state will be called from the UI when necessary and reset_state + reset_round = reset match
     reset_round()
@@ -157,13 +160,7 @@ def to_auto(args):
     #pylint: disable= no-member
     global GAME_STATE, ROBOT
     global CLIENTS
-    try:
-        CLIENTS = RuntimeClientManager()
-        CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-    except Exception as exc:
-        log(exc)
-        return
-    CLIENTS.receive_all_challenge_data()
+    # CLIENTS.receive_all_challenge_data()
 
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
@@ -171,10 +168,9 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    #lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-    #         "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    send_score()
+    send_score_to_ui()
     enable_robots(True)
+    check_code()
 
     BUTTONS.illuminate_buttons(ROBOT)
     print("ENTERING AUTO STATE")
@@ -219,7 +215,6 @@ def get_round(args):
     '''
     Retrieves all match info based on match number and sends this information to the UI. If not already cached, fetches info from the spreadsheet.
     '''
-    # TODO: ADD EVERYTHING THAT SAM DESIRES, check the validation is good
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     match_num = int(args["match_num"])
     round_num = int(args["round_num"])
@@ -241,7 +236,7 @@ def get_round(args):
 
 def send_round_info(args = None):
     '''
-    Sends all match info to the UI
+    Sends all match info to the UI and scoreboard
     '''
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     team_num = ROBOT.number
@@ -249,12 +244,15 @@ def send_round_info(args = None):
     lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
 
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
-    #TODO can robot be none? 
-    #TODO send back connection status
+    connect()
+
+def connect():
+    CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
 
 def score_adjust(args):
     '''
@@ -271,11 +269,12 @@ def score_adjust(args):
     if stamp_time is not None:
         ROBOT.stamp_time = stamp_time
     # TODO: send dummy elapsed time if during game (-1) maybe this should be none
-    send_score()
+    send_score_to_scoreboard()
+    send_score_to_ui()
 
-def send_score(args = None):
+def send_score_to_ui(args = None):
     '''
-    Send the current score to the UI and scoreboard.
+    Send the current score to the UI.
     '''
 
     data = {
@@ -285,11 +284,20 @@ def send_score(args = None):
         "score": ROBOT.total_time(),
         "start_time": ROBOT.start_time_millis()
     }
-    #TODO: check to see if this messes up scoreboard, especially in to_auto
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
 
-
+def send_score_to_scoreboard(args=None):
+    """
+    Send the current score to the scoreboard.
+    """
+    data = {
+        "time": ROBOT.elapsed_time(),
+        "penalty": ROBOT.penalty,
+        "stamp_time": ROBOT.stamp_time,
+        "score": ROBOT.total_time(),
+        "start_time": ROBOT.start_time_millis()
+    }
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
 
 def flush_scores():
     '''
@@ -304,32 +312,14 @@ def enable_robots(autonomous):
     Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
-    try:
-        # TODO: why si this "auto" and "telop" instead of 0/1?
-        CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-            except Exception as exc:
-                print("A robot failed to be enabled! Big sad :(")
-                log(exc)
+    CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
 
 
 def disable_robots():
     '''
     Sends message to Dawn to disable all robots
     '''
-    try:
-        CLIENTS.send_mode(Mode.IDLE)
-    except Exception as exc:
-        for client in CLIENTS.clients:
-            try:
-                client.set_mode(Mode.IDLE)
-            except Exception as exc:
-                print("a client has disconnected")
-        log(exc)
-        print(exc)
+    CLIENTS.send_mode(Mode.IDLE)
 
 #pylint: disable=redefined-builtin
 
@@ -379,8 +369,7 @@ def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, {
-             "time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+    send_score_to_scoreboard()
 
 
 def set_game_info(args):
@@ -410,7 +399,7 @@ def set_game_info(args):
 # SETUP STAGE
 # ----------
 
-def check_code(args):
+def check_code():
     '''
     Check the coding challenges and act appropriately
     '''
@@ -433,9 +422,9 @@ def to_city(args):
         stoplight_penalty()
     GAME_STATE = STATE.CITY
     lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": str(ROBOT.start_time)})
+             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     print("ENTERING CITY STATE")
 
 # ----------
@@ -610,13 +599,13 @@ def to_end(args):
     LAST_BUTTONS = BUTTONS
     GAME_STATE = STATE.END
     disable_robots()
+    CLIENTS.reset()
     ROBOT.end_time = time.time()
-    send_score()
     GAME_STATE = STATE.END
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.SCORES, {"time": ROBOT.elapsed_time(), "penalty": ROBOT.penalty, "stamp_time": ROBOT.stamp_time, "score": ROBOT.total_time()})
+    send_score_to_ui()
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
 
@@ -626,7 +615,6 @@ def to_end(args):
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
-    SHEPHERD_HEADER.CODE_RETRIEVAL: check_code,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state
@@ -704,7 +692,7 @@ END_FUNCTIONS = {
 
 EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
-    SHEPHERD_HEADER.GET_SCORES: send_score,
+    SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.RESET_ROUND: reset_round
 }

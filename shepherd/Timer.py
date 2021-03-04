@@ -14,10 +14,10 @@ class TimerThread(threading.Thread):
 
     def run(self):
         """When started, thread will run and process Timers in queue until the queue is empty."""
-        while len(Timer.eventQueue) > 0:
-            timetowait = Timer.update_all()
-            if timetowait > 0:
-                time.sleep(0.99 * timetowait) 
+        while Timer.eventQueue:
+            time_to_wait = Timer.update_all()
+            if time_to_wait > 0:
+                time.sleep(0.99 * time_to_wait) 
                 # 0.99 makes it run a few extra cycles, but more accurate
 
 

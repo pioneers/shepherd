@@ -104,7 +104,6 @@ def ui_to_server_custom_ip(args):
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
 #Ref GUI buttons
-
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.CONTACT_WALL)
@@ -128,6 +127,9 @@ def receiver():
                               json.dumps(event[1], ensure_ascii=False))
             elif event[0] == UI_HEADER.SCORES:
                 socketio.emit('server-to-ui-scores',
+                              json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.ROBOT_CONNECTION:
+                socketio.emit('server-to-ui-robot-connection',
                               json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 

@@ -65,4 +65,4 @@ class Robot:
         return sum([valid[i] for i in to_sample])
 
     def __str__(self):
-        return f"{self.number} {self.name}"
+        return f"Robot({self.number} {self.name})"
