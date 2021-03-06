@@ -255,6 +255,12 @@ def set_custom_ip(args):
 def connect():
     CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
 
+def send_connection_status_to_ui(args = None):
+    '''
+    Sends the connection status of all runtime clients to the UI
+    '''
+    CLIENTS.send_connection_status_to_ui()
+
 def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
@@ -688,12 +694,14 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
 EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.RESET_ROUND: reset_round
 }
