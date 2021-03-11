@@ -75,16 +75,22 @@ def get_online_round(match_number, round_number):
     service = discovery.build('sheets', 'v4', http=http,
                               discoveryServiceUrl=discoveryUrl)
     spreadsheetId = CONSTANTS.SPREADSHEET_ID
-    range_name = "Match Database!A2:J"
+    range_name = "Match Database!A2:Q"
     spreadsheet = service.spreadsheets()  # pylint: disable=no-member
     game_data = spreadsheet.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
-    row = 48
+    row = 0
     for i, j in enumerate(game_data['values']):
-        if int(j[0]) == match_number and int(j[1]) == round_number:
+        print(f"j is {j}")
+        if int(j[0]) == match_number:
             row = i
+            break
     match = game_data['values'][row]
-    return {"num": match[2], "name": match[3]}
+
+    return {
+        "num": match[3 * round_number - 1],
+        "name": match[3 * round_number]
+    }
 
 
 def get_offline_match(match_number):
@@ -119,16 +125,22 @@ def write_online_scores(match_number, round_number, score):
                               discoveryServiceUrl=discoveryUrl)
     spreadsheetId = CONSTANTS.SPREADSHEET_ID
 
-    range_name = "Match Database!A2:J"
+    range_name = "Match Database!A2:Q"
     spreadsheet = service.spreadsheets()  # pylint: disable=no-member
     game_data = spreadsheet.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
-    row = 47
+    row = 0
     for i, j in enumerate(game_data['values']):
-        if int(j[0]) == match_number and int(j[1]) == round_number:
+        if int(j[0]) == match_number:
             row = i
 
-    range_name = "'Match Database'!K" + str(row + 2) + ":L" + str(row + 2)
+    if round_number == 1:
+        range_name = "'Match Database'!E" + str(row + 2)
+    elif round_number == 2:
+        range_name = "'Match Database'!H" + str(row + 2)
+    elif round_number == 3:
+        range_name = "'Match Database'!K" + str(row + 2)
+
     score_sheets = service.spreadsheets()  # pylint: disable=no-member
     game_scores = score_sheets.values().get(
         spreadsheetId=spreadsheetId, range=range_name).execute()
@@ -137,3 +149,4 @@ def write_online_scores(match_number, round_number, score):
     sheets.values().update(spreadsheetId=spreadsheetId,
                            range=range_name, body=game_scores,
                            valueInputOption="RAW").execute()
+get_online_round(1, 1)

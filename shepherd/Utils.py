@@ -223,8 +223,8 @@ class CONSTANTS():
     SANDSTORM_COVER_TIME = 10
     DEHYRATION_TIME = 30
     ROBOT_DEHYDRATED_TIME = 10
-    SPREADSHEET_ID = "1vurNOrlIIeCHEtK5aJVDfHrRM1AC2qWvIbtWqUgnmLk"
-    CSV_FILE_NAME = "Sheets/fc2019.csv"
+    SPREADSHEET_ID = "1moB8OJC3E8OwnXrRJmO-m5qn_ivXuZzsFse6-LdJy4I"
+    CSV_FILE_NAME = "Sheets/sc2021.csv"
     STUDENT_DECODE_TIME = 1
 
 # pylint: disable=invalid-name
