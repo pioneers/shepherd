@@ -48,7 +48,6 @@ cpdef get_value(str device_id, str param_name):
     """
     # Convert Python string to C string
     cdef bytes param = param_name.encode('utf-8')
-
     # Getting device identification info
     splits = device_id.split('_')
     if len(splits) != 2:
