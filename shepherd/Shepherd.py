@@ -602,6 +602,10 @@ def to_end(args):
     CLIENTS.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
+    try:
+        flush_scores()
+    except:
+        print("Unable to push scores to spreadsheet.")
     send_score_to_ui()
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})

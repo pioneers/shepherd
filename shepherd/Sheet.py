@@ -131,8 +131,11 @@ def write_online_scores(match_number, round_number, score):
         spreadsheetId=spreadsheetId, range=range_name).execute()
     row = 0
     for i, j in enumerate(game_data['values']):
+        if not j:
+            raise Exception("empty row in spreadsheet. plz be better.")
         if int(j[0]) == match_number:
             row = i
+            break
 
     if round_number == 1:
         range_name = "'Match Database'!E" + str(row + 2)
@@ -149,4 +152,3 @@ def write_online_scores(match_number, round_number, score):
     sheets.values().update(spreadsheetId=spreadsheetId,
                            range=range_name, body=game_scores,
                            valueInputOption="RAW").execute()
-get_online_round(1, 1)
