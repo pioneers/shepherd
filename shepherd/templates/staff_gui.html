@@ -207,7 +207,7 @@
 
       $("#submit-buttons").click(function () {
         let buttons = parseInt($("#buttons").val());
-        if(isNaN(buttons)){ alert("invalid buttons"); return; }
+        if(isNaN(buttons) || buttons > 6 || buttons < 0){ alert("invalid buttons"); return; }
         emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
       });
 
