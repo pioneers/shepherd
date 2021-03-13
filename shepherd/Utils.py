@@ -83,6 +83,17 @@ class UI_HEADER():
     #CONNECTIONS{g_1_connection[True/False], g_2_connection[True/False],
     # b_1_connection[True/False], b_2_connection[True/False]}
 
+class SENSOR_HEADER():
+    """
+    Headers used for Shepherd to send messages to the Sensor Interface.
+    """
+    TURN_ON_LIGHT = "turn_on_light"
+    # {num: int}
+    TURN_OFF_LIGHT = "turn_off_light"
+    # {num: int}
+    SET_TRAFFIC_LIGHT = "set_traffic_light"
+    SET_ALL_SENSORS = "set_all_sensors"
+
 # pylint: disable=invalid-name
 class SCOREBOARD_HEADER():
     SCORE = "score"
@@ -139,3 +150,7 @@ class STATE():
     WAIT = "wait"
     TELEOP = "teleop"
     END = "end"
+
+class ARDUINO_UUIDS():
+    ARDUINO_1 = 10
+    ARDUINO_2 = 11

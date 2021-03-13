@@ -1,136 +1,152 @@
-"""import sys
-import time
-import threading
-from multiprocessing import Queue
-import serial # pylint: disable=import-error
-from LCM import *
+#LCM -> TURN_ON_LIGHT, {light: 7}
+#LCM -> SET_TRAFFIC_LIGHT, {color: "green"}
+
+# START_BUTTON_PRESSED {} -> LCM
+
+# figure out three things: 1) which device talking to, 2) which param of device to modify 3) value
+
+# TURN_ON_LIGHT, {light: 7}
+
+#arduino 1: lights [0,1,2,5,6]
+#arduino 2: lights [3,4,7], traffic_light
+
+# Dev Handler should get something in the form
+# device 8, parameter 1, value 1.0
+
 from Utils import *
+import queue
+from LCM import *
+import time
 
+################################################
+# Evergreen Methods
+################################################
 
-# run "ls /dev/tty*" to obtain the two ACM ports.
+def start():
+    """
+    Main loop which processes the event queue.
+    """
+    events = queue.Queue()
+    lcm_start_read(LCM_TARGETS.SENSORS, events)
+    while True:
+        time.sleep(0.1)
+        payload = events.get(True)
+        print(payload)
+        receive_lcm_message(payload)
 
-buttons_gold_port = "/dev/ttyACM1" #change to correct port
-buttons_blue_port = "/dev/ttyACM5" # change to correct port
+class Arduino:
+    """
+    An Arduino is connected to a number of devices.
+    """
+    def __init__(self, uuid, devices):
+        self.uuid = uuid
+        self.devices = devices
+        for device in self.devices:
+            device.arduino = self
 
-alliance_mapping = {
-    "gold": ALLIANCE_COLOR.GOLD,
-    "blue": ALLIANCE_COLOR.BLUE
+    def get_param(self, device):
+        if device in self.devices:
+            return self.devices.index(device)
+
+        raise Exception(f"arduino does not contain device {device}")
+
+class Device:
+    """
+    A device consists of:
+    - a name (such as `light`)
+    - an identifer (TODO: MATT CAN YOU DESCIBE THIS)
+    - a parent arduino that owns this device
+    """
+    def __init__(self, name=None, identifier=None):
+        self.name = name
+        self.identifier = identifier
+        self.__arduino = None
+        if name and identifier is None or identifier and name is None:
+            raise Exception("if name is not none, identifier should not be none, and vice versa")
+
+    @property
+    def arduino(self):
+        if self.__arduino is None:
+            raise Exception("Arduino is none, but is being accessed :(")
+        return self.__arduino
+
+    @arduino.setter
+    def arduino(self, a):
+        self.__arduino = a
+
+    def value_from_header(self, header):
+        """
+        Returns the value to write to this device. For example, 
+        light on should correspond to a value of 1.0
+        """
+        raise Exception("override this function plz")
+
+    def __str__(self):
+        return f"Device({self.name}, {self.identifier})"
+
+def device_from_header(header):
+    device_pool = HEADER_MAPPINGS[header[0]]
+    args = header[1]
+    device = None
+    for d in device_pool:
+        if not d.name or args.get(d.name, None) == d.identifier:
+            device = d
+            break
+    return device
+
+def receive_lcm_message(header):
+    """
+    This method will decode three import pieces of information:
+    1) the arduino and device to talk to
+    2) the parameter of device to modify
+    3) the value to modify it to
+    """
+    device = device_from_header(header)
+    arduino = device.arduino
+    param = arduino.get_param(device)
+    value = device.value_from_header(header)
+    #TODO call sensor_interface.py here
+
+################################################
+# Game Specific Variables
+################################################
+
+class Light(Device):
+    def value_from_header(self, header):
+        if header[0] == SENSOR_HEADER.TURN_ON_LIGHT:
+            return 1.0
+        elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT:
+            return 0.0
+        raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
+
+class TrafficLight(Device):
+    COLORS = {"red" : 0xFF0000, "green" : 0x00FF00, "yellow" : 0xFFFF00}
+
+    def value_from_header(self, header):
+        if header[0] == SENSOR_HEADER.SET_TRAFFIC_LIGHT:
+            return self.colors[header[1]["color"]]
+        raise Exception(f"Attempting to get value of traffic light but header[0] is {header[0]}")
+
+lights = [Light(name="light", identifier=i) for i in range(8)]
+traffic_lights = [Device()]
+
+arduino_1 = Arduino(ARDUINO_UUIDS.ARDUINO_1, [lights[0], lights[1], lights[2], lights[5], lights[7]])
+arduino_2 = Arduino(ARDUINO_UUIDS.ARDUINO_2, [lights[3], lights[4], lights[7], traffic_lights[0]])
+
+################################################
+# Evergreen Variables (still need to be updated)
+################################################
+
+HEADER_MAPPINGS = {
+SENSOR_HEADER.TURN_ON_LIGHT : lights,
+SENSOR_HEADER.TURN_OFF_LIGHT : lights,
+SENSOR_HEADER.SET_TRAFFIC_LIGHT : traffic_lights
 }
 
-IDENTIFY_TIMEOUT = 5
+arduinos = [arduino_1, arduino_2]
 
-def get_working_serial_ports(excludes: set):
-    """"""Get a list of working serial ports, excluding some.
-    Returns a list of `serial.Serial` object.
-    """"""
-    import glob
-    maybe_ports = set(glob.glob("/dev/ttyACM*"))
-    # maybe_ports = set(glob.glob("/dev/tty.usb*"))
-    maybe_ports.difference_update(excludes)
+################################################
 
-    working = []
-    for p in maybe_ports:
-        try:
-            working.append(serial.Serial(p, baudrate=115200))
-        except serial.SerialException:
-            pass
-
-    return working
-
-
-def identify_relevant_ports(working_ports):
-    """""" Check which ports have linebreak sensors or bidding stations on them.
-    Returns a list of tuples containing the object type, alliance,
-    and its corresponding serial port.
-    """"""
-    def maybe_identify_sensor(serial_port, timeout, msg_q):
-        """"""Check whether a serial port contains a sensor.
-        Parameters:
-            serial_port -- the port to check
-            timeout -- quit reading from the serial port after this
-            amount of time
-            msg_q -- a queue to set if a device is successfully identified
-        """"""
-        prev_timeout = serial_port.timeout
-        serial_port.timeout = timeout
-        try:
-            msg = serial_port.readline().decode("utf-8")
-            object_alliance = msg[0:1]
-            msg_q.put((object_alliance, serial_port))
-        except serial.SerialTimeoutException:
-            pass
-        serial_port.timeout = prev_timeout
-
-    msg_q = Queue()
-    threads = [threading.Thread(target=maybe_identify_sensor,
-                                args=(port,
-                                      IDENTIFY_TIMEOUT,
-                                      msg_q)) for port in working_ports]
-    for thread in threads:
-        thread.start()
-
-    time.sleep(IDENTIFY_TIMEOUT)
-    for thread in threads:
-        thread.join()
-    # parse through queue and make appropriate tuples
-    sensor_ports = []
-    while not msg_q.empty():
-        sensor_ports += [msg_q.get()]
-    return sensor_ports
-
-
-def recv_from_btn(ser, alliance_enum):
-    print("<1> Starting Button Receive Thread", flush=True)
-    while True:
-        sensor_msg = ser.readline().decode("utf-8")
-        sensor_msg.lower()
-        payload_list = sensor_msg.split(",")
-        if len(payload_list) == 1:
-            continue
-        payload_list[1] = payload_list[1][:-2]
-        print("<2> Message Received: ", payload_list, flush=True)
-        button_num = payload_list[1]
-        send_dictionary = {"alliance" : alliance_enum, "button" : button_num}
-        lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.LAUNCH_BUTTON_TRIGGERED, send_dictionary)
-    print("sent dictionary:" + str(send_dictionary), flush=True)
-    time.sleep(0.01)
-
-
-def main():
-    # working_ports = get_working_serial_ports(set())
-    # print("working ports: ", working_ports)
-    # relevant_ports = identify_relevant_ports(working_ports)
-    # print("relevant ports: ", relevant_ports)
-
-    # button_serial_blue = None
-    # button_serial_gold = None
-
-    button_serial_gold = serial.Serial(buttons_gold_port, baudrate=115200)
-    button_serial_blue = serial.Serial(buttons_blue_port, baudrate=115200)
-
-    # for alliance, port in relevant_ports:
-    #     if alliance == 'b':
-    #         button_serial_blue = port
-    #     elif alliance == 'g':
-    #         button_serial_gold = port
-
-
-    button_thread_blue = threading.Thread(
-        target=recv_from_btn, name="button blue", args=([button_serial_blue, ALLIANCE_COLOR.BLUE])
-        )
-    button_thread_gold = threading.Thread(
-        target=recv_from_btn, name="buttons gold", args=([button_serial_gold, ALLIANCE_COLOR.GOLD])
-        )
-
-    button_thread_blue.daemon = True
-    button_thread_gold.daemon = True
-
-    button_thread_blue.start()
-    button_thread_gold.start()
-
-    while True:
-        time.sleep(100)
-
-if __name__ == "__main__":
-    main()
-"""
+if __name__ == '__main__':
+    start()
+_
