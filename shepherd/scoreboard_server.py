@@ -40,6 +40,8 @@ def receiver():
                 socketio.emit('stage', json.dumps(event[1], ensure_ascii=False))
             elif event[0] == SCOREBOARD_HEADER.RESET_TIMERS:
                 socketio.emit('reset_timers', json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == SCOREBOARD_HEADER.SANDSTORM:
+                socketio.emit('sandstorm', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
 socketio.start_background_task(receiver)

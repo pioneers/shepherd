@@ -69,18 +69,23 @@ socket.on("score", (scores) => {
   // }
 })
 
-socket.on("sandstorm", () => {
-  console.log("Setting sandstorm")
-  setSandstorm()
-
-  // Make this last 10 seconds
-  console.log("Removing sandstorm")
-  removeSandstorm()
-
+socket.on("sandstorm", (sandstorm) => {
+  on = JSON.parse(sandstorm).on;
+  if (on) {
+    console.log("Setting sandstorm");
+    setSandstorm();
+  } else {
+    console.log("Removing sandstorm");
+    removeSandstorm();
+  }
 })
 
 function setSandstorm() {
-  
+  $('body').css('background-image', 'url(../static/2.png)');
+}
+
+function removeSandstorm() {
+  $('body').css('background-image', 'url()');
 }
 
 function setTime(time) {
