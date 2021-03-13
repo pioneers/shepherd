@@ -481,7 +481,7 @@ def to_desert(args):
     GAME_STATE = STATE.SANDSTORM
     if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
-        # TODO: obscure vision
+        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
 
 # ----------
 # SANDSTORM STAGE
@@ -489,8 +489,7 @@ def to_desert(args):
 
 
 def sandstorm_timer_end(args):
-    # TODO: un-obscure vision
-    pass
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
 
 
 def to_dehydration(args):
@@ -602,15 +601,15 @@ def to_end(args):
     CLIENTS.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
-    try:
-        flush_scores()
-    except:
-        print("Unable to push scores to spreadsheet.")
     send_score_to_ui()
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    try:
+        flush_scores()
+    except:
+        print("Unable to push scores to spreadsheet.")
 
 
 ###########################################

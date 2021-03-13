@@ -202,6 +202,8 @@ class SCOREBOARD_HEADER():
     # calculate the diff between the start_time and our current time (to account for delay): DONE
     # start the timer from the appropriate time: DONE
     RESET_TIMERS = "reset_timers"
+    SANDSTORM = "sandstorm"
+    # SANDSTORM{on[bool]}
 
 class TABLET_HEADER():
     TEAMS = "teams"
@@ -218,9 +220,9 @@ class TABLET_HEADER():
 
 class CONSTANTS():
     AUTO_TIME = 5  # 20
-    TELEOP_TIME = 2  # 280
+    TELEOP_TIME = 10  # 280
     STOPLIGHT_TIME = 5  # 30
-    SANDSTORM_COVER_TIME = 10
+    SANDSTORM_COVER_TIME = 10 # 10
     DEHYRATION_TIME = 30
     ROBOT_DEHYDRATED_TIME = 10
     SPREADSHEET_ID = "1moB8OJC3E8OwnXrRJmO-m5qn_ivXuZzsFse6-LdJy4I"
