@@ -6,7 +6,7 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 -     This will write to LCM if the button has been pressed.
 """
 
-import thread
+import threading
 import shm_api
 
 #LCM -> TURN_ON_LIGHT, {light: 8}
