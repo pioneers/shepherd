@@ -1,12 +1,12 @@
 """
 A process that is the interface between LCM and shared memory.
-It parses device commands from LCM and writes it to shared memory. 
-It reads device data from shared memory and publishes it to LCM if necessary. 
+It parses device commands from LCM and writes it to shared memory.
+It reads device data from shared memory and publishes it to LCM if necessary.
 - Ex: Provide the device uid and param index of a button
 -     This will write to LCM if the button has been pressed.
 """
 
-import thread
+import threading
 import shm_api
 
 #LCM -> TURN_ON_LIGHT, {light: 8}
@@ -33,7 +33,7 @@ Ex: buttons
     }
 """
 PARAMS_TO_READ = {
-    
+
 }
 
 def read_lcm():
@@ -63,7 +63,7 @@ def should_send_LCM(LowcarMessage):
     This acts as a "filter". We don't want to spam LCM messages about useless information.
     """
     pass
-    
+
 ############################# START OF EVERGREEN FUNCTIONS #############################
 
 class LowcarMessage:
@@ -86,7 +86,7 @@ class LowcarMessage:
             dev_ids = ["50_123", "50_456"]
             params = [
                 {
-                    "LED_A": 1.0 
+                    "LED_A": 1.0
                 },
                 {
                     "LED_B": 0.2
@@ -95,10 +95,10 @@ class LowcarMessage:
         """
         self.dev_ids = dev_ids
         self.params = params
-    
+
     def get_dev_ids(self):
         return self.dev_uids
-    
+
     def get_params(self):
         return self.params
 
@@ -174,8 +174,8 @@ def thread_device_sentinel(params_to_read):
 
 def main():
     try:
-        thread.start_new_thread(thread_device_commander)
-        thread.start_new_thread(thread_device_sentinel, (PARAMS_TO_READ))
+        device_thread = threading.Thread(target=thread_device_commander)
+        device_sentinel_thread = threading.Thread(target=thread_device_sentinel, args=(PARAMS_TO_READ))
     except:
         print("Couldn't start device_commander() thread")
 
