@@ -31,6 +31,8 @@ socket.on('stage', (stage_details) => {
   console.log(stage_details)
   if (stage === "setup") {
     setTime(0);
+    setStamp(0);
+    setPenalty(0);
   } else if (stage === "end") {
     stageTimer = false;
   } else {
@@ -66,6 +68,20 @@ socket.on("score", (scores) => {
   //   setTotal(time - stamp_time + penalty)
   // }
 })
+
+socket.on("sandstorm", () => {
+  console.log("Setting sandstorm")
+  setSandstorm()
+
+  // Make this last 10 seconds
+  console.log("Removing sandstorm")
+  removeSandstorm()
+
+})
+
+function setSandstorm() {
+  
+}
 
 function setTime(time) {
   stageTimer = false;
