@@ -39,7 +39,6 @@ typedef struct {
     sem_t* command_sem;  // semaphore on the command stream of a device
 } dual_sem_t;
 
-
 // *********************************** SHM EXTERNAL VARIABLES  ******************************************** //
 
 // DO NOT USE THESE UNDER NORMAL CIRCUMSTANCES

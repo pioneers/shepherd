@@ -7,6 +7,12 @@ dev_handler: shm_api.c $(DEPENDCIES)
 shm_api.c: shm_api.pyx setup.py shm_wrapper.c shepherd_util.c
 	python3 setup.py build_ext -i
 
+shm_start: shm_start.c $(FILES)
+	gcc $^ -o $@ $(LIBS)
+
+shm_stop: shm_stop.c $(FILES)
+	gcc $^ -o $@ $(LIBS)
+
 clean:
 	rm -f ./dev_handler
 	rm -rf build/
