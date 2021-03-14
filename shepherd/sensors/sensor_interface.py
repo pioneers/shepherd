@@ -141,7 +141,7 @@ def read_device_data(dev_id, param_name):
         LowcarMessage: holds the param value
     """
     dev_params = get_value(dev_id, param_name)  # returns param value corresponding to param_name
-    return LowcarMessage(dev_id, param_name)
+    return LowcarMessage([dev_id], [{param_name: dev_param}])
 
 def thread_device_commander():
     """
@@ -179,5 +179,5 @@ def main():
     except:
         print("Couldn't start device_commander() thread")
 
-def __name__ == "__main__":
+if __name__ == "__main__":
     main()

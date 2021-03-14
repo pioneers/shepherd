@@ -150,7 +150,3 @@ class STATE():
     WAIT = "wait"
     TELEOP = "teleop"
     END = "end"
-
-class ARDUINO_UUIDS():
-    ARDUINO_1 = 10
-    ARDUINO_2 = 11
