@@ -287,6 +287,14 @@ void shm_init() {
         log_printf(ERROR, "close devices: %s", strerror(errno));
     }
 
+    // initialize everything
+    dev_shm_ptr->catalog = 0;
+    for (int i = 0; i < MAX_DEVICES + 1; i++) {
+        dev_shm_ptr->cmd_map[i] = 0;
+        dev_shm_ptr->net_sub_map[i] = -1;  // By default, subscribe to all parameters on all devices
+        dev_shm_ptr->exec_sub_map[i] = -1;
+    }
+
     atexit(shm_close);
 }
 
@@ -326,9 +334,9 @@ void device_connect(dev_id_t* dev_id, int* dev_ix) {
         dev_shm_ptr->params[COMMAND][*dev_ix][i] = (const param_val_t){0};
     }
 
-    // reset executor subscriptions to off
-    dev_shm_ptr->exec_sub_map[0] &= ~(1 << *dev_ix);
-    dev_shm_ptr->exec_sub_map[*dev_ix + 1] = 0;
+    // reset executor subscriptions to on
+    dev_shm_ptr->exec_sub_map[0] |= 1 << *dev_ix;
+    dev_shm_ptr->exec_sub_map[*dev_ix + 1] = -1;
 
     // reset net_handler subscriptions to on
     dev_shm_ptr->net_sub_map[0] |= 1 << *dev_ix;
