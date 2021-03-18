@@ -150,6 +150,8 @@ def to_setup(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
 
+    # TODO: turn stoplight red
+
 
 def to_auto(args):
     '''
@@ -415,9 +417,11 @@ def to_city(args):
     Go to the city stage
     '''
     global GAME_STATE
-    enable_robots(False)
+    enable_robots(autonomous=False)
+    curr_time = time.time() - ROBOT.start_time
     GAME_TIMER.reset()
-    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
+    GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
+    # stoplight is not green
     if STOPLIGHT_TIMER.is_running():
         stoplight_penalty()
     GAME_STATE = STATE.CITY
@@ -435,35 +439,22 @@ def to_city(args):
 def stoplight_timer_end(args):
     # turn stoplight green
     STOPLIGHT_TIMER.reset()
+    # TODO: turn stoplight from red to green
 
 
 def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    if ROBOT.pass_coding_challenges(n=4, tier=1):
+    if ROBOT.pass_coding_challenges(n=1, tier=1):
         stoplight_timer_end([])
 
 
 def stoplight_penalty():
     # whatever the penalty is
-    pass
-
-
-def to_forest(args):
-    '''
-    Go to the forest stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.FOREST
-
-def drawbridge_shortcut(args):
-    pass
-    #TODO activate the drawbridge
-
-# ----------
-# FOREST STAGE
-# ----------
+    ROBOT.penalty += CONSTANTS.STOPLIGHT_PENALTY
+    send_score_to_scoreboard()
+    send_score_to_ui()
 
 
 def contact_wall(args):
@@ -550,12 +541,12 @@ def set_tinder(args):
     send_round_info()
 
 
-def toggle_fire(args):
+def fire_lever(args):
     '''
     Toggle the fire.
     '''
     global FIRE_LIT
-    if not FIRE_LIT:
+    if TINDER > 0:
         # TODO: light fire on field
         FIRE_LIT = True
     else:
@@ -626,25 +617,18 @@ SETUP_FUNCTIONS = {
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_city
+    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
+# This represents City and Forest, since we don't need to detect Forest explicitly
 CITY_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
+    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
-    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
-    SHEPHERD_HEADER.FOREST_ENTRY: to_forest
-}
-
-FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
     SHEPHERD_HEADER.DESERT_ENTRY: to_desert
 }
 
@@ -668,7 +652,7 @@ FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
-    SHEPHERD_HEADER.TOGGLE_FIRE: toggle_fire,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever,
     SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }

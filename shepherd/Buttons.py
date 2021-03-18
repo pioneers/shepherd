@@ -2,11 +2,10 @@ import random
 
 class Buttons:
 
-    # TODO: make a new field every match
     def __init__(self):
-        self.NUM_BUTTONS = 6
+        self.NUM_BUTTONS = 7
         self.buttons_illuminated = [True] * self.NUM_BUTTONS
-        self.correct_button = random.randint(0, self.NUM_BUTTONS -1)
+        self.correct_button = random.randint(0, self.NUM_BUTTONS - 1)
         self.illuminated = self.NUM_BUTTONS
 
     def set_num_buttons(self):
@@ -19,7 +18,8 @@ class Buttons:
             random.choice([a for a in range(self.NUM_BUTTONS) if self.buttons_illuminated[a]])
 
     def illuminate_buttons(self, robot):
-        challenges = random.sample(range(len(robot.coding_challenge)), self.NUM_BUTTONS)
+        self.buttons_illuminated = [True] * self.NUM_BUTTONS 
+        challenges = random.sample(range(len(robot.coding_challenge)), 5) # pick the indices of 5 challenges
         for c in range(len(challenges)):
             self.buttons_illuminated[c] = not robot.coding_challenge[challenges[c]]
         self.illuminated = sum(self.buttons_illuminated)

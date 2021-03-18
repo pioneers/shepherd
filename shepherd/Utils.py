@@ -113,7 +113,7 @@ class SHEPHERD_HEADER():
     # SET_TINDER{tinder: int}
     SET_TINDER = "set_tinder"
     HYPOTHERMIA_ENTRY = "hypothermia_entry"
-    TOGGLE_FIRE = "toggle_fire"
+    FIRE_LEVER = "fire_lever"
 
     # HYPOTHERMIA
     FINAL_ENTRY = "to_final"
@@ -220,14 +220,15 @@ class TABLET_HEADER():
 
 class CONSTANTS():
     AUTO_TIME = 5  # 20
-    TELEOP_TIME = 10  # 280
+    TOTAL_TIME = 600 # 600
     STOPLIGHT_TIME = 5  # 30
     SANDSTORM_COVER_TIME = 10 # 10
-    DEHYRATION_TIME = 30
-    ROBOT_DEHYDRATED_TIME = 10
+    DEHYRATION_TIME = 30 # 30
+    ROBOT_DEHYDRATED_TIME = 10 # 10
     SPREADSHEET_ID = "1moB8OJC3E8OwnXrRJmO-m5qn_ivXuZzsFse6-LdJy4I"
     CSV_FILE_NAME = "Sheets/sc2021.csv"
     STUDENT_DECODE_TIME = 1
+    STOPLIGHT_PENALTY = 8
 
 # pylint: disable=invalid-name
 
