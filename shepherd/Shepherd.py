@@ -18,6 +18,7 @@ import bot
 import audio
 from Robot import Robot
 from Buttons import Buttons
+from challenge_results import CHALLENGE_RESULTS
 
 # pylint: disable=global-statement
 
@@ -62,6 +63,7 @@ BUTTONS = Buttons()
 FIRE_LIT = False
 LAST_TINDER = 0
 LAST_BUTTONS = Buttons()
+LAST_FIRE_LIT = False
 
 ###########################################
 # Evergreen Methods
@@ -90,7 +92,6 @@ def start():
             STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
             STATE.AUTO: (AUTO_FUNCTIONS, "Auto"),
             STATE.CITY: (CITY_FUNCTIONS, "City"),
-            STATE.FOREST: (FOREST_FUNCTIONS, "Forest"),
             STATE.SANDSTORM: (SANDSTORM_FUNCTIONS, "Sandstorm"),
             STATE.DEHYDRATION: (DEHYDRATION_FUNCTIONS, "Dehydration"),
             STATE.FIRE: (FIRE_FUNCTIONS, "Fire"),
@@ -133,7 +134,6 @@ def to_setup(args):
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
     ROBOT = Robot(name, num, custom_ip)
-    BUTTONS = Buttons()
     CLIENTS = RuntimeClientManager()
     connect()
 
@@ -175,6 +175,7 @@ def to_auto(args):
     check_code()
 
     BUTTONS.illuminate_buttons(ROBOT)
+    BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
 
@@ -184,7 +185,7 @@ def reset_round(args=None):
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS
+    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS, FIRE_LIT
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
@@ -193,7 +194,7 @@ def reset_round(args=None):
     ROBOT.reset()
     TINDER = LAST_TINDER
     BUTTONS = LAST_BUTTONS
-
+    FIRE_LIT = LAST_FIRE_LIT
     """
     CLIENTS = RuntimeClientManager()
     """
@@ -208,8 +209,9 @@ def reset_state(args):
     """
     This is called after a match is complete because tinder and buttons are persisted across rounds for the same alliance but not when the next alliance begins.
     """
-    global TINDER, BUTTONS
+    global TINDER, BUTTONS, FIRE_LIT
     TINDER = 0
+    FIRE_LIT = False
     BUTTONS = Buttons()
 
 
@@ -405,7 +407,7 @@ def check_code():
     '''
     Check the coding challenges and act appropriately
     '''
-    ROBOT.coding_challenge = get_results(ROBOT.custom_ip)
+    ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
 
 # ----------
 # AUTO STAGE
@@ -546,11 +548,7 @@ def fire_lever(args):
     Toggle the fire.
     '''
     global FIRE_LIT
-    if TINDER > 0:
-        # TODO: light fire on field
-        FIRE_LIT = True
-    else:
-        FIRE_LIT = False
+    FIRE_LIT = True
 
 
 def to_hypothermia(args):
@@ -559,7 +557,8 @@ def to_hypothermia(args):
     '''
     global GAME_STATE, FIRE_LIT
     GAME_STATE = STATE.HYPOTHERMIA
-    if not FIRE_LIT:
+    # TODO: change if tinder is not removed
+    if not (FIRE_LIT and TINDER > 0):
         CLIENTS.send_game_state(State.HYPOTHERMIA_START)
 
 # ----------
@@ -584,9 +583,10 @@ def to_end(args):
     '''
     Go to the end state.
     '''
-    global GAME_STATE, LAST_TINDER, LAST_BUTTONS
+    global GAME_STATE, LAST_TINDER, LAST_BUTTONS, LAST_FIRE_LIT
     LAST_TINDER = TINDER
-    LAST_BUTTONS = BUTTONS
+    LAST_BUTTONS = BUTTONS.copy()
+    LAST_FIRE_LIT = FIRE_LIT
     GAME_STATE = STATE.END
     disable_robots()
     CLIENTS.reset()
@@ -629,13 +629,13 @@ CITY_FUNCTIONS = {
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DESERT_ENTRY: to_desert
+    SHEPHERD_HEADER.DESERT_ENTRY: to_desert # triggered by line break sensor
 }
 
 SANDSTORM_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration,
+    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
@@ -652,21 +652,21 @@ FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
-    SHEPHERD_HEADER.FIRE_LEVER: fire_lever,
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line break
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, # triggered by line break
     SHEPHERD_HEADER.FINAL_ENTRY: to_final
 }
 
 FINAL_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end
+    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end # triggered by line break
 }
 
 END_FUNCTIONS = {
