@@ -35,23 +35,6 @@ import time
 # Evergreen Methods
 ################################################
 
-def start():
-    """
-    Main loop which processes the event queue.
-    """
-    # TODO: This will live in sensor_interface.py instead (maybe?)
-    events = queue.Queue()
-    lcm_start_read(LCM_TARGETS.SENSORS, events)
-    while True:
-        time.sleep(0.1)
-        payload = events.get(True)
-        print(payload)
-        if payload[0] in HEADER_MAPPINGS:
-            lowcar_message = translate_lcm_message(payload)
-            place_device_command(lowcar_message)
-        elif payload[0] in HEADER_COMMAND_MAPPINGS:
-            HEADER_COMMAND_MAPPINGS[payload[0]](payload[1])
-
 class Device:
     """
     An Arduino Device is connected to a number of sensors (also known as Parameter).
@@ -59,12 +42,27 @@ class Device:
     and parameters (mentioned above)
     SUPER IMPORTANT: make sure the sensors/shepherd_util.h header file has the same values!!
     """
-    def __init__(self, device_type, uuid, parameters):
+    def __init__(self, device_type, uuid, parameters: list):
         self.uuid = uuid
         self.type = device_type
-        self.parameters = parameters
-        for parameter in self.parameters:
+        self.params: dict = 
+            { parameter.name: parameter for parameter in parameters }
+        self.polling_parameters = []
+        for parameter in parameters:
             parameter.arduino = self
+            if parameter.should_poll:
+                self.polling_parameters.append(parameter)
+
+    def get_identifier(self):
+        return f"{self.uuid}_{self.type}"
+
+    def get_param(param: str): Parameter
+        if param not in self.params:
+            raise Exception("Parameter {param} not found in arduino {self}")
+        self.params.get(param)
+    
+    def __str__(self):
+        return get_identifier()
 
 class Parameter:
     """
@@ -80,13 +78,14 @@ class Parameter:
              this corresponds to the "id" in the LCM header args: { id : 1, variables : values}
     - a parent device (arduino) that owns this sensor
     """
-    def __init__(self, name, identifier=None, debounce_threshold=None):
+    def __init__(self, name: str, should_poll: bool, identifier=None, debounce_threshold=None, lcm_header=None):
         self.name = name
+        self.should_poll = should_poll
         self.identifier = identifier
         self.__device = None
         self.debounce_threshold = None
-        # LCM target
-        # LCM header
+        self.lcm_header = lcm_header
+        previous_parameter_values[self] = None # TODO: is it ok to init this to None
 
     @property
     def device(self):
@@ -135,6 +134,8 @@ def translate_lcm_message(header):
     value = parameter.value_from_header(header)
     message = LowcarMessage([device], [{parameter.identifier:value}])
     return message
+    
+previous_parameter_values = {} # TODO: where should we put this?
 
 ################################################
 # Game Specific Variables
@@ -148,16 +149,32 @@ class Light(Parameter):
             return 0.0
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
-class Button(Parameter):
+class DehydrationButton(Parameter):
     def is_state_change_significant(self, value: float, previous_value: float):
         if value == 1.0 and previous_value == 0.0:
             return True
         return False
 
-    def lcm_message_from_state_change(self, value: float): 
-        
-        self.identifier is which button
-        lcm_send()
+    def lcm_message_from_state_change(self, value: float):
+        # fire lever, traffic button
+        args = {
+            "button": self.id
+        }
+        return args
+        # not here
+        # lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS, ..)
+        # self.identifier is which button
+    
+class GenericButton(Parameter):
+    def is_state_change_significant(self, value: float, previous_value: float):
+        if value == 1.0 and previous_value == 0.0:
+            return True
+        return False
+
+    def lcm_message_from_state_change(self, value: float):
+        # fire lever, traffic button
+        args = {}
+        return args
 
 class TrafficLight(Parameter):
     COLORS = {"red" : 0xFF0000, "green" : 0x00FF00, "yellow" : 0xFFFF00}
@@ -167,14 +184,31 @@ class TrafficLight(Parameter):
             return self.COLORS[header[1]["color"]]
         raise Exception(f"Attempting to get value of traffic light but header[0] is {header[0]}")
 
-lights = [Light(name=f"light{i}", identifier=i) for i in range(8)]
-traffic_lights = [TrafficLight("traffic_light")]
+linebreak_debounce_threshold = 10
+
+city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
+traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, lcm_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
+desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, lcm_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, lcm_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, lcm_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, lcm_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+
+fire_lever = GenericButton(name="fire_lever", should_poll=True, lcm_header=SHEPHERD_HEADER.FIRE_LEVER)
+
+traffic_button = GenericButton(name="traffic_button", should_poll=True, lcm_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
+traffic_lights = [TrafficLight(name="traffic_light", should_poll=False)]
+
+num_dehydration_buttons = 8
+
+dehydration_buttons = [DehydrationButton(name=f"light{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
+lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
+
 
 arduino_1 = Device(1, 1, [lights[0], lights[1], lights[2], lights[5], lights[7]])
 arduino_2 = Device(2, 2, [lights[3], lights[4], lights[7], traffic_lights[0]])
 
 ################################################
-# Evergreen Variables (still need to be updated)
+# Evergreen Variables (may still need to be updated)
 ################################################
 
 HEADER_MAPPINGS = {
@@ -183,11 +217,15 @@ HEADER_MAPPINGS = {
     SENSOR_HEADER.SET_TRAFFIC_LIGHT : traffic_lights
 }
 
+#used to request values from lowcar (non-polled)
 HEADER_COMMAND_MAPPINGS = {
 
 }
 
-arduinos = [arduino_1, arduino_2]
+arduinos = {
+    arduino_1.get_identifier(): arduino_1, 
+    arduino_2.get_identifier(): arduino_2,
+}
 
 ################################################
 

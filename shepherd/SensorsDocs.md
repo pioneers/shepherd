@@ -24,15 +24,26 @@
     
 - data structures:
     - device class (arduino)
-        - list of parameters
+        - dicionary of params names to param objects
             - params should be linked when added
         - uuid
         - type
 
     - parameter class (sensor)
         - name
-        - LCM target (optional)
+        - should_poll flag
+        - identifier
         - LCM header (optional)
+        - debounce threshold (optional, default to None)
         - value from header method
         - is state change significant method
         - construct LCM message method
+
+    - global sensor state database dictionary
+        - sensor instance : [value, debounce time stamp]
+
+- debouncer:
+    - debouncer initialized with width w
+    - stores last w values
+    - if 70% of last w values == current value, bounce.. else debounce
+    - write down w -> time delay formula for posterity

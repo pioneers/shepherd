@@ -7,10 +7,22 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 """
 
 import threading
-# import shm_api
+import pyximport
+pyximport.install()
+import shm_api
 import sys
 sys.path.insert(1, '../')
-import Sensors
+from LCM import *
+from Sensors import (
+    arduino_1, 
+    arduino_2, 
+    arduinos,
+    translate_lcm_message, 
+    HEADER_MAPPINGS, 
+    HEADER_COMMAND_MAPPINGS,
+    Parameter,
+    previous_parameter_values,
+)
 
 #LCM -> TURN_ON_LIGHT, {light: 8}
 #LCM -> SET_TRAFFIC_LIGHT, {color: "green"}
@@ -26,7 +38,6 @@ import Sensors
 
 ############################# NON-EVERGREEN FUNCTIONS #############################
 
-# TODO: Shepherd please implement these as well as another TODO below
 
 """
 A dictionary containing which parameters to watch out for:
@@ -35,37 +46,11 @@ Ex: buttons
         {dev_id}_{dev_type} : ["param_name", "param_name_2"]
     }
 """
+
 PARAMS_TO_READ = {
-
+    arduino_1.get_identifier(): arduino_1.polling_parameters,
+    arduino_2.get_identifier(): arduino_2.polling_parameters
 }
-
-def read_lcm():
-    """
-    Reads an LCM message that is a command to one or more Lowcar devices
-    Returns the LCM message.
-    """
-    pass
-
-def parse_LCM(lcm):
-    """
-    Parses an LCM message into a LowcarMessage object
-    """
-    pass
-
-def create_LCM(lowcar_message):
-    """
-    Create an LCM message based of a LowcarMessage object
-    """
-    pass
-
-def should_send_LCM(lowcar_message):
-    """
-    Returns whether a LowcarMessage is worth sending an LCM message about to Shepherd
-    Ex: LowcarMessage has "button_a" pressed -- return True
-        LowcarMessage has "button_a" not pressed -- return False
-    This acts as a "filter". We don't want to spam LCM messages about useless information.
-    """
-    pass
 
 ############################# START OF EVERGREEN FUNCTIONS #############################
 
@@ -79,7 +64,7 @@ class LowcarMessage:
         Arguments:
             dev_ids: A list of device ids strings of the format '{device_type}_{device_uid}'
             params: A list of dictionaries
-                params[i] is a dictinary of parameters for device wat dev_ids[i]
+                params[i] is a dictionary of parameters for device wat dev_ids[i]
                 key: (str) parameter name
                 value: (int/bool/float) the value that the parameter should be set to
         Ex: We want to write to device 0x123 ("Device A") and 0x456 ("Device B")
@@ -105,17 +90,6 @@ class LowcarMessage:
     def get_params(self):
         return self.params
 
-    def publish_LCM(self):
-        """
-        Converts a LowcarMessage to an LCM message and publishes it.
-        Arguments:
-            lowcar_message: A LowcarMessage object that should be sent over LCM
-        Returns:
-            None
-        """
-        # TODO: Shepherd please advise lol
-        pass
-
 def place_device_command(lowcar_message):
     """
     Reads a Lowcar command and writes it to shared memory.
@@ -124,7 +98,6 @@ def place_device_command(lowcar_message):
     Returns:
         None
     """
-    # Parse the LCM command
     all_dev_ids = lowcar_message.get_dev_ids()
     all_params = lowcar_message.get_params()
 
@@ -151,10 +124,17 @@ def thread_device_commander():
     Thread function
     Reads commands from LCM and writes it to shared memory.
     """
-    while (True):
-        lcm_message = read_lcm()
-        lowcar_message = parse_LCM(lcm_message)
-        place_device_command(lowcar_message)
+    events = queue.Queue()
+    lcm_start_read(LCM_TARGETS.SENSORS, events)
+    while True:
+        time.sleep(0.1)
+        payload = events.get(True)
+        print(payload)
+        if payload[0] in HEADER_MAPPINGS:
+            lowcar_message = translate_lcm_message(payload)
+            place_device_command(lowcar_message)
+        elif payload[0] in HEADER_COMMAND_MAPPINGS:
+            HEADER_COMMAND_MAPPINGS[payload[0]](payload[1])
 
 def thread_device_sentinel(params_to_read):
     """
@@ -171,9 +151,20 @@ def thread_device_sentinel(params_to_read):
     """
     while (True):
         for device, params in params_to_read:
-            dev_data = read_device_data(device, params)
-            if should_send_LCM(dev_data):
-                dev_data.publish_LCM()
+            dev_data: LowcarMessage = read_device_data(device, params)
+            # debounce it TODO
+            for i, device in enumerate(dev_data.dev_ids):
+                arduino = arduinos[device]
+                params = dev_data.params[i] # string[]
+                for param_name in params:
+                    value = params[param_name]
+                    param: Parameter = arduino.get_param(param_name)
+                    prev_value = previous_parameter_values[param]
+                    if param.should_send_LCM(value, prev_value):
+                        args = param.lcm_message_from_state_change(value)
+                        lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
+                    # TODO: make debouncer so this will need to be more cool
+                    previous_parameter_values[param] = value
 
 def main():
     try:

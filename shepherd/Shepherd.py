@@ -423,9 +423,6 @@ def to_city(args):
     curr_time = time.time() - ROBOT.start_time
     GAME_TIMER.reset()
     GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
-    # stoplight is not green
-    if STOPLIGHT_TIMER.is_running():
-        stoplight_penalty()
     GAME_STATE = STATE.CITY
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
@@ -450,6 +447,11 @@ def stoplight_button_press(args):
     '''
     if ROBOT.pass_coding_challenges(n=1, tier=1):
         stoplight_timer_end([])
+    
+def stoplight_cross(args):
+    # stoplight is not green
+    if STOPLIGHT_TIMER.is_running():
+        stoplight_penalty()
 
 
 def stoplight_penalty():
@@ -492,8 +494,7 @@ def to_dehydration(args):
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
-    # TODO: distribution of which challenges are chosen for each button?
-    BUTTONS.illuminate_buttons(ROBOT)
+    BUTTONS.illuminate_buttons()
 
 # ----------
 # DEHYDRATION STAGE
@@ -506,7 +507,7 @@ def dehydration_button_press(args):
     '''
     global GAME_STATE
     button_number = int(args["button"])
-    if BUTTONS.press_button_and_check(button_number):
+    if BUTTONS.press_button_and_check(button_number, ROBOT):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
 
@@ -617,7 +618,7 @@ SETUP_FUNCTIONS = {
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
     SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
@@ -628,6 +629,7 @@ CITY_FUNCTIONS = {
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
+    SHEPHERD_HEADER.STOPLIGHT_CROSS: stoplight_cross,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
     SHEPHERD_HEADER.DESERT_ENTRY: to_desert # triggered by line break sensor
 }
@@ -659,14 +661,14 @@ FIRE_FUNCTIONS = {
 
 HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, # triggered by line break
-    SHEPHERD_HEADER.FINAL_ENTRY: to_final
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
 }
 
 FINAL_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end # triggered by line break
+    SHEPHERD_HEADER.CITY_LINEBREAK: to_end # triggered by line break
 }
 
 END_FUNCTIONS = {

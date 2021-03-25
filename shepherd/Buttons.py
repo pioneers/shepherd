@@ -1,4 +1,5 @@
 import random
+import Utils
 
 class Buttons:
 
@@ -14,23 +15,33 @@ class Buttons:
         self.correct_button = random.choice(
             [i for i in range(len(self.NUM_BUTTONS)) if self.buttons_illuminated[i]])
 
-    def illuminate_buttons(self, robot):
-        # TODO
-        self.buttons_illuminated = [True] * self.NUM_BUTTONS
-        # pick the indices of 5 challenges
-        challenges = random.sample(range(len(robot.coding_challenge)), 5)
-        for c in range(len(challenges)):
-            self.buttons_illuminated[c] = not robot.coding_challenge[challenges[c]]
-        self.illuminated = sum(self.buttons_illuminated)
+    def illuminate_buttons(self):
+        for i in range(self.NUM_BUTTONS):
+            if self.buttons_illuminated[i]:
+                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {num: button_to_id(i)})
 
-    def press_button_and_check(self, button):
-        if self.buttons_illuminated[button]:
+    def press_button_and_check(self, button_id, robot):
+        button = self.id_to_button(button_id)
+        if self.is_correct_button(button) and robot.coding_challenge[self.challenges[button]]: # if this is the correct button and the challenge was solved
+            for i in range(self.NUM_BUTTONS):
+                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {num: button_to_id(i)})
+            self.illuminated = 0
+            self.buttons_illuminated = [False] * self.NUM_BUTTONS
+            return True
+        if self.buttons_illuminated[button] and robot.coding_challenge[self.challenges[button]]: # if this is not the correct button and the challenge was solved
             self.illuminated -= 1
-        self.buttons_illuminated[button] = False
-        return self.is_correct_button(button)
+            self.buttons_illuminated[button] = False
+            lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {num: button_id})
+        return False
 
     def is_correct_button(self, button):
         return button == self.correct_button
+
+    def button_to_id(self, button):
+        return button #TODO
+    
+    def id_to_button(self, id):
+        return id #TODO
 
     def copy(self):
         new_buttons = Buttons()
