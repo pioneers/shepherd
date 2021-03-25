@@ -55,6 +55,9 @@ def start():
 class Device:
     """
     An Arduino Device is connected to a number of sensors (also known as Parameter).
+    It has a uuid (you get this when you flash it), type (assigned in the lowcar file),
+    and parameters (mentioned above)
+    SUPER IMPORTANT: make sure the sensors/shepherd_util.h header file has the same values!!
     """
     def __init__(self, device_type, uuid, parameters):
         self.uuid = uuid
@@ -73,12 +76,17 @@ class Parameter:
         - this is the number to identify this sensor in shepherd. This is used internally for abstraction with the rest of shepherd.
         - this should be unique
         - this can be optional
+    example: name light, identifier: 1 means light 1.
+             this corresponds to the "id" in the LCM header args: { id : 1, variables : values}
     - a parent device (arduino) that owns this sensor
     """
-    def __init__(self, name, identifier=None):
+    def __init__(self, name, identifier=None, debounce_threshold=None):
         self.name = name
         self.identifier = identifier
         self.__device = None
+        self.debounce_threshold = None
+        # LCM target
+        # LCM header
 
     @property
     def device(self):
@@ -96,6 +104,13 @@ class Parameter:
         light on should correspond to a value of 1.0
         """
         raise Exception("override this function plz")
+    
+    def is_state_change_significant(self, value: float, previous_value: float):
+        raise Exception("override this function you sad little sheep")
+    
+    def lcm_message_from_state_change(self, value: float):
+        # feel free to add previous_value as a param if needed
+        raise Exception("override this function you sad little sheep")
 
     def __str__(self):
         return f"Device({self.name}, {self.identifier})"
@@ -132,6 +147,15 @@ class Light(Parameter):
         elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT:
             return 0.0
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
+        
+class Button(Parameter):
+    def is_state_change_significant(self, value: float, previous_value: float):
+        if value == 1.0 and previous_value == 0.0:
+            return True
+        return False
+
+    def lcm_message_from_state_change(self, value: float): 
+        lcm_send()
 
 class TrafficLight(Parameter):
     COLORS = {"red" : 0xFF0000, "green" : 0x00FF00, "yellow" : 0xFFFF00}

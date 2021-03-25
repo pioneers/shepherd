@@ -7,7 +7,10 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 """
 
 import threading
-import shm_api
+# import shm_api
+import sys
+sys.path.insert(1, '../')
+import Sensors
 
 #LCM -> TURN_ON_LIGHT, {light: 8}
 #LCM -> SET_TRAFFIC_LIGHT, {color: "green"}
@@ -49,13 +52,13 @@ def parse_LCM(lcm):
     """
     pass
 
-def create_LCM(LowcarMessage):
+def create_LCM(lowcar_message):
     """
     Create an LCM message based of a LowcarMessage object
     """
     pass
 
-def should_send_LCM(LowcarMessage):
+def should_send_LCM(lowcar_message):
     """
     Returns whether a LowcarMessage is worth sending an LCM message about to Shepherd
     Ex: LowcarMessage has "button_a" pressed -- return True

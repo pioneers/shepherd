@@ -9,7 +9,6 @@
             - type (int)
     - What value
         - parameter object stores a value from header method
-   
 
 - LowcarMessage -> filter -> possibly an LCM message
     1. recognize the device and parameter
