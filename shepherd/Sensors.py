@@ -155,6 +155,8 @@ class Button(Parameter):
         return False
 
     def lcm_message_from_state_change(self, value: float): 
+        
+        self.identifier is which button
         lcm_send()
 
 class TrafficLight(Parameter):

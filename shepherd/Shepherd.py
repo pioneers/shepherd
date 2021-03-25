@@ -1,30 +1,77 @@
 import argparse
 import queue
-import random
 import time
-import datetime
 import traceback
+from datetime import datetime
+from Utils import SHEPHERD_HEADER
 from Alliance import *
 from LCM import *
-from Timer import *
+from Timer import Timer
 from Utils import *
-from Code import *
+from Code import * 
+# TODO: import protos and change things like "auto" to Mode.AUTO
+from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
+from protos.game_state_pb2 import State
 import Sheet
 import bot
 import audio
+from Robot import Robot
+from Buttons import Buttons
+from challenge_results import CHALLENGE_RESULTS
 
+# pylint: disable=global-statement
 
-clients = RuntimeClientManager((), ())
+CLIENTS = RuntimeClientManager()
 
 __version__ = (1, 0, 0)
 
+###########################################
+# Evergreen Variables
+###########################################
+
+GAME_STATE: str = STATE.END
+GAME_TIMER = Timer(TIMER_TYPES.MATCH)
+ROBOT = Robot("", -1, "")
+
+MATCH_NUMBER = -1
+ROUND_NUMBER = -1
+ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
+EVENTS = None
+
+LAST_HEADER = None
+
+###########################################
+# Game Specific Variables
+###########################################
+STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
+MASTER_ROBOTS = {ALLIANCE_COLOR.BLUE: None, ALLIANCE_COLOR.GOLD: None}
+
+STUDENT_DECODE_TIMER = Timer(TIMER_TYPES.STUDENT_DECODE)
+STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
+SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
+DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
+ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
+
+CODES_USED = []
+
+###########################################
+# 2020 Game Specific Variables
+###########################################
+TINDER = 0
+BUTTONS = Buttons()
+FIRE_LIT = False
+LAST_TINDER = 0
+LAST_BUTTONS = Buttons()
+LAST_FIRE_LIT = False
 
 ###########################################
 # Evergreen Methods
 ###########################################
 
-#pylint: disable=broad-except
+# pylint: disable=broad-except
+
+
 def start():
     '''
     Main loop which processes the event queue and calls the appropriate function
@@ -40,87 +87,71 @@ def start():
         payload = EVENTS.get(True)
         LAST_HEADER = payload
         print(payload)
-        if GAME_STATE == STATE.SETUP:
-            func = SETUP_FUNCTIONS.get(payload[0])
+
+        funcmappings = {
+            STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
+            STATE.AUTO: (AUTO_FUNCTIONS, "Auto"),
+            STATE.CITY: (CITY_FUNCTIONS, "City"),
+            STATE.SANDSTORM: (SANDSTORM_FUNCTIONS, "Sandstorm"),
+            STATE.DEHYDRATION: (DEHYDRATION_FUNCTIONS, "Dehydration"),
+            STATE.FIRE: (FIRE_FUNCTIONS, "Fire"),
+            STATE.HYPOTHERMIA: (HYPOTHERMIA_FUNCTIONS, "Hypothermia"),
+            STATE.FINAL: (FINAL_FUNCTIONS, "Final"),
+            STATE.END: (END_FUNCTIONS, "End"),
+        }
+
+        if GAME_STATE in funcmappings:
+            func_list, state_name = funcmappings.get(GAME_STATE)
+            func = func_list.get(payload[0]) or EVERYWHERE_FUNCTIONS.get(payload[0])
             if func is not None:
                 func(payload[1])
             else:
-                print("Invalid Event in Setup")
-        elif GAME_STATE == STATE.AUTO:
-            func = AUTO_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Auto")
-        elif GAME_STATE == STATE.WAIT:
-            func = WAIT_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Wait")
-        elif GAME_STATE == STATE.TELEOP:
-            func = TELEOP_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in Teleop")
-        elif GAME_STATE == STATE.END:
-            func = END_FUNCTIONS.get(payload[0])
-            if func is not None:
-                func(payload[1])
-            else:
-                print("Invalid Event in End")
+                print("Invalid Event in {0}".format(state_name))
+        else:
+            print("Invalid State: {}".format(GAME_STATE))
+
+
 
 #pylint: disable=too-many-locals
+
+
 def to_setup(args):
     '''
-    Move to the setup stage which is should push scores from previous game to spreadsheet,
+    Move to the setup stage which should push scores from previous game to spreadsheet,
     load the teams for the upcoming match, reset all state, and send information to scoreboard.
     By the end, should be ready to start match.
     '''
     global MATCH_NUMBER
     global GAME_STATE
     global STARTING_SPOTS
+    global ROBOT
+    global BUTTONS
+    global CLIENTS
 
-    b1_name, b1_num, b1_starting_spot = args["b1name"], args["b1num"], args["b1_starting_spot"]
-    b2_name, b2_num, b2_starting_spot = args["b2name"], args["b2num"], args["b2_starting_spot"]
-    g1_name, g1_num, g1_starting_spot = args["g1name"], args["g1num"], args["g1_starting_spot"]
-    g2_name, g2_num, g2_starting_spot = args["g2name"], args["g2num"], args["g2_starting_spot"]
+    # code_setup()
 
-    g1_custom_ip = args["g1_custom_ip"] or None
-    g2_custom_ip = args["g2_custom_ip"] or None
-    b1_custom_ip = args["b1_custom_ip"] or None
-    b2_custom_ip = args["b2_custom_ip"] or None
+    name, num = args["team_name"], args["team_num"]
+    custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
-    STARTING_SPOTS = [b1_starting_spot, b2_starting_spot, g1_starting_spot, g2_starting_spot]
+    ROBOT = Robot(name, num, custom_ip)
+    CLIENTS = RuntimeClientManager()
+    connect()
 
-    if GAME_STATE == STATE.END:
-        flush_scores()
+    # note that reset state will be called from the UI when necessary and reset_state + reset_round = reset match
+    reset_round()
 
-    MATCH_NUMBER = args["match_num"]
+    # so if there are other UIs open they get the update
+    send_round_info()
 
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is not None:
-        reset()
-
-    #code_setup()
-
-    ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(ALLIANCE_COLOR.BLUE, b1_name,
-                                              b1_num, b2_name, b2_num, b1_custom_ip, b2_custom_ip)
-    ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(ALLIANCE_COLOR.GOLD, g1_name,
-                                              g1_num, g2_name, g2_num, g1_custom_ip, g2_custom_ip)
-
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAMS, {
-        "b1name" : b1_name, "b1num" : b1_num,
-        "b2name" : b2_name, "b2num" : b2_num,
-        "g1name" : g1_name, "g1num" : g1_num,
-        "g2name" : g2_name, "g2num" : g2_num,
-        "match_num" : MATCH_NUMBER})
+    # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    lcm_send(LCM_TARGETS.SCOREBOARD,
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
-    print({"blue_score" : ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-           "gold_score" : ALLIANCES[ALLIANCE_COLOR.GOLD].score})
+
+    # TODO: turn stoplight red
+
 
 def to_auto(args):
     '''
@@ -129,188 +160,181 @@ def to_auto(args):
     stage to be called and autonomous match timer should have begun.
     '''
     #pylint: disable= no-member
-    global GAME_STATE
-    global clients
-    try:
-        alternate_connections = (ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_custom_ip,
-                                 ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_custom_ip)
+    global GAME_STATE, ROBOT
+    global CLIENTS
+    # CLIENTS.receive_all_challenge_data()
 
-        clients = RuntimeClientManager((
-            int(ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_number),
-            int(ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_number),
-        ), (
-            int(ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_number),
-            int(ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_number),
-        ), *alternate_connections)
-        clients.set_MASTER_ROBOTS(MASTER_ROBOTS[ALLIANCE_COLOR.BLUE],
-                                  MASTER_ROBOTS[ALLIANCE_COLOR.GOLD])
-        clients.set_starting_zones(STARTING_SPOTS)
-    except Exception as exc:
-        log(exc)
-        return
-    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME + 2)
+    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    ROBOT.start_time = time.time()
+    STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
+    lcm_send(LCM_TARGETS.SCOREBOARD,
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    send_score_to_ui()
     enable_robots(True)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
-             {"time" : CONSTANTS.AUTO_TIME})
+    check_code()
+
+    BUTTONS.illuminate_buttons(ROBOT)
+    BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
-def to_wait(args):
-    '''
-    Move to the waiting stage, between autonomous and teleop periods.
-    By the end, should be in wait state and the robots should be disabled.
-    Some years, there might be methods that can be called once in the wait stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.WAIT
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-    disable_robots()
-    print("ENTERING WAIT STATE")
 
-def to_teleop(args):
-    '''
-    Move to teleoperated stage where robots are enabled and controlled manually.
-    By the end, should be in teleop state and the teleop match timer should be started.
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.TELEOP
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-
-    Timer.reset_all()
-    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME + 2)
-
-    enable_robots(False)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE_TIMER_START,
-             {"time" : CONSTANTS.TELEOP_TIME})
-    print("ENTERING TELEOP STATE")
-
-def to_end(args):
-    '''
-    Move to end stage after the match ends. Robots should be disabled here
-    and final score adjustments can be made.
-    '''
-    global GAME_STATE
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-             {"blue_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
-              "gold_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
-    GAME_STATE = STATE.END
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-    disable_robots()
-    print("ENTERING END STATE")
-
-def reset(args=None):
+def reset_round(args=None):
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, clients
+    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS, FIRE_LIT
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.RESET_TIMERS)
-    for alliance in ALLIANCES.values():
-        if alliance is not None:
-            alliance.reset()
-    send_connections(None)
-    #STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
-    clients = RuntimeClientManager((), ())
+    ROBOT.reset()
+    TINDER = LAST_TINDER
+    BUTTONS = LAST_BUTTONS
+    FIRE_LIT = LAST_FIRE_LIT
+    """
+    CLIENTS = RuntimeClientManager()
+    """
     disable_robots()
-    BUTTONS['gold_1'] = False
-    BUTTONS['gold_2'] = False
-    BUTTONS['blue_1'] = False
-    BUTTONS['blue_2'] = False
+
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
     lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
 
-def get_match(args):
+
+def reset_state(args):
+    """
+    This is called after a match is complete because tinder and buttons are persisted across rounds for the same alliance but not when the next alliance begins.
+    """
+    global TINDER, BUTTONS, FIRE_LIT
+    TINDER = 0
+    FIRE_LIT = False
+    BUTTONS = Buttons()
+
+
+def get_round(args):
     '''
-    Retrieves the match based on match number and sends this information to the UI
+    Retrieves all match info based on match number and sends this information to the UI. If not already cached, fetches info from the spreadsheet.
     '''
+    global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     match_num = int(args["match_num"])
-    info = Sheet.get_match(match_num)
-    info["match_num"] = match_num
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, info)
+    round_num = int(args["round_num"])
+
+    # if robot info is for the correct match, round
+    if not (MATCH_NUMBER == match_num and ROUND_NUMBER == round_num):
+        MATCH_NUMBER = match_num
+        ROUND_NUMBER = round_num
+        try:
+            info = Sheet.get_round(match_num, round_num)
+        except Exception as e:
+            print("Exception while reading from sheet:",e)
+            info = {"num":-1, "name":""}
+        ROBOT.number = info["num"]
+        ROBOT.name = info["name"]
+
+    send_round_info()
+    
+
+def send_round_info(args = None):
+    '''
+    Sends all match info to the UI and scoreboard
+    '''
+    global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
+    team_num = ROBOT.number
+    team_name = ROBOT.name
+    lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
+                "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
+
+
+def set_custom_ip(args):
+    ROBOT.custom_ip = args["custom_ip"]
+    connect()
+
+def connect():
+    CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
 
 def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    blue_score, gold_score = args["blue_score"], args["gold_score"]
-    ALLIANCES[ALLIANCE_COLOR.BLUE].score = blue_score
-    ALLIANCES[ALLIANCE_COLOR.GOLD].score = gold_score
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
-             {"alliance" : ALLIANCES[ALLIANCE_COLOR.BLUE].name,
-              "score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score)})
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
-             {"alliance" : ALLIANCES[ALLIANCE_COLOR.GOLD].name,
-              "score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
+    global GAME_STATE
+    time, penalty, stamp_time = args.get("time"), args.get(
+        "penalty"), args.get("stamp_time")
+    if GAME_STATE == STATE.END or GAME_STATE == STATE.SETUP:
+        if time is not None:
+            ROBOT.set_elapsed_time(time)
+    if penalty is not None:
+        ROBOT.penalty = penalty
+    if stamp_time is not None:
+        ROBOT.stamp_time = stamp_time
+    # TODO: send dummy elapsed time if during game (-1) maybe this should be none
+    send_score_to_scoreboard()
+    send_score_to_ui()
 
-def get_score(args):
+def send_score_to_ui(args = None):
     '''
-    Send the current blue and gold score to the UI
+    Send the current score to the UI.
     '''
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is None:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score" : None,
-                  "gold_score" : None})
-    else:
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES,
-                 {"blue_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.BLUE].score),
-                  "gold_score" : math.floor(ALLIANCES[ALLIANCE_COLOR.GOLD].score)})
+
+    data = {
+        "time": ROBOT.elapsed_time(),
+        "penalty": ROBOT.penalty,
+        "stamp_time": ROBOT.stamp_time,
+        "score": ROBOT.total_time(),
+        "start_time": ROBOT.start_time_millis()
+    }
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
+
+def send_score_to_scoreboard(args=None):
+    """
+    Send the current score to the scoreboard.
+    """
+    data = {
+        "time": ROBOT.elapsed_time(),
+        "penalty": ROBOT.penalty,
+        "stamp_time": ROBOT.stamp_time,
+        "score": ROBOT.total_time(),
+        "start_time": ROBOT.start_time_millis()
+    }
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
 
 def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
-    if ALLIANCES[ALLIANCE_COLOR.BLUE] is not None:
-        Sheet.write_scores(MATCH_NUMBER, ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-                           ALLIANCES[ALLIANCE_COLOR.GOLD].score)
+    Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
     return -1
+
 
 def enable_robots(autonomous):
     '''
-    Sends message to Dawn to enable all robots. The argument should be a boolean
+    Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
-    try:
-        clients.set_mode("auto" if autonomous else "teleop")
-    except Exception as exc:
-        for client in clients.clients:
-            try:
-                client.set_mode("auto" if autonomous else "teleop")
-            except Exception as exc:
-                print("A robot failed to be enabled! Big sad :(")
-                log(exc)
+    CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
+
 
 def disable_robots():
     '''
     Sends message to Dawn to disable all robots
     '''
-    try:
-        clients.set_mode("idle")
-    except Exception as exc:
-        for client in clients.clients:
-            try:
-                client.set_mode("idle")
-            except Exception as exc:
-                print("a client has disconnected")
-        log(exc)
-        print(exc)
+    CLIENTS.send_mode(Mode.IDLE)
 
 #pylint: disable=redefined-builtin
+
+
 def log(Exception):
     global LAST_HEADER
     # if Shepherd.MATCH_NUMBER <= 0:
     #     return
-    now = datetime.datetime.now()
+    now = datetime.now()
     filename = str(now.month) + "-" + str(now.day) + "-" + str(now.year) +\
-               "-match-" + str(MATCH_NUMBER) + ".txt"
+        "-match-" + str(MATCH_NUMBER) + ".txt"
     print("a normally fatal exception occured, but Shepherd will continue to run")
     print("all known details are logged to logs/"+filename)
     file = open("logs/"+filename, "a+")
@@ -319,8 +343,7 @@ def log(Exception):
     file.write("all relevant data may be found below.\n")
     file.write("match: " + str(MATCH_NUMBER)+"\n")
     file.write("game state: " + str(GAME_STATE)+"\n")
-    file.write("gold alliance: " + str(ALLIANCES[ALLIANCE_COLOR.GOLD])+"\n")
-    file.write("blue alliance: " + str(ALLIANCES[ALLIANCE_COLOR.BLUE])+"\n")
+    file.write("robot: " + str(ROBOT)+"\n")
     file.write("game timer running?: " + str(GAME_TIMER.is_running())+"\n")
     file.write("the last received header was:" + str(LAST_HEADER)+"\n")
     file.write("a stacktrace of the error may be found below\n")
@@ -331,147 +354,336 @@ def log(Exception):
 ###########################################
 # Game Specific Methods
 ###########################################
+
+
 def disable_robot(args):
     '''
     Send message to Dawn to disable the robots of team
     '''
     try:
         team_number = args["team_number"]
-        client = clients.clients[int(team_number)]
+        client = CLIENTS.clients[int(team_number)]
         if client:
             client.set_mode("idle")
     except Exception as exc:
         log(exc)
 
 
-def set_master_robot(args):
-    '''
-    Set the master robot of the alliance
-    '''
-    alliance = args["alliance"]
-    team_number = args["team_num"]
-    MASTER_ROBOTS[alliance] = team_number
-    msg = {"alliance": alliance, "team_number": int(team_number)}
-    lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.MASTER, msg)
-
 def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    blue_final = args['blue_score']
-    gold_final = args['gold_score']
-    ALLIANCES[ALLIANCE_COLOR.GOLD].score = gold_final
-    ALLIANCES[ALLIANCE_COLOR.BLUE].score = blue_final
-    msg = {"alliance": ALLIANCE_COLOR.GOLD, "amount": gold_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE, msg)
-    msg = {"alliance": ALLIANCE_COLOR.BLUE, "amount": blue_final}
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE, msg)
+    send_score_to_scoreboard()
 
-def set_connections(args):
-    """Set connections"""
-    #pylint: disable=undefined-variable, not-an-iterable
-    team = args["team_number"]
-    connection = boolean(args["connection"])
-    dirty = False
-    for alliance in ALLIANCES.values:
-        if team == alliance.team_1_number:
-            if alliance.team_1_connection != connection:
-                alliance.team_1_connection = connection
-                dirty = True
-        if team == alliance.team_2_number:
-            if alliance.team_2_connection != connection:
-                alliance.team_2_connection = connection
-                dirty = True
-    if dirty:
-        send_connections(None)
 
-def send_connections(args):
-    """Send connections"""
-    pass #pylint: disable=unnecessary-pass
-    # msg = {"g_1_connection" : ALLIANCES[ALLIANCE_COLOR.GOLD].team_1_connection,
-    #        "g_2_connection" : ALLIANCES[ALLIANCE_COLOR.GOLD].team_2_connection,
-    #        "b_1_connection" : ALLIANCES[ALLIANCE_COLOR.BLUE].team_1_connection,
-    #        "b_2_connection" : ALLIANCES[ALLIANCE_COLOR.BLUE].team_2_connection}
-    # lcm_send(LCM_TARGETS.UI, UI_HEADER.CONNECTIONS, msg)
+def set_game_info(args):
+    '''
+    Set tinder/buttons from UI. If tinder/buttons are not passed in, they are ignored.
+    If in end state, LAST_TINDER is also set for the next round. TINDER is always set
+    because it could be done by the referee.
+    '''
+    global TINDER, LAST_TINDER
+    if args.get("tinder", ""):
+        TINDER = int(args["tinder"])
+        if GAME_STATE == STATE.END:
+            LAST_TINDER = TINDER
+    if args.get("buttons", ""):
+        BUTTONS.illuminated = int(args["buttons"])
+        if GAME_STATE == STATE.END:
+            LAST_BUTTONS.illuminated = BUTTONS.illuminated
+    print(f"Current Tinder: {TINDER}")
+    print(f"Current num buttons: {BUTTONS.illuminated}")
+
+
+###########################################
+# Spring 2020 Game
+###########################################
+
+# ----------
+# SETUP STAGE
+# ----------
+
+def check_code():
+    '''
+    Check the coding challenges and act appropriately
+    '''
+    ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
+
+# ----------
+# AUTO STAGE
+# ----------
+
+
+def to_city(args):
+    '''
+    Go to the city stage
+    '''
+    global GAME_STATE
+    enable_robots(autonomous=False)
+    curr_time = time.time() - ROBOT.start_time
+    GAME_TIMER.reset()
+    GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
+    # stoplight is not green
+    if STOPLIGHT_TIMER.is_running():
+        stoplight_penalty()
+    GAME_STATE = STATE.CITY
+    lcm_send(LCM_TARGETS.SCOREBOARD,
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
+             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    print("ENTERING CITY STATE")
+
+# ----------
+# CITY STAGE
+# ----------
+
+
+def stoplight_timer_end(args):
+    # turn stoplight green
+    STOPLIGHT_TIMER.reset()
+    # TODO: turn stoplight from red to green
+
+
+def stoplight_button_press(args):
+    '''
+    Triggered by a press of the stoplight button
+    '''
+    if ROBOT.pass_coding_challenges(n=1, tier=1):
+        stoplight_timer_end([])
+
+
+def stoplight_penalty():
+    # whatever the penalty is
+    ROBOT.penalty += CONSTANTS.STOPLIGHT_PENALTY
+    send_score_to_scoreboard()
+    send_score_to_ui()
+
+
+def contact_wall(args):
+    '''
+    Triggered when the robot hits the wall
+    '''
+    CLIENTS.send_game_state(State.POISON_IVY)
+
+
+def to_desert(args):
+    '''
+    Go to the sandstorm stage
+    '''
+    global GAME_STATE
+    GAME_STATE = STATE.SANDSTORM
+    if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
+        SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
+        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
+
+# ----------
+# SANDSTORM STAGE
+# ----------
+
+
+def sandstorm_timer_end(args):
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
+
+
+def to_dehydration(args):
+    '''
+    Go to the dehydration stage
+    '''
+    global GAME_STATE
+    GAME_STATE = STATE.DEHYDRATION
+    DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
+    # TODO: distribution of which challenges are chosen for each button?
+    BUTTONS.illuminate_buttons(ROBOT)
+
+# ----------
+# DEHYDRATION STAGE
+# ----------
+
+
+def dehydration_button_press(args):
+    '''
+    Triggered when dehydration button is pressed
+    '''
+    global GAME_STATE
+    button_number = int(args["button"])
+    if BUTTONS.press_button_and_check(button_number):
+        DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
+        GAME_STATE = STATE.FIRE
+
+
+def dehydration_penalty_timer_start(args):
+    '''
+    Triggered when robot gets dehydrated ("water getting" timer runs out). Starts the penalty timer and forcibly stops the robot.
+    '''
+    ROBOT_DEHYDRATED_TIMER.start_timer(CONSTANTS.ROBOT_DEHYDRATED_TIME)
+    CLIENTS.send_game_state(State.DEHYDRATION)
+
+
+def dehydration_penalty_timer_end(args):
+    '''
+    Triggered when robot dehydration ends.
+    '''
+    global GAME_STATE
+    GAME_STATE = STATE.FIRE
+
+
+# ----------
+# FIRE STAGE
+# ----------
+
+def set_tinder(args):
+    '''
+    This method sets the total amount of tinder
+    1 tinder = fire is lit for one round.
+    2 tinder = fire is lit for two rounds.
+    3 tinder = fire is lit for three rounds.
+    '''
+    global TINDER
+    TINDER = args["tinder"]
+    send_round_info()
+
+
+def fire_lever(args):
+    '''
+    Toggle the fire.
+    '''
+    global FIRE_LIT
+    FIRE_LIT = True
+
+
+def to_hypothermia(args):
+    '''
+    Go to the hypothermia zone in the forest biome.
+    '''
+    global GAME_STATE, FIRE_LIT
+    GAME_STATE = STATE.HYPOTHERMIA
+    # TODO: change if tinder is not removed
+    if not (FIRE_LIT and TINDER > 0):
+        CLIENTS.send_game_state(State.HYPOTHERMIA_START)
+
+# ----------
+# HYPOTHERMIA STAGE
+# ----------
+
+
+def to_final(args):
+    '''
+    Go to the airport stage.
+    '''
+    global GAME_STATE
+    GAME_STATE = STATE.FINAL
+    CLIENTS.send_game_state(State.HYPOTHERMIA_STOP)
+
+# ----------
+# AIRPORT STAGE
+# ----------
+
+
+def to_end(args):
+    '''
+    Go to the end state.
+    '''
+    global GAME_STATE, LAST_TINDER, LAST_BUTTONS, LAST_FIRE_LIT
+    LAST_TINDER = TINDER
+    LAST_BUTTONS = BUTTONS.copy()
+    LAST_FIRE_LIT = FIRE_LIT
+    GAME_STATE = STATE.END
+    disable_robots()
+    CLIENTS.reset()
+    ROBOT.end_time = time.time()
+    GAME_STATE = STATE.END
+    send_score_to_ui()
+    lcm_send(LCM_TARGETS.SCOREBOARD,
+             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    send_score_to_scoreboard()
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    try:
+        flush_scores()
+    except:
+        print("Unable to push scores to spreadsheet.")
+
 
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################
-
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-    SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
-    SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
-    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto
+    SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
+    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
+    SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.STAGE_TIMER_END : to_wait,
-    #SHEPHERD_HEADER.CODE_APPLICATION : auto_apply_code,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
-
-    }
-
-WAIT_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
-    SHEPHERD_HEADER.GET_SCORES : get_score,
-    SHEPHERD_HEADER.START_NEXT_STAGE : to_teleop,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
+    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
-TELEOP_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.STAGE_TIMER_END : to_end,
-    #SHEPHERD_HEADER.CODE_APPLICATION : apply_code,
-    SHEPHERD_HEADER.ROBOT_OFF : disable_robot,
-    #SHEPHERD_HEADER.CODE_RETRIEVAL : bounce_code,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+# This represents City and Forest, since we don't need to detect Forest explicitly
+CITY_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
+    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
+    SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
+    SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
+    SHEPHERD_HEADER.DESERT_ENTRY: to_desert # triggered by line break sensor
+}
 
+SANDSTORM_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
+}
+
+DEHYDRATION_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
+    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
+    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: dehydration_penalty_timer_end,
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
+}
+
+FIRE_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.SET_TINDER: set_tinder,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line break
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
+}
+
+HYPOTHERMIA_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, # triggered by line break
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final
+}
+
+FINAL_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end # triggered by line break
 }
 
 END_FUNCTIONS = {
-    SHEPHERD_HEADER.RESET_MATCH : reset,
-    SHEPHERD_HEADER.SCORE_ADJUST : score_adjust,
-    SHEPHERD_HEADER.GET_SCORES : get_score,
-    SHEPHERD_HEADER.SETUP_MATCH : to_setup,
-    SHEPHERD_HEADER.GET_MATCH_INFO : get_match,
-    SHEPHERD_HEADER.FINAL_SCORE : final_score,
-    SHEPHERD_HEADER.ROBOT_CONNECTION_STATUS: set_connections,
-    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connections
+    SHEPHERD_HEADER.SETUP_MATCH: to_setup,
+    SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
+    SHEPHERD_HEADER.FINAL_SCORE: final_score,
+    SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.RESET_MATCH: reset_state
 }
 
-###########################################
-# Evergreen Variables
-###########################################
+EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
+    SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
+    SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
+    SHEPHERD_HEADER.RESET_ROUND: reset_round
+}
 
-GAME_STATE = STATE.END
-GAME_TIMER = Timer(TIMER_TYPES.MATCH)
-
-MATCH_NUMBER = -1
-ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
-EVENTS = None
-
-LAST_HEADER = None
-
-###########################################
-# Game Specific Variables
-###########################################
-BUTTONS = {'gold_1': False, 'gold_2': False, 'blue_1': False, 'blue_2': False}
-STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
-MASTER_ROBOTS = {ALLIANCE_COLOR.BLUE: None, ALLIANCE_COLOR.GOLD: None}
-
-STUDENT_DECODE_TIMER = Timer(TIMER_TYPES.STUDENT_DECODE)
-
-CODES_USED = []
-
-#nothing
 
 def main():
     """Main function"""
@@ -484,7 +696,6 @@ def main():
         print('.'.join(map(str, __version__)))
     else:
         start()
-
 
 
 if __name__ == '__main__':

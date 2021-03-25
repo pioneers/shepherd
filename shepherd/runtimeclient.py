@@ -1,115 +1,246 @@
-import msgpackrpc #pylint: disable=import-error
+import time
+import threading
+from protos import text_pb2
+from protos import run_mode_pb2
+from protos import start_pos_pb2
+from protos import game_state_pb2
+from Utils import *
+from LCM import *
+from Robot import Robot
+import socket
+from typing import List
+
+PORT_RASPI = 8101
 
 
 class RuntimeClient:
-    def __init__(self, host, port):
-        self.host, self.port, self.client = host, port, None
+    """
+    This is a client that connects to the server running on a Raspberry Pi. 
+    One client is initialized per robot.
+    """
+   
+    def __init__(self, host_url, robot):
+        self.host_url = host_url
+        self.robot: Robot = robot
+        self.is_alive = False
+        self.client_exists = True
+        self.connect_tcp()
+        # send 0 byte so that Runtime knows it's Shepherd
+        if self.is_alive:
+            self.sock.send(bytes([0]))
 
-    def connect(self):
-        self.client = msgpackrpc.Client(msgpackrpc.Address(self.host, self.port))
+    def receive_challenge_data(self):
+        """
+        Receive the results of the coding challenges, immediately after send_challenge_data is called.
+        """
+        print("incoming challenge data")
+        msg_type = int.from_bytes(self.sock.recv(1), "little")
+        print("msg_type: " + str(msg_type))
+        msg_length = int.from_bytes(self.sock.recv(2), "little")
+        print("msg_length: " + str(msg_length))
+        msg = self.sock.recv(msg_length)
 
-    def disconnect(self):
-        self.client.close()
-        self.client = None
+        if msg_type == PROTOBUF_TYPES.CHALLENGE_DATA:
+            pb = text_pb2.Text()
+            pb.ParseFromString(msg)
+            # TODO: format payload to be a list of booleans
+            payload = pb.payload
+            self.robot.coding_challenge = payload
+        else:
+            # error
+            print("invalid protobuf type")
 
-    @property
-    def connected(self):
-        return self.client is not None
+    def send_mode(self, mode):
+        """
+        Send the Run Mode to Runtime. Example: auto vs teleop.
+        """
+        proto_type = bytearray([PROTOBUF_TYPES.RUN_MODE])
+        self.sock.send(proto_type)
+        run_mode = run_mode_pb2.RunMode()
+        run_mode.mode = mode
+        bytearr = bytearray(run_mode.SerializeToString())
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
+        self.sock.send(bytearr)
 
-    def set_mode(self, mode=True):
-        self.client.call('set_mode', mode)
+    def send_start_pos(self, pos):
+        """
+        Send the start position of the robot to Runtime (left or right). This will not be used for 2021.
+        """
+        proto_type = bytearray([PROTOBUF_TYPES.START_POS])
+        self.sock.send(proto_type)
+        start_pos = start_pos_pb2.StartPos()
+        start_pos.pos = pos
+        bytearr = bytearray(start_pos.SerializeToString())
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
+        self.sock.send(bytearr)
 
-    def set_alliance(self, alliance):
-        self.client.call('set_alliance', alliance)
+    def send_challenge_data(self, data):
+        """
+        Tells Runtime to execute the coding challenges in {data}, an array of strings with the names of the coding challenges.
+        """
+        proto_type = bytearray([PROTOBUF_TYPES.CHALLENGE_DATA])
+        self.sock.send(proto_type)
+        text = text_pb2.Text()
+        text.payload.extend(data)
+        bytearr = bytearray(text.SerializeToString())
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
+        self.sock.send(bytearr)
+        # Listen for challenge outputs
+        self.receive_challenge_data()
 
-    def set_master(self, master):
-        self.client.call('set_master', master)
+    def send_game_state(self, state):
+        """
+        Tells Runtime to use the game state, e.g. poison ivy or dehyrdration
+        """
+        proto_type = bytearray([PROTOBUF_TYPES.GAME_STATE])
+        self.sock.send(proto_type)
+        game_state = game_state_pb2.GameState()
+        game_state.state = state
+        bytearr = bytearray(game_state.SerializeToString())
+        self.sock.send(len(bytearr).to_bytes(2, "little"))
+        self.sock.send(bytearr)
 
-    def set_starting_zone(self, zone):
-        self.client.call('set_starting_zone', zone)
+    def connect_tcp(self, silent=False) -> bool:
+        """
+        - Attempts to connect to the Rasberry PI
+        - sets self.is_alive to the connection status
+        - sends connection status to UI
+        - starts a receiving thread that reads incoming messages and provides heartbeat
+        """
+        # self.sock.connect(("127.0.0.1", int(self.host_url)))
+        connected = True
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((self.host_url, PORT_RASPI))
+            message = f"Successfully connected to Robot {self.robot}"
+        except Exception as exc:
+            connected = False
+            message = f"Error connecting to Robot {self.robot}: {exc}"
+        if not silent:
+            print(message)
+        self.is_alive = connected
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
+        if connected:
+            thr = threading.Thread(target=self.start_recv)
+            thr.start()
+        return connected
 
-    def run_challenge(self, seed, timeout=1):
-        self.client.notify('run_challenge', int(seed), timeout)
+    def close_connection(self):
+        """
+        Closes the connection if not already closed.
+        """
+        if self.is_alive:
+            self.is_alive = False
+            self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
+            self.sock.close() # deallocates
 
-    def get_challenge_solution(self):
-        return self.client.call('get_challenge_solution')
+    def start_recv(self):
+        """
+        While the client exists (controlled by RuntimeClientManager),
+        waits to receive an incoming message. If connection fails,
+        then tries to reconnect infinitely until either self.client_exists
+        is False or the thread is closed in garbage collection.
+        """
+        while self.client_exists:
+            try:
+                received = self.sock.recv(1)
+            except ConnectionResetError as e:
+                print(f"Connection reset error while reading from socket: {e}")
+                received = False
+            print(f"Received message from Robot {self.robot}: ", received)
+            if not received:
+                # socket has been closed oops
+                lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
+                print(f"Connection lost to Robot {self.robot}, trying again.")
+                self.close_connection()
+                if self.client_exists:
+                    print(f"Attempting to reconnect to robot {self.robot}")
+                while self.client_exists:
+                    if self.connect_tcp(silent=True):
+                        print(f"Successfully reconnected to robot {self.robot}")
+                        return
+                    time.sleep(1)
+                return
+            else:
+                # This is where one would process received data, ideally using some function mapping
+                # similar to the way it is done in Shepherd.
+                pass
+
 
 
 class RuntimeClientManager:
-    def __init__(self, blue_alliance, gold_alliance, b1_custom_ip=None, b2_custom_ip=None,
-                 g1_custom_ip=None, g2_custom_ip=None):
-        custom_ips = (b1_custom_ip, b2_custom_ip, g1_custom_ip, g2_custom_ip)
-        self.blue_alliance, self.gold_alliance = blue_alliance, gold_alliance
-        self.clients = {}
-        for i in range(len(self.blue_alliance+self.gold_alliance)):
-            if custom_ips[i]:
-                self.clients[(self.blue_alliance+self.gold_alliance)[i]] =\
-                    (RuntimeClient(f'{custom_ips[i]}', 6020))
-            elif (self.blue_alliance + self.gold_alliance)[i] >= -100:
-                self.clients[(self.blue_alliance+self.gold_alliance)[i]] =\
-                    (RuntimeClient(f'192.168.128.{200 +(self.blue_alliance + self.gold_alliance)[i]}', 6020)) #pylint: disable=line-too-long
-            else:
-                self.clients[(self.blue_alliance+self.gold_alliance)[i]] = None
-        for client in self.clients.values():
-            if client is not None:
-                print(client.host)
-                client.connect()
-        for team in self.blue_alliance:
-            client = self.clients[team]
-            if client:
-                client.set_alliance('blue')
-        for team in self.gold_alliance:
-            client = self.clients[team]
-            if client:
-                client.set_alliance('gold')
 
-    def set_starting_zones(self, zones):
-        for team, zone in zip(self.blue_alliance + self.gold_alliance, zones):
-            if self.clients[team]:
-                self.clients[team].set_starting_zone(zone)
+    def __init__(self):
+        self.clients: List[RuntimeClient] = []
 
-    def set_mode(self, mode):
-        for client in self.clients.values():
-            if client:
-                print('Setting mode for client:', client.host)
-                client.set_mode(mode)
-
-    def get_challenge_solutions(self):
-        return {team: (client.get_challenge_solution() if client else None) for team,
-                client in self.clients.items()}
-
-    def set_master_robots(self, blue_team, gold_team):
+    def __get_client(self, host_url, robot):
         """
-        blue_master = self.clients[blue_team]
-        if blue_master:
-            blue_master.set_master()
-        gold_master = self.clients[gold_team]
-        if gold_master:
-            gold_master.set_master()"""
+        Connects to robot at host_url. This method should not be called because the thread is created in get_clients.
+        """
+        print("client " + str(host_url) + " started")
+        client = RuntimeClient(host_url, robot)
+        if client.is_alive:
+            self.clients.append(client)
+
+    def get_clients(self, host_urls, robots: List[Robot]):
+        for i in range(len(host_urls)):
+            robot, host_url = robots[i], host_urls[i]
+            robot_nums = [c.robot.number for c in self.clients]
+            if robot.number in robot_nums:
+                index = robot_nums.index(robot.number)
+                self.clients[index].client_exists = False
+                self.clients[index].close_connection()
+                self.clients.pop(index)
+            thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
+            thr.start()
+
+    def receive_challenge_data(self, client):
+        client.receive_challenge_data()
+
+    def receive_all_challenge_data(self):
+        for client in self.clients:
+            thr = threading.Thread(
+                target=self.receive_challenge_data, args=[client])
+            thr.start()
+
+    def send_mode(self, mode):
+        for client in self.clients:
+            try:
+                client.send_mode(mode)
+            except Exception as exc:
+                print(f"Robot {client} failed to be enabled! Big sad :(")
+
+    def send_start_pos(self, pos):
+        for client in self.clients:
+            client.send_start_pos(pos)
+
+    def send_challenge_data(self, data):
+        for client in self.clients:
+            client.send_challenge_data(data)
+
+    def send_game_state(self, state):
+        for client in self.clients:
+            client.send_game_state(state)
+
+    def reset(self):
+        for client in self.clients:
+            client.client_exists = False
+            client.close_connection()
+        self.clients: List[RuntimeClient] = []
 
 
 """
-client = RuntimeClient('192.168.128.107', 6020)
-client.connect()
-import time
-from Code import decode
-x = 1
-client.run_challenge(x)
-time.sleep(0.2)
-print('Robot answer:', client.get_challenge_solution())
-print('Authoritative answer:', decode(x))
-""" #pylint: disable=pointless-string-statement
+Sample code that connects to one robot and sends dummy challenge data.
 
-# client = RuntimeClient('192.168.128.115', 6020)
-# client.connect()
-# client.set_mode('idle')
-
-# print('OK!')
-# client.set_alliance('blue')
-# client.set_starting_zone('left')
-# client.run_challenge(123)
-# time.sleep(0.2)
-# print(client.get_challenge_solution())
-# time.sleep(1)
-# client.run_challenge(123)
-# print(client.get_challenge_solution())
+NUM_ROBOTS = 1
+read = False
+manager = RuntimeClientManager()
+manager.get_clients(["192.168.29.1"])  # should be IP addresses in actual use
+while True:
+    if len(manager.clients) == NUM_ROBOTS and not read:
+        # manager.receive_all_challenge_data()
+        # manager.send_challenge_data(["hello"])
+        manager.send_challenge_data(["12"])
+        # manager.check_connections()
+        read = True
+"""
