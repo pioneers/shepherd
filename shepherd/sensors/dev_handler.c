@@ -84,14 +84,14 @@ void init() {
 
     // Initialize lock on global variable USED_PORTS
     if (pthread_mutex_init(&used_ports_lock, NULL) != 0) {
-        printf("init: Couldn't init USED_PORTS_LOCK\n");
+        log_printf(FATAL, "init: Couldn't init USED_PORTS_LOCK");
         exit(1);
     }
 }
 
 // Disconnect devices from shared memory and destroy mutexes
 void stop() {
-    printf("Interrupt received, terminating dev_handler\n");
+    log_printf(INFO, "Interrupt received, terminating dev_handler\n");
     // For each tracked lowcar device, disconnect from shared memory
     uint32_t connected_devs = 0;
     get_catalog(&connected_devs);
@@ -112,7 +112,7 @@ void stop() {
  */
 void poll_connected_devices() {
     // Poll for newly connected devices and open threads for them
-    printf("Polling now for %s*.\n", port_prefix);
+    log_printf(DEBUG, "Polling now for %s*.\n", port_prefix);
     uint32_t connected_devs = 0;
     while (1) {
         if (get_new_devices(&connected_devs) > 0) {
@@ -175,7 +175,7 @@ int get_new_devices(uint32_t* bitmap) {
 void communicate(uint8_t port_num) {
     relay_t* relay = malloc(sizeof(relay_t));
     if (relay == NULL) {
-        printf("communicate: Failed to malloc\n");
+        log_printf(FATAL, "communicate: Failed to malloc");
         exit(1);
     }
     relay->port_num = port_num;
@@ -185,14 +185,14 @@ void communicate(uint8_t port_num) {
     if (strcmp(port_prefix, "/tmp/ttyACM") == 0) {  // Bind to socket
         relay->file_descriptor = connect_socket(port_name);
         if (relay->file_descriptor == -1) {
-            // printf("communicate: Couldn't connect to socket %s\n", port_name);
+            // log_printf(ERROR, "communicate: Couldn't connect to socket %s\n", port_name);
             relay_clean_up(relay);
             return;
         }
     } else {  // Open serial port
         relay->file_descriptor = serialport_open(port_name);
         if (relay->file_descriptor == -1) {
-            printf("communicate: Couldn't open port %s\n", port_name);
+            log_printf(ERROR, "communicate: Couldn't open port %s\n", port_name);
             relay_clean_up(relay);
             return;
         }
@@ -209,13 +209,13 @@ void communicate(uint8_t port_num) {
 
     // Open threads for sender, receiver, and relayer
     if (pthread_create(&relay->sender, NULL, sender, relay) != 0) {
-        printf("communicate: Couldn't spawn thread for SENDER\n");
+        log_printf(ERROR, "communicate: Couldn't spawn thread for SENDER");
     }
     if (pthread_create(&relay->receiver, NULL, receiver, relay) != 0) {
-        printf("communicate: Couldn't spawn thread for RECEIVER\n");
+        log_printf(ERROR, "communicate: Couldn't spawn thread for RECEIVER");
     }
     if (pthread_create(&relay->relayer, NULL, relayer, relay) != 0) {
-        printf("communicate: Couldn't spawn thread for RELAYER\n");
+        log_printf(ERROR, "communicate: Couldn't spawn thread for RELAYER");
     }
 }
 
@@ -235,8 +235,8 @@ void* relayer(void* relay_cast) {
     // Verify that the device is a lowcar device
     ret = verify_lowcar(relay);
     if (ret != 0) {
-        printf("/dev/ttyACM%d couldn't be verified to be a lowcar device\n", relay->port_num);
-        printf("A non-PiE device was recently plugged in. Please unplug immediately\n");
+        log_printf(DEBUG, "/dev/ttyACM%d couldn't be verified to be a lowcar device", relay->port_num);
+        log_printf(ERROR, "A non-PiE device was recently plugged in. Please unplug immediately");
         relay_clean_up(relay);
         return NULL;
     }
@@ -254,13 +254,13 @@ void* relayer(void* relay_cast) {
     pthread_cond_broadcast(&relay->start_cond);
 
     // If the device disconnects or times out, clean up
-    printf("Monitoring %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+    log_printf(DEBUG, "Monitoring %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
     char port_name[14];
     sprintf(port_name, "%s%d", port_prefix, relay->port_num);
     while (1) {
         // If Arduino port file doesn't exist, it disconnected
         if (access(port_name, F_OK) == -1) {
-            printf("%s (0x%016llX) disconnected!\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+            log_printf(INFO, "%s (0x%016llX) disconnected!", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             relay_clean_up(relay);
             return NULL;
         }
@@ -268,7 +268,7 @@ void* relayer(void* relay_cast) {
         pthread_mutex_lock(&relay->relay_lock);
         if ((millis() - relay->last_received_msg_time) >= TIMEOUT) {
             pthread_mutex_unlock(&relay->relay_lock);
-            printf("%s (0x%016llX) timed out!\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+            log_printf(WARN, "%s (0x%016llX) timed out!", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             relay_clean_up(relay);
             return NULL;
         }
@@ -298,10 +298,10 @@ void relay_clean_up(relay_t* relay) {
     pthread_cancel(relay->sender);
     pthread_cancel(relay->receiver);
     if ((ret = pthread_join(relay->sender, NULL)) != 0) {
-        printf("relay_clean_up: pthread_join on sender failed -- error: %d\n", ret);
+        log_printf(ERROR, "relay_clean_up: pthread_join on sender failed -- error: %d", ret);
     }
     if ((ret = pthread_join(relay->receiver, NULL)) != 0) {
-        printf("relay_clean_up: pthread_join on receiver failed -- error: %d\n", ret);
+        log_printf(ERROR, "relay_clean_up: pthread_join on receiver failed -- error: %d", ret);
     }
 
     // Disconnect the device from shared memory if it's connected
@@ -316,16 +316,16 @@ void relay_clean_up(relay_t* relay) {
     // Close the device and mark that it disconnected
     serialport_close(relay->file_descriptor);
     if ((ret = pthread_mutex_lock(&used_ports_lock))) {
-        printf("relay_clean_up: used_ports_lock mutex lock failed with code %d\n", ret);
+        log_printf(ERROR, "relay_clean_up: used_ports_lock mutex lock failed with code %d", ret);
     }
     used_ports &= ~(1 << relay->port_num);  // Set bit to 0 to indicate unused
     pthread_mutex_unlock(&used_ports_lock);
     pthread_mutex_destroy(&relay->relay_lock);
     pthread_cond_destroy(&relay->start_cond);
     if (relay->dev_id.uid == -1) {
-        printf("Cleaned up bad device %s%d\n", port_prefix, relay->port_num);
+        log_printf(DEBUG, "Cleaned up bad device %s%d\n", port_prefix, relay->port_num);
     } else {
-        printf("Cleaned up %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+        log_printf(DEBUG, "Cleaned up %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
     }
     free(relay);
 }
@@ -351,7 +351,7 @@ void* sender(void* relay_cast) {
     uint32_t pmap[MAX_DEVICES + 1];
     param_val_t* params = malloc(MAX_PARAMS * sizeof(param_val_t));  // Array of params to be filled on device_read()
     if (params == NULL) {
-        printf("sender: Failed to malloc\n");
+        log_printf(FATAL, "sender: Failed to malloc");
         exit(1);
     }
     uint32_t sub_map[MAX_DEVICES + 1];
@@ -360,17 +360,15 @@ void* sender(void* relay_cast) {
     uint64_t last_sent_ping_time = millis();
     while (1) {
         // Write to device if needed via a DEVICE_WRITE message
-        // TODO: Change for Shepherd
         get_cmd_map(pmap);
         if (pmap[0] & (1 << relay->shm_dev_idx)) {  // If bit i in pmap[0] != 0, there are values to write to device i
             // Read the new parameter values to write from shared memory as DEV_HANDLER from the COMMAND stream
-            // TODO: Should call a function in sensor_interface.py to get command
             device_read(relay->shm_dev_idx, DEV_HANDLER, COMMAND, pmap[1 + relay->shm_dev_idx], params);
             // Serialize and bulk transfer a DeviceWrite packet with PARAMS to the device
             msg = make_device_write(relay->dev_id.type, pmap[1 + relay->shm_dev_idx], params);
             ret = send_message(relay, msg);
             if (ret != 0) {
-                printf("Couldn't send DEVICE_WRITE to %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+                log_printf(WARN, "Couldn't send DEVICE_WRITE to %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             }
             destroy_message(msg);
         }
@@ -380,7 +378,7 @@ void* sender(void* relay_cast) {
             msg = make_ping();
             ret = send_message(relay, msg);
             if (ret != 0) {
-                printf("Couldn't send PING to %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+                log_printf(WARN, "Couldn't send PING to %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             }
             // Update the timestamp at which we sent a PING
             last_sent_ping_time = millis();
@@ -388,13 +386,12 @@ void* sender(void* relay_cast) {
         }
 
         // Send another SUBSCRIPTION_REQUEST if requested
-        // TODO: Subscription requests handled by API
         get_sub_requests(sub_map, DEV_HANDLER);
         if (sub_map[0] & (1 << relay->shm_dev_idx)) {  // If bit i in sub_map[0] != 0, there is a new SUBSCRIPTION_REQUEST to be sent to device i
             msg = make_subscription_request(relay->dev_id.type, sub_map[1 + relay->shm_dev_idx], SUB_INTERVAL);
             ret = send_message(relay, msg);
             if (ret != 0) {
-                printf("Couldn't send SUBSCRIPTION_REQUEST to %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+                log_printf(WARN, "Couldn't send SUBSCRIPTION_REQUEST to %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             }
             destroy_message(msg);
         }
@@ -431,7 +428,7 @@ void* receiver(void* relay_cast) {
     // An array of empty parameter values to be populated from DeviceData message payloads and written to shared memory
     param_val_t* vals = malloc(MAX_PARAMS * sizeof(param_val_t));
     if (vals == NULL) {
-        printf("receiver: Failed to malloc\n");
+        log_printf(FATAL, "receiver: Failed to malloc");
         exit(1);
     }
     while (1) {
@@ -449,14 +446,13 @@ void* receiver(void* relay_cast) {
             if (msg->message_id == DEVICE_DATA) {
                 // If received DEVICE_DATA, write to shared memory
                 parse_device_data(relay->dev_id.type, msg, vals);  // Get param values from payload
-                // TODO: Change for shepherd
                 device_write(relay->shm_dev_idx, DEV_HANDLER, DATA, *((uint32_t*) msg->payload), vals);
             } else if (msg->message_id == LOG) {
                 // If received LOG, send it to the logger
-                printf("[%s (0x%016llX)]: %s\n", get_device_name(relay->dev_id.type), relay->dev_id.uid, msg->payload);
+                log_printf(DEBUG, "[%s (0x%016llX)]: %s", get_device_name(relay->dev_id.type), relay->dev_id.uid, msg->payload);
             }
         } else {  // Invalid message type
-            printf("Dropped bad message (type %d) from %s (0x%016llX)\n", msg->message_id, get_device_name(relay->dev_id.type), relay->dev_id.uid);
+            log_printf(WARN, "Dropped bad message (type %d) from %s (0x%016llX)", msg->message_id, get_device_name(relay->dev_id.type), relay->dev_id.uid);
         }
         // Now that the message is taken care of, clear the message
         msg->message_id = 0x0;
@@ -486,13 +482,13 @@ int send_message(relay_t* relay, message_t* msg) {
     int len = calc_max_cobs_msg_length(msg);
     uint8_t* data = malloc(len);
     if (data == NULL) {
-        printf("send_message: Failed to malloc\n");
+        log_printf(FATAL, "send_message: Failed to malloc");
         exit(1);
     }
     len = message_to_bytes(msg, data, len);
     int transferred = writen(relay->file_descriptor, data, len);
     if (transferred != len) {
-        printf("Sent only %d out of %d bytes to %s (0x%016llX)\n", transferred, len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
+        log_printf(WARN, "Sent only %d out of %d bytes to %d (0x%016llX)\n", transferred, len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
     }
     free(data);
     return (transferred == len) ? 0 : -1;
@@ -522,14 +518,14 @@ int receive_message(relay_t* relay, message_t* msg) {
         num_bytes_read = read(relay->file_descriptor, &last_byte_read, 1);
         pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
         if (num_bytes_read == -1) {
-            printf("receive_message: Error on read() for ACK--%s\n", strerror(errno));
+            log_printf(ERROR, "receive_message: Error on read() for ACK--%s", strerror(errno));
             return 3;
         } else if (num_bytes_read == 0) {  // read() returned due to timeout
-            printf("Timed out when waiting for ACK from %s%d!\n", port_prefix, relay->port_num);
+            log_printf(WARN, "Timed out when waiting for ACK from %s%d!", port_prefix, relay->port_num);
             return 3;
         } else if (last_byte_read != 0x00) {
             // If the first thing received isn't a perfect ACK, we won't accept it
-            printf("Attempting to read delimiter but got 0x%02X from %s%d\n", last_byte_read, port_prefix, relay->port_num);
+            log_printf(WARN, "Attempting to read delimiter but got 0x%02X from %s%d\n", last_byte_read, port_prefix, relay->port_num);
             return 1;
         }
     } else {  // Receiving from a verified lowcar device
@@ -542,7 +538,7 @@ int receive_message(relay_t* relay, message_t* msg) {
                 sleep(TIMEOUT / 1000 + 1);
                 return 1;
             } else if (num_bytes_read == -1) {
-                printf("receive_message: error reading from file: %s\n", strerror(errno));
+                log_printf(ERROR, "receive_message: error reading from file: %s", strerror(errno));
                 return 1;
             }
             pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
@@ -551,7 +547,7 @@ int receive_message(relay_t* relay, message_t* msg) {
                 break;
             }
             // If we were able to read a byte but it wasn't the delimiter
-            printf("Attempting to read delimiter but got 0x%02X from %s%d\n", last_byte_read, port_prefix, relay->port_num);
+            log_printf(WARN, "Attempting to read delimiter but got 0x%02X from %s%d\n", last_byte_read, port_prefix, relay->port_num);
         }
     }
 
@@ -562,18 +558,18 @@ int receive_message(relay_t* relay, message_t* msg) {
         return 1;
     } else if (cobs_len > (MESSAGE_ID_SIZE + PAYLOAD_LENGTH_SIZE + MAX_PAYLOAD_SIZE + CHECKSUM_SIZE + 1)) {  // + 1 for cobs encoding overhead
         // Got some weird message that is unusually long (longer than a valid message with the longest payload)
-        printf("Received a cobs length that is too large\n");
+        log_printf(WARN, "Received a cobs length that is too large");
         return 1;
     } else if (cobs_len < (MESSAGE_ID_SIZE + PAYLOAD_LENGTH_SIZE + CHECKSUM_SIZE + 1)) {  // + 1 for cobs encoding overhead
         // Got some weird message that is unusually short (shorter than a PING with no payload)
-        printf("Received a cobs length that is too small\n");
+        log_printf(WARN, "Received a cobs length that is too small");
         return 1;
     }
 
     // Allocate buffer to read message into
     uint8_t* data = malloc(DELIMITER_SIZE + COBS_LENGTH_SIZE + cobs_len);
     if (data == NULL) {
-        printf("receive_message: Failed to malloc\n");
+        log_printf(FATAL, "receive_message: Failed to malloc");
         exit(1);
     }
     data[0] = 0x00;
@@ -582,7 +578,7 @@ int receive_message(relay_t* relay, message_t* msg) {
     // Read the message
     num_bytes_read = readn(relay->file_descriptor, &data[2], cobs_len);
     if (num_bytes_read != cobs_len) {
-        printf("Read only %d out of %d bytes from %s (0x%016llX)\n", num_bytes_read, cobs_len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
+        log_printf(WARN, "Read only %d out of %d bytes from %s (0x%016llX)\n", num_bytes_read, cobs_len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
         free(data);
         return 1;
     }
@@ -591,7 +587,7 @@ int receive_message(relay_t* relay, message_t* msg) {
     int ret = parse_message(data, msg);
     free(data);
     if (ret != 0) {
-        printf("Couldn't parse message from %s%d\n", port_prefix, relay->port_num);
+        log_printf(WARN, "Couldn't parse message from %s%d\n", port_prefix, relay->port_num);
         return 2;
     }
     return 0;
@@ -621,11 +617,11 @@ int verify_lowcar(relay_t* relay) {
     message_t* ack = make_empty(MAX_PAYLOAD_SIZE);
     ret = receive_message(relay, ack);
     if (ret != 0) {
-        printf("Didn't receive ACK\n");
+        log_printf(DEBUG, "Didn't receive ACK");
         destroy_message(ack);
         return 2;
     } else if (ack->message_id != ACKNOWLEDGEMENT) {
-        printf("Message is not an ACK, but of type %d\n", ack->message_id);
+        log_printf(DEBUG, "Message is not an ACK, but of type %d", ack->message_id);
         destroy_message(ack);
         return 2;
     }
@@ -638,14 +634,14 @@ int verify_lowcar(relay_t* relay) {
     if (strcmp(port_prefix, "/dev/ttyACM") == 0) {
         struct termios toptions;
         if (tcgetattr(relay->file_descriptor, &toptions) < 0) {  // Get current options
-            printf("verify_lowcar: Couldn't get term attributes for %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+            log_printf(ERROR, "verify_lowcar: Couldn't get term attributes for %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             return -1;
         }
         toptions.c_cc[VMIN] = 1;  // read() must read at least a byte before returning
         // Save changes to TOPTIONS immediately using flag TCSANOW
         tcsetattr(relay->file_descriptor, TCSANOW, &toptions);
         if (tcsetattr(relay->file_descriptor, TCSAFLUSH, &toptions) < 0) {
-            printf("verify_lowcar: Couldn't set term attributes for %s (0x%016llX)\n", get_device_name(relay->dev_id.type), relay->dev_id.uid);
+            log_printf(ERROR, "verify_lowcar: Couldn't set term attributes for %s (0x%016llX)", get_device_name(relay->dev_id.type), relay->dev_id.uid);
             return -1;
         }
     }
@@ -654,7 +650,7 @@ int verify_lowcar(relay_t* relay) {
     memcpy(&relay->dev_id.type, &ack->payload[0], 1);
     memcpy(&relay->dev_id.year, &ack->payload[1], 1);
     memcpy(&relay->dev_id.uid, &ack->payload[2], 8);
-    printf("Connected %s (0x%016llX) from year %d!\n", get_device_name(relay->dev_id.type), relay->dev_id.uid, relay->dev_id.year);
+    log_printf(INFO, "Connected %s (0x%016llX) from year %d!", get_device_name(relay->dev_id.type), relay->dev_id.uid, relay->dev_id.year);
     relay->last_received_msg_time = millis();
     destroy_message(ack);
     return 0;
@@ -674,7 +670,7 @@ int connect_socket(const char* socket_name) {
     // Make a local socket for sending/receiving raw byte streams
     int fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {
-        printf("connect_socket: Couldn't create socket--%s\n", strerror(errno));
+        log_printf(ERROR, "connect_socket: Couldn't create socket--%s", strerror(errno));
         return -1;
     }
     // Connect the socket to the found device's socket address
@@ -683,7 +679,7 @@ int connect_socket(const char* socket_name) {
     dev_socket_addr.sun_family = AF_UNIX;
     strcpy(dev_socket_addr.sun_path, socket_name);
     if (connect(fd, (struct sockaddr*) &dev_socket_addr, sizeof(dev_socket_addr)) != 0) {
-        printf("connect_socket: Couldn't connect socket %s--%s\n", dev_socket_addr.sun_path, strerror(errno));
+        log_printf(ERROR, "connect_socket: Couldn't connect socket %s--%s", dev_socket_addr.sun_path, strerror(errno));
         remove(socket_name);
         return -1;
     }
@@ -713,14 +709,14 @@ int serialport_open(const char* port_name) {
     // Need to specify O_NOCTTY to prevent attaching devices from becoming controlling terminals; see wiki
     int fd = open(port_name, O_RDWR | O_NOCTTY);
     if (fd == -1) {
-        printf("serialport_open: Unable to open port %s\n", port_name);
+        log_printf(ERROR, "serialport_open: Unable to open port %s", port_name);
         return -1;
     }
 
     // Get the current serialport options
     struct termios toptions;
     if (tcgetattr(fd, &toptions) < 0) {
-        printf("serialport_open: Couldn't get term attributes for port %s\n", port_name);
+        log_printf(ERROR, "serialport_open: Couldn't get term attributes for port %s", port_name);
         return -1;
     }
 
@@ -746,7 +742,7 @@ int serialport_open(const char* port_name) {
     // Save changes to TOPTIONS. (Flag TCSANOW saves immediately)
     tcsetattr(fd, TCSANOW, &toptions);
     if (tcsetattr(fd, TCSAFLUSH, &toptions) < 0) {
-        printf("serialport_open: Couldn't set term attributes for port %s\n", port_name);
+        log_printf(ERROR, "serialport_open: Couldn't set term attributes for port %s", port_name);
         return -1;
     }
 
@@ -788,7 +784,7 @@ int main(int argc, char* argv[]) {
     if (argc == 2 && strcmp(argv[1], "virtual") == 0) {
         port_prefix = "/tmp/ttyACM";
     }
-    printf("DEV_HANDLER initialized.\n");
+    log_printf(INFO, "DEV_HANDLER initialized.");
     poll_connected_devices();
     return 0;
 }

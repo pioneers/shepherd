@@ -317,7 +317,6 @@ int writen(int fd, void* buf, uint16_t n) {
 
 /************** LOG_PRINTF STUB ***********/
 
-/*
 void log_printf(int level, char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -332,5 +331,5 @@ void log_printf(int level, char* format, ...) {
     vprintf(buf, args);
     va_end(args);
 }
-*/
+
 
