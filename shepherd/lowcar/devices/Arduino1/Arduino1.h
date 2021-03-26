@@ -20,6 +20,11 @@ class Arduino1 : public Device {
 
     // Changes several of the readable params for testing
     virtual void device_actions();
+    private:
+      // number of buttons
+      const static int NUM_SWITCHES;
+      // TODO: update pins that the buttons read data from (defined in defs.h)
+      const static uint8_t pins[];
 };
 
 #endif

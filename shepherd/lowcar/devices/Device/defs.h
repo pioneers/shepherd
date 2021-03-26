@@ -23,17 +23,25 @@ enum class Analog : uint8_t {
     IO0 = A0,
     IO1 = A1,
     IO2 = A2,
-    IO3 = A3
+    IO3 = A3,
+    IO4 = A4,
+    IO5 = A5
 };
 
 // identification for digital pins
 enum class Digital : uint8_t {
-    IO4 = 2,
-    IO5 = 3,
-    IO6 = 6,
-    IO7 = 9,
-    IO8 = 10,
-    IO9 = 11
+    IO6 = 2,
+    IO7 = 3,
+    IO8 = 4,
+    IO9 = 5,
+    IO10 = 6,
+    IO11 = 7,
+    I012 = 8,
+    I013 = 9,
+    I014 = 10,
+    I015 = 11,
+    I016 = 12,
+    IO17 = 13
 };
 
 /* The types of messages */
