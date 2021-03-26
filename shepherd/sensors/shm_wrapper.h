@@ -7,6 +7,8 @@
 
 #include "shepherd_util.h"  // for runtime constants
 
+#include "../logger/logger.h"
+
 // names of various objects used in shm_wrapper; should not be used outside of shm_wrapper.c, shm_start.c, and shm_stop.c
 #define DEV_SHM_NAME "/dev-shm"        // name of shared memory block across devices
 #define CATALOG_MUTEX_NAME "/cat-sem"  // name of semaphore used as a mutex on the catalog

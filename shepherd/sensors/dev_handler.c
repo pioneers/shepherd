@@ -492,7 +492,7 @@ int send_message(relay_t* relay, message_t* msg) {
     len = message_to_bytes(msg, data, len);
     int transferred = writen(relay->file_descriptor, data, len);
     if (transferred != len) {
-        printf("Sent only %d out of %d bytes to %d (0x%016llX)\n", transferred, len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
+        printf("Sent only %d out of %d bytes to %s (0x%016llX)\n", transferred, len, get_device_name(relay->dev_id.type), relay->dev_id.uid);
     }
     free(data);
     return (transferred == len) ? 0 : -1;

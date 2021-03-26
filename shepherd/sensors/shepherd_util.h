@@ -33,9 +33,11 @@
 // The interval (microseconds) at which we wait between detecting connects/disconnects
 #define POLL_INTERVAL 200000
 
+#define MAX_LOG_LEN 512
+
 
 /******************** LOG_PRINTF STUB *******************/
-
+/*
 // Copied from logger.h for Shepherd
 typedef enum log_level {
     DEBUG,
@@ -45,8 +47,8 @@ typedef enum log_level {
     ERROR,
     FATAL
 } log_level_t;
-
-void log_printf(int level, char* format, ...);
+*/
+// void log_printf(int level, char* format, ...);
 
 // ***************************** CUSTOM TYPES ***************************** //
 

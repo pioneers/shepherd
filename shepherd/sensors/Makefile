@@ -1,16 +1,18 @@
-LIBFLAGS=-pthread -lrt -Wall
-DEPENDCIES=dev_handler.c message.c shepherd_util.c shm_wrapper.c
+LIBFLAGS=-lrt -pthread -Wall # add -lrt to the front of this for linux, but not mac
+DEPENDENCIES=message.c shepherd_util.c shm_wrapper.c ../logger/logger.c 
 
-dev_handler: shm_api.c $(DEPENDCIES)
-	gcc $(DEPENDCIES) -o dev_handler $(LIBFLAGS)
+all: dev_handler shm_api shm_start shm_stop
 
-shm_api.c: shm_api.pyx setup.py shm_wrapper.c shepherd_util.c
+dev_handler: dev_handler.c $(DEPENDENCIES)
+	gcc $^ -o dev_handler $(LIBFLAGS)
+
+shm_api: shm_api.pyx setup.py shm_wrapper.c shepherd_util.c
 	python3 setup.py build_ext -i
 
-shm_start: shm_start.c $(FILES)
+shm_start: shm_start.c $(DEPENDENCIES)
 	gcc $^ -o $@ $(LIBS)
 
-shm_stop: shm_stop.c $(FILES)
+shm_stop: shm_stop.c $(DEPENDENCIES)
 	gcc $^ -o $@ $(LIBS)
 
 clean:

@@ -55,7 +55,8 @@ enum class DeviceType : uint16_t {
     BATTERY_BUZZER = 0x03,
     SERVO_CONTROL = 0x04,
     POLAR_BEAR = 0x05,
-    KOALA_BEAR = 0x06
+    KOALA_BEAR = 0x06,
+    ARDUINO1 = 0x07,
     // DISTANCE_SENSOR   = 0x07 Uncomment when implemented
 };
 
