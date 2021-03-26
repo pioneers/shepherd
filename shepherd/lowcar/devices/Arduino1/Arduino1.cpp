@@ -22,7 +22,7 @@ const uint8_t Arduino1::pins[] = {
 Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
     // stuff here
     this->led = new StatusLED();
-    this->led::slow_blink(5);
+    this->led->slow_blink(5);
 }
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {

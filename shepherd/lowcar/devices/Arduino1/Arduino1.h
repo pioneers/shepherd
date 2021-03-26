@@ -27,5 +27,5 @@ class Arduino1 : public Device {
       const static uint8_t pins[];
 
       StatusLED* led;
-      
+
 };
