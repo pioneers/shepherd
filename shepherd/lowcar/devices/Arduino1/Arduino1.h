@@ -25,4 +25,7 @@ class Arduino1 : public Device {
       const static int NUM_BUTTONS;
       // TODO: update pins that the buttons read data from (defined in defs.h)
       const static uint8_t pins[];
+
+      StatusLED* led;
+      
 };

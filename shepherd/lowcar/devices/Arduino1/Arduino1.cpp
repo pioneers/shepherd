@@ -21,6 +21,7 @@ const uint8_t Arduino1::pins[] = {
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
     // stuff here
+    this->led = new StatusLED();
     this->led::slow_blink(5);
 }
 
