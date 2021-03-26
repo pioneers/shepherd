@@ -28,7 +28,7 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     return sizeof(uint8_t);
 }
 
-size_t DummyDevice::device_write(uint8_t param, uint8_t* data_buf) {
+size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
     return 0;
 }
 
