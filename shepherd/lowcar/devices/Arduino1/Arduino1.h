@@ -22,7 +22,7 @@ class Arduino1 : public Device {
     virtual void device_actions();
     private:
       // number of buttons
-      const static int NUM_SWITCHES;
+      const static int NUM_BUTTONS;
       // TODO: update pins that the buttons read data from (defined in defs.h)
       const static uint8_t pins[];
 };
