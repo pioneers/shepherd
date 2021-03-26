@@ -1,11 +1,15 @@
 #include "Arduino1.h"
 
 // number of switches on a limit switch (how many input pins)
-const int Arduino1::NUM_BUTTONS = 3;
+const int Arduino1::NUM_BUTTONS = 6;
 const uint8_t Arduino1::pins[] = {
     (const uint8_t) Analog::IO0,
     (const uint8_t) Analog::IO1,
-    (const uint8_t) Analog::IO2};
+    (const uint8_t) Analog::IO2,
+    (const uint8_t) Analog::IO3,
+    (const uint8_t) Analog::IO4,
+    (const uint8_t) Analog::IO5,
+    };
 
 // The numbering of each parameter
 // typedef enum {
@@ -22,6 +26,10 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf and return the state of the switch
     data_buf[0] = (digitalRead(this->pins[param]) == LOW);
     return sizeof(uint8_t);
+}
+
+size_t DummyDevice::device_write(uint8_t param, uint8_t* data_buf) {
+    return 0;
 }
 
 void Arduino1::device_enable() {
