@@ -18,8 +18,10 @@ const uint8_t Arduino1::pins[] = {
 //     BUTTON3 = 2,
 // } param;
 
+// Constructor is called once and immediately when the Arduino is plugged in
 Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
     // stuff here
+    this->led::slow_blink(5);
 }
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
