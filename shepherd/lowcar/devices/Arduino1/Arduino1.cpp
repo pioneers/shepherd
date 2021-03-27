@@ -52,11 +52,11 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     //     this->led->slow_blink(3);
     // }
 
-    static uint64_t last_update_time = 0;
+    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
 
     // Simulate read-only params changing
-    if (curr - last_update_time > 500) {
+    if (curr - last_update_time[param] > 500) {
         this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
         last_update_time = curr;
     }
