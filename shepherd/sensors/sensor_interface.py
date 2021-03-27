@@ -7,7 +7,6 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 """
 import threading
 import time
-from lowcar_message import LowcarMessage
 import queue
 import pyximport
 pyximport.install()
@@ -27,6 +26,7 @@ from Sensors import (
     HEADER_COMMAND_MAPPINGS,
     Parameter,
     previous_parameter_values,
+    LowcarMessage
 )
 from Utils import (
     LCM_TARGETS,
@@ -143,6 +143,8 @@ def main():
     try:
         device_thread = threading.Thread(target=thread_device_commander)
         device_sentinel_thread = threading.Thread(target=thread_device_sentinel, args=(PARAMS_TO_READ))
+        while True:
+            pass
     except:
         print("Couldn't start device_commander() thread")
 
