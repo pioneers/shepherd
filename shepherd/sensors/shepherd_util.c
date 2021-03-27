@@ -35,6 +35,11 @@ device_t Arduino1 = {
     .params = {
         // Read-only
         {.name = "button1", .type = INT, .read = 1, .write = 0},
+        {.name = "button2", .type = INT, .read = 1, .write = 0},
+        {.name = "button3", .type = INT, .read = 1, .write = 0},
+        {.name = "button4", .type = INT, .read = 1, .write = 0},
+        {.name = "button5", .type = INT, .read = 1, .write = 0},
+        {.name = "button6", .type = INT, .read = 1, .write = 0},
         // Read-able and write-able
         /*
         {.name = "PIEF", .type = INT, .read = 1, .write = 1},
