@@ -52,7 +52,7 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 
     // log each button every 500ms
     if (curr - last_update_time[param] > 500) {
-        this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
+        this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
         last_update_time[param] = curr;
     }
 
