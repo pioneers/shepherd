@@ -242,15 +242,15 @@ fire_lever = GenericButton(name="fire_lever", should_poll=True, lcm_header=SHEPH
 traffic_button = GenericButton(name="traffic_button", should_poll=True, lcm_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
 traffic_lights = [TrafficLight(name="traffic_light", should_poll=False)]
 
-num_dehydration_buttons = 8
+num_dehydration_buttons = 7
 
 dehydration_buttons = [DehydrationButton(name=f"light{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
 fire_light = Light(name="fire_light", should_poll=False)
 
 
-arduino_1 = Device(1, 1, [lights[0], lights[1], lights[2], lights[5], lights[7]])
-arduino_2 = Device(2, 2, [lights[3], lights[4], lights[7], traffic_lights[0]])
+arduino_1 = Device(1, 6565010684850799022, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
+arduino_2 = Device(2, 2, [traffic_lights[0]])
 
 ################################################
 # Evergreen Variables (may still need to be updated)
