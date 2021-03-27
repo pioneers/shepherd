@@ -65,6 +65,8 @@ enum class DeviceType : uint16_t {
     POLAR_BEAR = 0x05,
     KOALA_BEAR = 0x06,
     ARDUINO1 = 0x07,
+    ARDUINO2 = 0x08,
+    ARDUINO3 = 0x09,
     // DISTANCE_SENSOR   = 0x07 Uncomment when implemented
 };
 
