@@ -1,15 +1,32 @@
 #include "Arduino1.h"
 
 // number of switches on a limit switch (how many input pins)
-const int Arduino1::NUM_BUTTONS = 6;
+const int Arduino1::NUM_BUTTONS = 7;
+/*
+button1: 2
+light1: 3
+button2: 4
+light2: 5
+button3: 6
+light3: 7
+button4: 8
+light4: 9
+button5: 10
+light5: A0
+button6: 14
+light6: A1
+button7: 15
+light7: A2
+*/
 const uint8_t Arduino1::pins[] = {
-    (const uint8_t) Analog::IO0,
-    (const uint8_t) Analog::IO1,
-    (const uint8_t) Analog::IO2,
-    (const uint8_t) Analog::IO3,
-    (const uint8_t) Analog::IO4,
-    (const uint8_t) Analog::IO5,
-    };
+    2,
+    4,
+    6,
+    8,
+    10,
+    14,
+    15
+};
 
 // The numbering of each parameter
 // typedef enum {
@@ -29,7 +46,10 @@ Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf and return the state of the switch
-    data_buf[0] = (digitalRead(this->pins[param]) == LOW);
+    data_buf[0] = (digitalRead(this->pins[param]) == HIGH);
+    if (data_buf[0] == true) {
+        this->led->slow_blink(3);
+    }
     return sizeof(uint8_t);
 }
 
@@ -38,6 +58,7 @@ size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
 }
 
 void Arduino1::device_enable() {
+    // todo: ask ben what is diff between device enable and constructor
     this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
     // set all pins to INPUT mode
     for (int i = 0; i < Arduino1::NUM_BUTTONS; i++) {
