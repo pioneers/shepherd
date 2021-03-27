@@ -28,7 +28,7 @@ device_t DummyDevice = {
         {.name = "DUSK", .type = INT, .read = 1, .write = 1},
     }};
 
-device_t DummyDevice = {
+device_t Arduino1 = {
     .type = 0,
     .name = "DummyDevice",
     .num_params = 1,
