@@ -30,7 +30,7 @@ device_t DummyDevice = {
 
 device_t Arduino1 = {
     .type = 0,
-    .name = "DummyDevice",
+    .name = "Arduino1",
     .num_params = 1,
     .params = {
         // Read-only
