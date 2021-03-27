@@ -29,7 +29,7 @@ device_t DummyDevice = {
     }};
 
 device_t Arduino1 = {
-    .type = 0,
+    .type = 7,
     .name = "Arduino1",
     .num_params = 1,
     .params = {
@@ -223,6 +223,7 @@ __attribute__((constructor)) void devices_arr_init() {
     DEVICES[UnstableTestDevice.type] = &UnstableTestDevice;
     DEVICES[SimpleTestDevice.type] = &SimpleTestDevice;
     DEVICES[GeneralTestDevice.type] = &GeneralTestDevice;
+    DEVICES[Arduino1.type] = &Arduino1;
 }
 
 device_t* get_device(uint8_t dev_type) {
