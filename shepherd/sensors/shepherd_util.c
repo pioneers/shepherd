@@ -28,6 +28,23 @@ device_t DummyDevice = {
         {.name = "DUSK", .type = INT, .read = 1, .write = 1},
     }};
 
+device_t DummyDevice = {
+    .type = 0,
+    .name = "DummyDevice",
+    .num_params = 1,
+    .params = {
+        // Read-only
+        {.name = "button1", .type = INT, .read = 1, .write = 0},
+        // Read-able and write-able
+        /*
+        {.name = "PIEF", .type = INT, .read = 1, .write = 1},
+        {.name = "FUNTIME", .type = FLOAT, .read = 1, .write = 1},
+        {.name = "SHEEP", .type = BOOL, .read = 1, .write = 1},
+        {.name = "DUSK", .type = INT, .read = 1, .write = 1},
+        */
+    }};
+
+
 device_t LimitSwitch = {
     .type = 1,
     .name = "LimitSwitch",
