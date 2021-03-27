@@ -45,8 +45,7 @@ class Device:
     def __init__(self, device_type, uuid, parameters: list):
         self.uuid = uuid
         self.type = device_type
-        self.params: dict = 
-            { parameter.name: parameter for parameter in parameters }
+        self.params = { parameter.name: parameter for parameter in parameters }
         self.polling_parameters = []
         for parameter in parameters:
             parameter.arduino = self

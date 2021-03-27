@@ -2,6 +2,7 @@
 
 // number of switches on a limit switch (how many input pins)
 const int Arduino1::NUM_BUTTONS = 7;
+const int Arduino1::NUM_LIGHTS = 7;
 /*
 button1: 2
 light1: 3
@@ -19,13 +20,22 @@ button7: 15
 light7: A2
 */
 const uint8_t Arduino1::pins[] = {
+    // buttons 1 - 7
     2,
     4,
     6,
     8,
     10,
     14,
-    15
+    15,
+    // lights 1 - 7
+    3,
+    5,
+    7,
+    9,
+    A0,
+    A1,
+    A2
 };
 
 // The numbering of each parameter
@@ -60,6 +70,8 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 }
 
 size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
+    // TODO: add some error handling?
+    digitalWrite(Arduino1::pins[param], data_buf[0]);
     return 0;
 }
 
@@ -69,6 +81,10 @@ void Arduino1::device_enable() {
     // set all pins to INPUT mode
     for (int i = 0; i < Arduino1::NUM_BUTTONS; i++) {
         pinMode(Arduino1::pins[i], INPUT);
+    }
+
+    for (int i = 0; i < Arduino1::NUM_LIGHTS; i++) {
+        pinMode(Arduino1::pins[i + NUM_BUTTONS], OUTPUT);
     }
 }
 
