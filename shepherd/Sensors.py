@@ -30,7 +30,7 @@ from Utils import *
 import queue
 from LCM import *
 import time
-from sensors.sensor_interface import LowcarMessage
+# from sensors.sensor_interface import LowcarMessage
 
 ################################################
 # Evergreen Methods
