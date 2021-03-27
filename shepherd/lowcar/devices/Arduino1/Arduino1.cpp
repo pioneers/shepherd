@@ -49,7 +49,7 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     data_buf[0] = (digitalRead(this->pins[param]) == HIGH);
     if (data_buf[0] == true) {
         this->led->slow_blink(3);
-    })
+    }
     return sizeof(uint8_t);
 }
 
