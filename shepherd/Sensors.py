@@ -187,9 +187,9 @@ previous_parameter_values = {} # TODO: where should we put this?
 
 class Light(Parameter):
     def value_from_header(self, header):
-        if header[0] == SENSOR_HEADER.TURN_ON_LIGHT:
+        if header[0] == SENSOR_HEADER.TURN_ON_LIGHT or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT:
             return 1.0
-        elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT:
+        elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT:
             return 0.0
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
@@ -246,6 +246,7 @@ num_dehydration_buttons = 8
 
 dehydration_buttons = [DehydrationButton(name=f"light{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
+fire_light = Light(name="fire_light", should_poll=False)
 
 
 arduino_1 = Device(1, 1, [lights[0], lights[1], lights[2], lights[5], lights[7]])
@@ -258,7 +259,9 @@ arduino_2 = Device(2, 2, [lights[3], lights[4], lights[7], traffic_lights[0]])
 HEADER_MAPPINGS = {
     SENSOR_HEADER.TURN_ON_LIGHT : lights,
     SENSOR_HEADER.TURN_OFF_LIGHT : lights,
-    SENSOR_HEADER.SET_TRAFFIC_LIGHT : traffic_lights
+    SENSOR_HEADER.SET_TRAFFIC_LIGHT : traffic_lights,
+    SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
+    SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light]
 }
 
 #used to request values from lowcar (non-polled)

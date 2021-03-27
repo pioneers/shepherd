@@ -50,6 +50,50 @@ device_t Arduino1 = {
         */
     }};
 
+    device_t Arduino2 = {
+    .type = 6,
+    .name = "Arduino2",
+    .num_params = 6,
+    .params = {
+        // Read-only
+        {.name = "desert_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "dehydration_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "hypothermia_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "airport_linebreak", .type = BOOL, .read = 1, .write = 0},
+
+        {.name = "fire_lever", .type = BOOL, .read = 1, .write = 0},
+
+        {.name = "fire_light", .type = BOOL, .read = 0, .write = 1},
+        // Read-able and write-able
+        /*
+        {.name = "PIEF", .type = INT, .read = 1, .write = 1},
+        {.name = "FUNTIME", .type = FLOAT, .read = 1, .write = 1},
+        {.name = "SHEEP", .type = BOOL, .read = 1, .write = 1},
+        {.name = "DUSK", .type = INT, .read = 1, .write = 1},
+        */
+    }};
+
+    device_t Arduino3 = {
+    .type = 4,
+    .name = "Arduino1",
+    .num_params = 4,
+    .params = {
+        // Read-only
+        {.name = "city_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "traffic_linebreak", .type = BOOL, .read = 1, .write = 0},
+
+        {.name = "traffic_light", .type = BOOL, .read = 0, .write = 1},
+        
+        {.name = "traffic_button", .type = BOOL, .read = 1, .write = 0},
+        // Read-able and write-able
+        /*
+        {.name = "PIEF", .type = INT, .read = 1, .write = 1},
+        {.name = "FUNTIME", .type = FLOAT, .read = 1, .write = 1},
+        {.name = "SHEEP", .type = BOOL, .read = 1, .write = 1},
+        {.name = "DUSK", .type = INT, .read = 1, .write = 1},
+        */
+    }};
+
 
 device_t LimitSwitch = {
     .type = 1,

@@ -172,6 +172,8 @@ class SENSOR_HEADER():
     # {num: int}
     SET_TRAFFIC_LIGHT = "set_traffic_light"
     SET_ALL_SENSORS = "set_all_sensors"
+    TURN_ON_FIRE_LIGHT = "turn_on_fire_light"
+    TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
 
 # pylint: disable=invalid-name
 

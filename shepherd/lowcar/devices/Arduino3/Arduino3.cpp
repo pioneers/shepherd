@@ -1,8 +1,8 @@
-#include "Arduino1.h"
+#include "Arduino3.h"
 
 // number of switches on a limit switch (how many input pins)
-const int Arduino1::NUM_BUTTONS = 7;
-const int Arduino1::NUM_LIGHTS = 7;
+const int Arduino3::NUM_INPUTS = 4;
+const int Arduino3::NUM_LIGHTS = 2;
 /*
 button1: 2
 light1: 3
@@ -19,23 +19,12 @@ light6: A1
 button7: 15
 light7: A2
 */
-const uint8_t Arduino1::pins[] = {
-    // buttons 1 - 7
+const uint8_t Arduino3::pins[] = {
+    // 4 pins: 2 city_linebreak, 4 traffic_linebreak, 7 traffic_light, 6 traffic_button
     2,
     4,
-    6,
-    8,
-    10,
-    14,
-    15,
-    // lights 1 - 7
-    3,
-    5,
     7,
-    9,
-    A0,
-    A1,
-    A2
+    6,
 };
 
 // The numbering of each parameter
@@ -46,12 +35,19 @@ const uint8_t Arduino1::pins[] = {
 // } param;
 
 // Constructor is called once and immediately when the Arduino is plugged in
-Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
+Arduino3::Arduino3() : Device(DeviceType::Arduino3, 13) {
 }
 
-size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
+size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf and return the state of the switch
-    data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+    if (param < 2) {
+        data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
+    }
+    else {
+        data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+    }
+
+
     // this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
     // if (data_buf[0] == true) {
     //     this->led->slow_blink(3);
@@ -69,35 +65,38 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     return sizeof(uint8_t);
 }
 
-size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
+size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
     // TODO: add some error handling?
-    if (data_buf[0] == 1) {
-        digitalWrite(Arduino1::pins[param], HIGH);
+    if (param != 2) {
+        this->msngr->lowcar_printf("trying to write to something that is not traffic_light");
+    }
+    else if (data_buf[0] == 1) {
+        digitalWrite(Arduino3::pins[param], HIGH);
     }
     else {
-        digitalWrite(Arduino1::pins[param], LOW);
+        digitalWrite(Arduino3::pins[param], LOW);
     }
-    return 0;
+    return 0;;
 }
 
-void Arduino1::device_enable() {
+void Arduino3::device_enable() {
     // todo: ask ben what is diff between device enable and constructor
-    this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
+    this->msngr->lowcar_printf("ARDUINO 3 ENABLING");
     // set all pins to INPUT mode
-    for (int i = 0; i < Arduino1::NUM_BUTTONS; i++) {
-        pinMode(Arduino1::pins[i], INPUT);
+    for (int i = 0; i < Arduino3::NUM_INPUTS; i++) {
+        pinMode(Arduino3::pins[i], INPUT);
     }
 
-    for (int i = 0; i < Arduino1::NUM_LIGHTS; i++) {
-        pinMode(Arduino1::pins[i + NUM_BUTTONS], OUTPUT);
+    for (int i = 0; i < Arduino3::NUM_LIGHTS; i++) {
+        pinMode(Arduino3::pins[i + NUM_INPUTS], OUTPUT);
     }
 }
 
-void Arduino1::device_disable() {
-    this->msngr->lowcar_printf("ARDUINO 2 DISABLED");
+void Arduino3::device_disable() {
+    this->msngr->lowcar_printf("ARDUINO 3 DISABLED");
 }
 
-void Arduino1::device_actions() {
+void Arduino3::device_actions() {
     /*
     static uint64_t last_update_time = 0;
     // static uint64_t last_count_time = 0;
