@@ -41,7 +41,7 @@ Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf and return the state of the switch
-    data_buf[0] = digitalRead(this->pins[param]) ? 1 : 0;
+    data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
     // this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
     // if (data_buf[0] == true) {
     //     this->led->slow_blink(3);

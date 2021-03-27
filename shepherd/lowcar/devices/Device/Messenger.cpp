@@ -33,7 +33,7 @@ Messenger::Messenger() {
 Status Messenger::send_message(MessageID msg_id, message_t* msg, dev_id_t* dev_id) {
     // Fill MessageID field
     msg->message_id = msg_id;
-
+    delay(10);
     /*
      * Build the message
      * All other Message Types (DEVICE_DATA, LOG) should already be built (if needed)
@@ -77,7 +77,7 @@ Status Messenger::read_message(message_t* msg) {
     if (!Serial.available()) {
         return Status::NO_DATA;
     }
-
+    delay(10);
     // Find the start of the packet (the delimiter)
     int last_byte_read = -1;
     while (Serial.available()) {
