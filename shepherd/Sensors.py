@@ -25,11 +25,12 @@ args: {
 
 Details for each header will live in Utils.py
 """
-
+from __future__ import annotations
 from Utils import *
 import queue
 from LCM import *
 import time
+from sensors.sensor_interface import LowcarMessage
 
 ################################################
 # Evergreen Methods
@@ -55,13 +56,16 @@ class Device:
     def get_identifier(self):
         return f"{self.uuid}_{self.type}"
 
-    def get_param(param: str): Parameter
+    def get_param(self, param: str) -> Parameter:
+        """
+        Returns Parameter with name `param`.
+        """
         if param not in self.params:
             raise Exception("Parameter {param} not found in arduino {self}")
         self.params.get(param)
     
     def __str__(self):
-        return get_identifier()
+        return self.get_identifier()
 
 class Parameter:
     """
@@ -157,7 +161,7 @@ class DehydrationButton(Parameter):
     def lcm_message_from_state_change(self, value: float):
         # fire lever, traffic button
         args = {
-            "button": self.id
+            "button": self.identifier
         }
         return args
         # not here
@@ -227,6 +231,3 @@ arduinos = {
 }
 
 ################################################
-
-if __name__ == '__main__':
-    start()

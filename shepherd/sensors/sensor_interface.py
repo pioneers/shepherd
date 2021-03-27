@@ -5,25 +5,31 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 - Ex: Provide the device uid and param index of a button
 -     This will write to LCM if the button has been pressed.
 """
-
 import threading
+import time
+import queue
 import pyximport
 pyximport.install()
 import shm_api
 import sys
 sys.path.insert(1, '../')
-from LCM import *
+from LCM import (
+    lcm_send,
+    lcm_start_read
+)
 from Sensors import (
-    arduino_1, 
-    arduino_2, 
+    arduino_1,
+    arduino_2,
     arduinos,
-    translate_lcm_message, 
-    HEADER_MAPPINGS, 
+    translate_lcm_message,
+    HEADER_MAPPINGS,
     HEADER_COMMAND_MAPPINGS,
     Parameter,
     previous_parameter_values,
 )
-
+from Utils import (
+    LCM_TARGETS,
+)
 #LCM -> TURN_ON_LIGHT, {light: 8}
 #LCM -> SET_TRAFFIC_LIGHT, {color: "green"}
 
@@ -85,7 +91,7 @@ class LowcarMessage:
         self.params = params
 
     def get_dev_ids(self):
-        return self.dev_uids
+        return self.dev_ids
 
     def get_params(self):
         return self.params
@@ -101,8 +107,8 @@ def place_device_command(lowcar_message):
     all_dev_ids = lowcar_message.get_dev_ids()
     all_params = lowcar_message.get_params()
 
-    for i in range(len(dev_ids)):
-        dev_id = dev_ids[i]
+    for i in range(len(all_dev_ids)):
+        dev_id = all_dev_ids[i]
         params = all_params[i]
         for (name, val) in params.items():
             set_value(dev_id, name, val)
@@ -116,7 +122,8 @@ def read_device_data(dev_id, param_name):
     Returns:
         LowcarMessage: holds the param value
     """
-    dev_params = get_value(dev_id, param_name)  # returns param value corresponding to param_name
+    # TODO: if confused, print dev_param. is it singular?
+    dev_param = get_value(dev_id, param_name)  # returns param value corresponding to param_name
     return LowcarMessage([dev_id], [{param_name: dev_param}])
 
 def thread_device_commander():
@@ -153,18 +160,19 @@ def thread_device_sentinel(params_to_read):
         for device, params in params_to_read:
             dev_data: LowcarMessage = read_device_data(device, params)
             # debounce it TODO
-            for i, device in enumerate(dev_data.dev_ids):
-                arduino = arduinos[device]
-                params = dev_data.params[i] # string[]
-                for param_name in params:
-                    value = params[param_name]
-                    param: Parameter = arduino.get_param(param_name)
-                    prev_value = previous_parameter_values[param]
-                    if param.should_send_LCM(value, prev_value):
-                        args = param.lcm_message_from_state_change(value)
-                        lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
-                    # TODO: make debouncer so this will need to be more cool
-                    previous_parameter_values[param] = value
+            if not (len(dev_data.dev_ids) == 1) or not (len(dev_data.params) == 1):
+                raise Exception("LowcarMessage should only contain information about one device, because only one device is being queried.")
+            arduino = arduinos[device]
+            params = dev_data.params[0] # string[]
+            for param_name in params:
+                value = params[param_name]
+                param: Parameter = arduino.get_param(param_name)
+                prev_value = previous_parameter_values[param]
+                if param.should_send_LCM(value, prev_value):
+                    args = param.lcm_message_from_state_change(value)
+                    lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
+                # TODO: make debouncer so this will need to be more cool
+                previous_parameter_values[param] = value
 
 def main():
     try:

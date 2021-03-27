@@ -23,6 +23,7 @@ class Arduino1 : public Device {
     private:
       // number of buttons
       const static int NUM_BUTTONS;
+      const static int NUM_LIGHTS;
       // TODO: update pins that the buttons read data from (defined in defs.h)
       const static uint8_t pins[];
 
