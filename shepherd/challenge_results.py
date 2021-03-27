@@ -1,3 +1,3 @@
 CHALLENGE_RESULTS = {
-    12: [False, False, False, False, False, False, False, False]
+    1: [False, False, False, False, False, False, False, False]
 }
