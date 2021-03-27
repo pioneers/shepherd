@@ -45,7 +45,7 @@ class LowcarMessage:
         Arguments:
             dev_ids: A list of device ids strings of the format '{device_type}_{device_uid}'
             params: A list of dictionaries
-                params[i] is a dictionary of parameters for device wat dev_ids[i]
+                params[i] is a dictionary of parameters for device dev_ids[i]
                 key: (str) parameter name
                 value: (int/bool/float) the value that the parameter should be set to
         Ex: We want to write to device 0x123 ("Device A") and 0x456 ("Device B")
@@ -70,6 +70,9 @@ class LowcarMessage:
 
     def get_params(self):
         return self.params
+    
+    def __repr__(self):
+        return f"LowcarMessage(dev_ids={self.dev_ids}, params={self.params})"
 
 class Device:
     """
@@ -84,7 +87,7 @@ class Device:
         self.params = { parameter.name: parameter for parameter in parameters }
         self.polling_parameters = []
         for parameter in parameters:
-            parameter.arduino = self
+            parameter.device = self
             if parameter.should_poll:
                 self.polling_parameters.append(parameter)
 
@@ -153,6 +156,9 @@ class Parameter:
         return f"Device({self.name}, {self.identifier})"
 
 def parameter_from_header(header):
+    """
+    Gets the parameter (sensor) that a header corresponds to.
+    """
     sensor_pool = HEADER_MAPPINGS[header[0]]
     args = header[1]
     for p in sensor_pool:
@@ -167,10 +173,10 @@ def translate_lcm_message(header):
     2) the parameter of device to modify
     3) the value to modify it to
     """
-    parameter = parameter_from_header(header)
-    device = f'{parameter.device.type}_{parameter.device.identifier}'
+    parameter: Parameter = parameter_from_header(header)
+    device = f'{parameter.device.type}_{parameter.device.uuid}'
     value = parameter.value_from_header(header)
-    message = LowcarMessage([device], [{parameter.identifier:value}])
+    message = LowcarMessage([device], [{parameter.name:value}])
     return message
     
 previous_parameter_values = {} # TODO: where should we put this?

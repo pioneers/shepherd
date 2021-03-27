@@ -71,15 +71,17 @@ def place_device_command(lowcar_message):
     """
     all_dev_ids = lowcar_message.get_dev_ids()
     all_params = lowcar_message.get_params()
-
+    print(f"lowcar message is {lowcar_message}")
     for i in range(len(all_dev_ids)):
         dev_id = all_dev_ids[i]
         params = all_params[i]
-        for (name, val) in params.items():
-            set_value(dev_id, name, val)
 
-def read_device_data(dev_id, param_name):
+        for (name, val) in params.items():
+            shm_api.set_value(dev_id, name, val)
+
+def read_device_data(dev_id, param_names):
     """
+    TODO: Update docs
     Reads the current device data from shared memory.
     Arguments:
         dev_id: String of form {dev_type}_{dev_uid}
@@ -87,15 +89,18 @@ def read_device_data(dev_id, param_name):
     Returns:
         LowcarMessage: holds the param value
     """
-    # TODO: if confused, print dev_param. is it singular?
-    dev_param = get_value(dev_id, param_name)  # returns param value corresponding to param_name
-    return LowcarMessage([dev_id], [{param_name: dev_param}])
+    param_vals = {}
+    for param_name in param_names:
+        param_vals[param_name] = shm_api.get_value(dev_id, param_name)
+
+    return LowcarMessage([dev_id], [param_vals])
 
 def thread_device_commander():
     """
     Thread function
     Reads commands from LCM and writes it to shared memory.
     """
+    print("started commander thread")
     events = queue.Queue()
     lcm_start_read(LCM_TARGETS.SENSORS, events)
     while True:
@@ -121,15 +126,17 @@ def thread_device_sentinel(params_to_read):
     Returns:
         None
     """
+    print("started commander thread")
     while (True):
-        for device, params in params_to_read:
+        for device in params_to_read:
+            params = params_to_read[device]
             dev_data: LowcarMessage = read_device_data(device, params)
             # debounce it TODO
             if not (len(dev_data.dev_ids) == 1) or not (len(dev_data.params) == 1):
                 raise Exception("LowcarMessage should only contain information about one device, because only one device is being queried.")
             arduino = arduinos[device]
             params = dev_data.params[0] # string[]
-            for param_name in params:
+            for param_name, device in params:
                 value = params[param_name]
                 param: Parameter = arduino.get_param(param_name)
                 prev_value = previous_parameter_values[param]
@@ -142,11 +149,14 @@ def thread_device_sentinel(params_to_read):
 def main():
     try:
         device_thread = threading.Thread(target=thread_device_commander)
-        device_sentinel_thread = threading.Thread(target=thread_device_sentinel, args=(PARAMS_TO_READ))
+        device_sentinel_thread = threading.Thread(target=thread_device_sentinel, args=(PARAMS_TO_READ,))
+        device_thread.start()
+        device_sentinel_thread.start()
         while True:
-            pass
-    except:
-        print("Couldn't start device_commander() thread")
+            time.sleep(1)
+    except Exception as e:
+        print(f"Couldn't start device_commander() thread. Encountered exception: {e}")
+        raise e
 
 if __name__ == "__main__":
     main()
