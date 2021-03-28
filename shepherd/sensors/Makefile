@@ -15,3 +15,4 @@ clean:
 	rm -rf build/
 	rm -f shm_api.c
 	rm -f shm_api*.so
+	rm -f /dev/shm/*

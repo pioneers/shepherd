@@ -226,6 +226,22 @@ static void shm_close() {
     }
 }
 
+static void shm_disconnect() {
+    // close all the semaphores
+    for (int i = 0; i < MAX_DEVICES; i++) {
+        my_sem_close(sems[i].data_sem, "data sem");
+        my_sem_close(sems[i].command_sem, "command sem");
+    }
+    my_sem_close(catalog_sem, "catalog sem");
+    my_sem_close(cmd_map_sem, "cmd map sem");
+    my_sem_close(sub_map_sem, "sub map sem");
+
+    // unmap all shared memory blocks
+    if (munmap(dev_shm_ptr, sizeof(dev_shm_t)) == -1) {
+        log_printf(ERROR, "munmap: dev_shm. %s", strerror(errno));
+    }
+}
+
 // ************************************ PUBLIC WRAPPER FUNCTIONS ****************************************** //
 
 void generate_sem_name(stream_t stream, int dev_ix, char* name) {
@@ -237,9 +253,12 @@ void generate_sem_name(stream_t stream, int dev_ix, char* name) {
 }
 
 int get_dev_ix_from_uid(uint64_t dev_uid) {
+    printf("in get dev ix from uid\n");
     int dev_ix = -1;
 
     for (int i = 0; i < MAX_DEVICES; i++) {
+        printf("dev_shm_ptr %d\n", dev_shm_ptr);
+        printf("dev_shm_ptr->dev_ids[i] %d\n", dev_shm_ptr->dev_ids[i]);
         if ((dev_shm_ptr->catalog & (1 << i)) && (dev_shm_ptr->dev_ids[i].uid == dev_uid)) {
             dev_ix = i;
             break;
@@ -296,6 +315,41 @@ void shm_init() {
     }
 
     atexit(shm_close);
+}
+
+void shm_connect() {
+    int fd_shm;              // file descriptor of the memory-mapped shared memory
+    char sname[SNAME_SIZE];  // for holding semaphore names
+
+    // open all the semaphores
+    catalog_sem = my_sem_open(CATALOG_MUTEX_NAME, "catalog mutex");
+    cmd_map_sem = my_sem_open(CMDMAP_MUTEX_NAME, "cmd map mutex");
+    sub_map_sem = my_sem_open(SUBMAP_MUTEX_NAME, "sub map mutex");
+    for (int i = 0; i < MAX_DEVICES; i++) {
+        generate_sem_name(DATA, i, sname);  // get the data name
+        if ((sems[i].data_sem = sem_open((const char*) sname, 0, 0, 0)) == SEM_FAILED) {
+            log_printf(ERROR, "sem_open: data sem for dev_ix %d: %s", i, strerror(errno));
+        }
+        generate_sem_name(COMMAND, i, sname);  // get the command name
+        if ((sems[i].command_sem = sem_open((const char*) sname, 0, 0, 0)) == SEM_FAILED) {
+            log_printf(ERROR, "sem_open: command sem for dev_ix %d: %s", i, strerror(errno));
+        }
+    }
+
+    // open dev shm block and map to client process virtual memory
+    if ((fd_shm = shm_open(DEV_SHM_NAME, O_RDWR, 0)) == -1) {  // no O_CREAT
+        log_printf(FATAL, "shm_open dev_shm: %s", strerror(errno));
+        exit(1);
+    }
+    if ((dev_shm_ptr = mmap(NULL, sizeof(dev_shm_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0)) == MAP_FAILED) {
+        log_printf(FATAL, "mmap dev_shm: %s", strerror(errno));
+        exit(1);
+    }
+    if (close(fd_shm) == -1) {
+        log_printf(ERROR, "close dev_shm: %s", strerror(errno));
+    }
+
+    atexit(shm_disconnect);
 }
 
 void device_connect(dev_id_t* dev_id, int* dev_ix) {

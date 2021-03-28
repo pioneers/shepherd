@@ -188,9 +188,9 @@ previous_parameter_values = {} # TODO: where should we put this?
 class Light(Parameter):
     def value_from_header(self, header):
         if header[0] == SENSOR_HEADER.TURN_ON_LIGHT or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT:
-            return 1.0
+            return True
         elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT:
-            return 0.0
+            return False
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
 class DehydrationButton(Parameter):
@@ -249,7 +249,7 @@ lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in rang
 fire_light = Light(name="fire_light", should_poll=False)
 
 
-arduino_1 = Device(1, 6565010684850799022, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
+arduino_1 = Device(1, 81985529216486895, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
 arduino_2 = Device(2, 2, [traffic_lights[0]])
 
 ################################################

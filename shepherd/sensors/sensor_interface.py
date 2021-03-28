@@ -8,8 +8,8 @@ It reads device data from shared memory and publishes it to LCM if necessary.
 import threading
 import time
 import queue
-import pyximport
-pyximport.install()
+# import pyximport
+# pyximport.install()
 import shm_api
 import sys
 sys.path.insert(1, '../')
@@ -77,6 +77,7 @@ def place_device_command(lowcar_message):
         params = all_params[i]
 
         for (name, val) in params.items():
+            print(f"calling set_value({dev_id}, {name}, {val})")
             shm_api.set_value(dev_id, name, val)
 
 def read_device_data(dev_id, param_names):
@@ -126,7 +127,7 @@ def thread_device_sentinel(params_to_read):
     Returns:
         None
     """
-    print("started commander thread")
+    print("started sentinel thread")
     while (True):
         for device in params_to_read:
             params = params_to_read[device]
@@ -148,6 +149,7 @@ def thread_device_sentinel(params_to_read):
 
 def main():
     try:
+        shm_api.dev_handler_connect()
         device_thread = threading.Thread(target=thread_device_commander)
         device_sentinel_thread = threading.Thread(target=thread_device_sentinel, args=(PARAMS_TO_READ,))
         device_thread.start()

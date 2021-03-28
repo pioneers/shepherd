@@ -73,10 +73,19 @@ int get_dev_ix_from_uid(uint64_t dev_uid);
 
 /**
  * Call this function from every process that wants to use the shared memory wrapper
+ * And shared memory has NOT been created
  * No return value (will exit on fatal errors).
  * Will configure process to close all shared memory and semaphores on process exit.
  */
 void shm_init();
+
+/**
+ * Call this function from every process that wants to use the shared memory wrapper
+ * And shared memory HAS been created
+ * No return value (will exit on fatal errors).
+ * Will configure process to close all shared memory and semaphores on process exit.
+ */
+void shm_connect();
 
 /**
  * Should only be called from device handler

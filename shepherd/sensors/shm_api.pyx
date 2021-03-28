@@ -27,6 +27,7 @@ cdef extern from "shepherd_util.h":
 cdef extern from "shm_wrapper.h" nogil:
     ctypedef enum stream_t:
         DATA, COMMAND
+    void shm_connect()
     int device_read_uid(uint64_t device_uid, process_t process, stream_t stream, uint32_t params_to_read, param_val_t *params)
     int device_write_uid(uint64_t device_uid, process_t process, stream_t stream, uint32_t params_to_write, param_val_t *params)
     int place_sub_request (uint64_t dev_uid, process_t process, uint32_t params_to_sub)
@@ -116,11 +117,13 @@ cpdef void set_value(str device_id, str param_name, value) except *:
         raise DeviceError(f"Device with uid {device_uid} has invalid type {device_type}")
     cdef param_type_t param_type
     cdef int8_t param_idx = -1
+
     for i in range(device.num_params):
         if device.params[i].name == param:
             param_idx = i
             param_type = device.params[i].type
             break
+
     if param_idx == -1:
         raise DeviceError(f"Invalid device parameter {param_name} for device type {device.name.decode('utf-8')}({device_type})")
 
@@ -135,9 +138,10 @@ cpdef void set_value(str device_id, str param_name, value) except *:
         param_value[param_idx].p_f = value
     elif param_type == BOOL:
         param_value[param_idx].p_b = int(value)
-    cdef int err = device_write_uid(device_uid, EXECUTOR, COMMAND, 1 << param_idx, &param_value[0])
-
+    cdef int err = device_write_uid(device_uid, EXECUTOR, COMMAND, 1 << param_idx, param_value)
     PyMem_Free(param_value)
     if err == -1:
         raise DeviceError(f"Device with type {device.name.decode('utf-8')}({device_type}) and uid {device_uid} isn't connected to the robot")
 
+cpdef void dev_handler_connect() except *:
+    shm_connect()
