@@ -29,11 +29,10 @@ device_t DummyDevice = {
     }};
 
 device_t Arduino1 = {
-    .type = 1,
+    .type = 7,
     .name = "Arduino1",
     .num_params = 14,
     .params = {
-        // TODO: either 0 or 1 index
         // Read-only
         {.name = "button1", .type = BOOL, .read = 1, .write = 0},
         {.name = "button2", .type = BOOL, .read = 1, .write = 0},
@@ -42,13 +41,13 @@ device_t Arduino1 = {
         {.name = "button5", .type = BOOL, .read = 1, .write = 0},
         {.name = "button6", .type = BOOL, .read = 1, .write = 0},
         {.name = "button7", .type = BOOL, .read = 1, .write = 0},
-        {.name = "light0", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light1", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light2", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light3", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light4", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light5", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light6", .type = BOOL, .read = 1, .write = 1},
+        {.name = "light0", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light1", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light2", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light3", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light4", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light5", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light6", .type = BOOL, .read = 0, .write = 1},
         // Read-able and write-able
         /*
         {.name = "PIEF", .type = INT, .read = 1, .write = 1},
@@ -60,7 +59,7 @@ device_t Arduino1 = {
 };
 
 device_t Arduino2 = {
-    .type = 2,
+    .type = 6,
     .name = "Arduino2",
     .num_params = 6,
     .params = {
@@ -72,7 +71,7 @@ device_t Arduino2 = {
 
         {.name = "fire_lever", .type = BOOL, .read = 1, .write = 0},
 
-        {.name = "fire_light", .type = BOOL, .read = 1, .write = 1},
+        {.name = "fire_light", .type = BOOL, .read = 0, .write = 1},
         // Read-able and write-able
         /*
         {.name = "PIEF", .type = INT, .read = 1, .write = 1},
@@ -84,7 +83,7 @@ device_t Arduino2 = {
 };
 
 device_t Arduino3 = {
-    .type = 3,
+    .type = 4,
     .name = "Arduino3",
     .num_params = 4,
     .params = {
@@ -92,7 +91,7 @@ device_t Arduino3 = {
         {.name = "city_linebreak", .type = BOOL, .read = 1, .write = 0},
         {.name = "traffic_linebreak", .type = BOOL, .read = 1, .write = 0},
 
-        {.name = "traffic_light", .type = BOOL, .read = 1, .write = 1},
+        {.name = "traffic_light", .type = BOOL, .read = 0, .write = 1},
         
         {.name = "traffic_button", .type = BOOL, .read = 1, .write = 0},
         // Read-able and write-able
@@ -198,6 +197,12 @@ device_t* DEVICES[DEVICES_LENGTH] = {0};
 // A hack to initialize DEVICES. https://stackoverflow.com/a/6991475
 __attribute__((constructor)) void devices_arr_init() {
     DEVICES[DummyDevice.type] = &DummyDevice;
+    DEVICES[CustomDevice.type] = &CustomDevice;
+    DEVICES[SoundDevice.type] = &SoundDevice;
+    DEVICES[TimeTestDevice.type] = &TimeTestDevice;
+    DEVICES[UnstableTestDevice.type] = &UnstableTestDevice;
+    DEVICES[SimpleTestDevice.type] = &SimpleTestDevice;
+    DEVICES[GeneralTestDevice.type] = &GeneralTestDevice;
     DEVICES[Arduino1.type] = &Arduino1;
     DEVICES[Arduino2.type] = &Arduino2;
     DEVICES[Arduino3.type] = &Arduino3;

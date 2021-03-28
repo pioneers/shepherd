@@ -50,12 +50,12 @@ Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 }
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
-    // put pin value into data_buf and return the state of the switch
+    // put pin value into data_buf and return the amount of bytes written
+    if (param > Arduino1::NUM_BUTTONS) {
+        this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
+        return 0;
+    }
     data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
-    // this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
-    // if (data_buf[0] == true) {
-    //     this->led->slow_blink(3);
-    // }
 
     static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
@@ -70,14 +70,20 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 }
 
 size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
-    // TODO: add some error handling?
+    // TODO: verify this error handling
+    if (param < Arduino1::NUM_BUTTONS) {
+        this->msngr->lowcar_printf("Should not be writing to buttons.");
+        return 0;
+    }
     if (data_buf[0] == 1) {
         digitalWrite(Arduino1::pins[param], HIGH);
+        this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
     }
     else {
         digitalWrite(Arduino1::pins[param], LOW);
+        this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino1::pins[param]);
     }
-    return 0;
+    return sizeof(uint8_t);
 }
 
 void Arduino1::device_enable() {

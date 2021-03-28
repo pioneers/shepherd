@@ -1,46 +1,22 @@
 #include "Arduino3.h"
 
-// number of switches on a limit switch (how many input pins)
-const int Arduino3::NUM_INPUTS = 4;
-const int Arduino3::NUM_LIGHTS = 2;
-/*
-button1: 2
-light1: 3
-button2: 4
-light2: 5
-button3: 6
-light3: 7
-button4: 8
-light4: 9
-button5: 10
-light5: A0
-button6: 14
-light6: A1
-button7: 15
-light7: A2
-*/
-const uint8_t Arduino3::pins[] = {
-    // 4 pins: 2 city_linebreak, 4 traffic_linebreak, 7 traffic_light, 6 traffic_button
-    2,
-    4,
-    7,
-    6,
-};
+const int Arduino3::NUM_INPUTS = 3;
+const int Arduino3::NUM_LIGHTS = 1;
 
-// The numbering of each parameter
-// typedef enum {
-//     BUTTON1 = 0,
-//     BUTTON2 = 1,
-//     BUTTON3 = 2,
-// } param;
+const uint8_t Arduino3::pins[] = {
+    2, // city_linebreak
+    4, // traffic_linebreak
+    7, // traffic_button
+    6, // traffic_light
+};
 
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino3::Arduino3() : Device(DeviceType::Arduino3, 13) {
 }
 
 size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
-    // put pin value into data_buf and return the state of the switch
-    if (param < 2) {
+    // put pin value into data_buf and return the amount of bytes written
+    if (param < Arduino3::NUM_INPUTS) {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
     }
     else {
@@ -66,7 +42,6 @@ size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
 }
 
 size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
-    // TODO: add some error handling?
     if (param != 2) {
         this->msngr->lowcar_printf("trying to write to something that is not traffic_light");
     }

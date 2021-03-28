@@ -1,71 +1,40 @@
 #include "Arduino2.h"
 
-// number of switches on a limit switch (how many input pins)
-const int Arduino2::NUM_INPUTS = 5;
+const int Arduino2::NUM_LINEBREAKS = 4;
+const int Arduino2::NUM_BUTTONS = 1;
 const int Arduino2::NUM_LIGHTS = 1;
-/*
-button1: 2
-light1: 3
-button2: 4
-light2: 5
-button3: 6
-light3: 7
-button4: 8
-light4: 9
-button5: 10
-light5: A0
-button6: 14
-light6: A1
-button7: 15
-light7: A2
-*/
-const uint8_t Arduino2::pins[] = {
-    // 6 pins - 
-    // 2 desert_linebreak
-    // 4 dehydration_linebreak
-    // 6 hypothermia_linebreak
-    // 8 hypothermia_linebreak
-    // 10 fire_lever
-    // A0 fire_light
-    2,
-    4,
-    6,
-    8,
-    10,
-    14,
-};
 
-// The numbering of each parameter
-// typedef enum {
-//     BUTTON1 = 0,
-//     BUTTON2 = 1,
-//     BUTTON3 = 2,
-// } param;
+const uint8_t Arduino2::pins[] = {
+    2, // desert_linebreak
+    4, // dehydration_linebreak
+    6, // hypothermia_linebreak
+    8, // hypothermia_linebreak
+    10, // fire_lever
+    14, // fire_light
+};
 
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino2::Arduino2() : Device(DeviceType::Arduino2, 13) {
 }
 
 size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
-    // put pin value into data_buf and return the state of the switch
-    if (param < 4) {
+    // put pin value into data_buf
+    if (param < Arduino2::NUM_LINEBREAKS) {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
     }
-    else if (param) == 4 {
+    else if (param < Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS) {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+    } else {
+        this->msngr->lowcar_printf("Should not be reading from a light. param is %d", param);
+        return 0;
     }
-    
-    // this->msngr->lowcar_printf("button %d is %d", param, data_buf[0]);
-    // if (data_buf[0] == true) {
-    //     this->led->slow_blink(3);
-    // }
 
-    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
+    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
 
     // log each button every 500ms
     if (curr - last_update_time[param] > 500) {
-        this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
+        this->msngr->lowcar_printf("Device 2: param %d is %s", param, data_buf[0] == 1 ? "true" : "false");
         last_update_time[param] = curr;
     }
 
@@ -73,29 +42,33 @@ size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
 }
 
 size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
-    // TODO: add some error handling?
-    if (param != 5) {
-        this->msngr->lowcar_printf("trying to write to something that is not fire_light");
+    int min_index = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
+    if (param <  min_index|| 
+        param >= min_index + Arduino2::NUM_LIGHTS) {
+        this->msngr->lowcar_printf("Device 2: Trying to write to something that is not fire light.");
+        return 0;
     }
-    else if (data_buf[0] == 1) {
-        digitalWrite(Arduino2::pins[param], HIGH);
+
+    if (data_buf[0] > 1) {
+        this->msngr->lowcar_printf("Device 2: data_buf[0] is %d, but can only be 0 or 1.", data_buf[0]);
     }
-    else {
-        digitalWrite(Arduino2::pins[param], LOW);
-    }
+
+    digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH: LOW);
+    digitalWrite(Arduino2::pins[param], LOW);
+
     return 0;
 }
 
 void Arduino2::device_enable() {
-    // todo: ask ben what is diff between device enable and constructor
     this->msngr->lowcar_printf("ARDUINO 2 ENABLING");
     // set all pins to INPUT mode
-    for (int i = 0; i < Arduino2::NUM_INPUTS; i++) {
+    int num_inputs = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
+    for (int i = 0; i < num_inputs; i++) {
         pinMode(Arduino2::pins[i], INPUT);
     }
 
     for (int i = 0; i < Arduino2::NUM_LIGHTS; i++) {
-        pinMode(Arduino2::pins[i + NUM_INPUTS], OUTPUT);
+        pinMode(Arduino2::pins[i + num_inputs], OUTPUT);
     }
 }
 
