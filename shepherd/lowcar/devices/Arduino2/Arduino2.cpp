@@ -8,13 +8,13 @@ const uint8_t Arduino2::pins[] = {
     2, // desert_linebreak
     4, // dehydration_linebreak
     6, // hypothermia_linebreak
-    8, // hypothermia_linebreak
+    8, // FIX: hypothermia_linebreak
     10, // fire_lever
-    14, // fire_light
+    14, // FIX: fire_light
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
-Arduino2::Arduino2() : Device(DeviceType::Arduino2, 13) {
+Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13) {
 }
 
 size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {

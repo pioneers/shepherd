@@ -55,8 +55,8 @@ size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
         this->msngr->lowcar_printf("data_buf[0] is %d, but can only be 0 or 1.", data_buf[0]);
     }
 
-    digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH: LOW);
-    digitalWrite(Arduino2::pins[param], LOW);
+    digitalWrite(Arduino3::pins[param], data_buf[0] == 1 ? HIGH: LOW);
+    digitalWrite(Arduino3::pins[param], LOW);
 
     return 0;
 }

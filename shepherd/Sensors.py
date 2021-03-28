@@ -162,7 +162,7 @@ def parameter_from_header(header):
     sensor_pool = HEADER_MAPPINGS[header[0]]
     args = header[1]
     for p in sensor_pool:
-        if not p.identifier or args.get("id", None) == p.identifier:
+        if p.identifier is None or args.get("id", None) == p.identifier:
             return p
     raise Exception(f'no device found associated with LCM header {header}')
 
@@ -205,8 +205,6 @@ class DehydrationButton(Parameter):
             "button": self.identifier
         }
         return args
-        # not here
-        # lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS, ..)
         # self.identifier is which button
     
 class GenericButton(Parameter):

@@ -77,7 +77,6 @@ def place_device_command(lowcar_message):
         params = all_params[i]
 
         for (name, val) in params.items():
-            print(f"calling set_value({dev_id}, {name}, {val})")
             shm_api.set_value(dev_id, name, val)
 
 def read_device_data(dev_id, param_names):

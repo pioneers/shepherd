@@ -26,16 +26,16 @@ const uint8_t Arduino1::pins[] = {
     6,
     8,
     10,
-    14,
-    15,
+    12,
+    13,
     // lights 1 - 7
     3,
     5,
     7,
     9,
+    11,
     A0,
-    A1,
-    A2
+    A1
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
@@ -63,21 +63,17 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 }
 // writable, not readable. should just call device_write id hope.
 size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
-    // this->msngr->lowcar_printf("hello world");
-    // this->msngr->lowcar_printf("Device write called with param %d", param);
-    // return 8;
-    // TODO: verify this error handling
     if (param < Arduino1::NUM_BUTTONS) {
         // this->msngr->lowcar_printf("Should not be writing to buttons.");
         return 0;
     }
     if (data_buf[0] == 1) {
         digitalWrite(Arduino1::pins[param], HIGH);
-        // this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
+        this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
     }
     else {
         digitalWrite(Arduino1::pins[param], LOW);
-        // this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino1::pins[param]);
+        this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino1::pins[param]);
     }
     return sizeof(uint8_t);
 }

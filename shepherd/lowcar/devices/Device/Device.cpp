@@ -17,7 +17,7 @@ Device::Device(DeviceType dev_id, uint8_t dev_year, uint32_t timeout) {
     this->msngr = new Messenger();
     this->led = new StatusLED();
 
-    device_enable();  // call device's enable function
+    // device_enable();  // call device's enable function
 
     this->last_sent_data_time = this->last_received_ping_time = this->curr_time = millis();
 }
@@ -39,6 +39,7 @@ void Device::loop() {
                 if (!this->enabled) {
                     this->msngr->lowcar_printf("Device type %d with UID ending in %X contacted; sending ACK", (uint8_t)this->dev_id.type, this->dev_id.uid);
                     this->msngr->send_message(MessageID::ACKNOWLEDGEMENT, &(this->curr_msg), &(this->dev_id));
+                    device_enable();
                     this->enabled = TRUE;
                 }
                 break;

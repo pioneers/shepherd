@@ -34,13 +34,13 @@ device_t Arduino1 = {
     .num_params = 14,
     .params = {
         // Read-only
+        {.name = "button0", .type = BOOL, .read = 1, .write = 0},
         {.name = "button1", .type = BOOL, .read = 1, .write = 0},
         {.name = "button2", .type = BOOL, .read = 1, .write = 0},
         {.name = "button3", .type = BOOL, .read = 1, .write = 0},
         {.name = "button4", .type = BOOL, .read = 1, .write = 0},
         {.name = "button5", .type = BOOL, .read = 1, .write = 0},
         {.name = "button6", .type = BOOL, .read = 1, .write = 0},
-        {.name = "button7", .type = BOOL, .read = 1, .write = 0},
         {.name = "light0", .type = BOOL, .read = 1, .write = 1},
         {.name = "light1", .type = BOOL, .read = 1, .write = 1},
         {.name = "light2", .type = BOOL, .read = 1, .write = 1},
@@ -101,6 +101,16 @@ device_t Arduino3 = {
         {.name = "SHEEP", .type = BOOL, .read = 1, .write = 1},
         {.name = "DUSK", .type = INT, .read = 1, .write = 1},
         */
+    }
+};
+
+device_t Arduino4 = {
+    .type = 4,
+    .name = "Arduino4",
+    .num_params = 1,
+    .params = {
+        // Read-only
+        {.name = "lasers", .type = BOOL, .read = 1, .write = 0},
     }
 };
 
@@ -206,6 +216,7 @@ __attribute__((constructor)) void devices_arr_init() {
     DEVICES[Arduino1.type] = &Arduino1;
     DEVICES[Arduino2.type] = &Arduino2;
     DEVICES[Arduino3.type] = &Arduino3;
+    DEVICES[Arduino4.type] = &Arduino4;
 }
 
 device_t* get_device(uint8_t dev_type) {

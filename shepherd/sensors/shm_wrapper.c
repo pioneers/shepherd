@@ -253,12 +253,9 @@ void generate_sem_name(stream_t stream, int dev_ix, char* name) {
 }
 
 int get_dev_ix_from_uid(uint64_t dev_uid) {
-    printf("in get dev ix from uid\n");
     int dev_ix = -1;
 
     for (int i = 0; i < MAX_DEVICES; i++) {
-        printf("dev_shm_ptr %d\n", dev_shm_ptr);
-        printf("dev_shm_ptr->dev_ids[i] %d\n", dev_shm_ptr->dev_ids[i]);
         if ((dev_shm_ptr->catalog & (1 << i)) && (dev_shm_ptr->dev_ids[i].uid == dev_uid)) {
             dev_ix = i;
             break;
@@ -598,7 +595,7 @@ void get_catalog(uint32_t* catalog) {
  * Arguments:	
  *    num_bits: number of bits to print (max 32 bitS, although that can be increased by changing the size of BITMAP)	
  *    bitmap: bitmap to print	
- */	
+ */
 static void print_bitmap(int num_bits, uint32_t bitmap) {	
     for (int i = 0; i < num_bits; i++) {	
         printf("%d", (bitmap & (1 << i)) ? 1 : 0);	
