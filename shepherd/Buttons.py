@@ -14,7 +14,7 @@ class Buttons:
 
     def randomize_correct_button(self):
         self.correct_button = random.choice(
-            [i for i in range(len(self.NUM_BUTTONS)) if self.buttons_illuminated[i]])
+            [i for i in range(self.NUM_BUTTONS) if self.buttons_illuminated[i]])
 
     def illuminate_buttons(self):
         for i in range(self.NUM_BUTTONS):

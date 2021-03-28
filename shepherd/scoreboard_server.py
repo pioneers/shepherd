@@ -13,7 +13,7 @@ PORT = 5500
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
-socketio = SocketIO(app, async_mode="gevent")
+socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 
 @app.route('/')
 def hello_world():
@@ -22,6 +22,10 @@ def hello_world():
 @app.route('/scoreboard.html/')
 def scoreboard():
     return render_template('scoreboard.html')
+
+@socketio.event
+def connect():
+    print('established connection')
 
 def receiver():
     events = gevent.queue.Queue()
