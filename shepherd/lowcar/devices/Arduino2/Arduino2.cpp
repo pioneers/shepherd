@@ -7,8 +7,8 @@ const int Arduino2::NUM_LIGHTS = 1;
 const uint8_t Arduino2::pins[] = {
     2, // desert_linebreak
     4, // dehydration_linebreak
-    6, // hypothermia_linebreak
-    8, // FIX: hypothermia_linebreak
+    A1, // hypothermia_linebreak 6
+    8, // airport_linebreak
     10, // fire_lever
     14, // FIX: fire_light
 };
@@ -20,7 +20,13 @@ Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13) {
 size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf
     if (param < Arduino2::NUM_LINEBREAKS) {
-        data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
+        if (param == 2) {
+            int value = analogRead(this->pins[param]);
+            this->msngr->lowcar_printf("linebreak %d, value %d", param, value);
+            data_buf[0] = (analogRead(this->pins[param]) > 200) ? 0 : 1;
+        } else {
+            data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
+        }
     }
     else if (param < Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS) {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
@@ -29,6 +35,7 @@ size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
         return 0;
     }
 
+    /*
     static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
 
@@ -37,13 +44,14 @@ size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
         this->msngr->lowcar_printf("param %d is %s", param, data_buf[0] == 1 ? "true" : "false");
         last_update_time[param] = curr;
     }
+    */
 
     return sizeof(uint8_t);
 }
 
 size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
     int min_index = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
-    if (param <  min_index|| 
+    if (param < min_index|| 
         param >= min_index + Arduino2::NUM_LIGHTS) {
         this->msngr->lowcar_printf("Trying to write to something that is not fire light.");
         return 0;
@@ -66,6 +74,7 @@ void Arduino2::device_enable() {
     for (int i = 0; i < num_inputs; i++) {
         pinMode(Arduino2::pins[i], INPUT);
     }
+    pinMode(Arduino2::pins[2], INPUT_PULLUP);
 
     for (int i = 0; i < Arduino2::NUM_LIGHTS; i++) {
         pinMode(Arduino2::pins[i + num_inputs], OUTPUT);

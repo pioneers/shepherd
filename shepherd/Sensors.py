@@ -100,7 +100,7 @@ class Device:
         """
         if param not in self.params:
             raise Exception("Parameter {param} not found in arduino {self}")
-        self.params.get(param)
+        return self.params.get(param)
     
     def __str__(self):
         return self.get_identifier()
@@ -118,15 +118,16 @@ class Parameter:
     example: name light, identifier: 1 means light 1.
              this corresponds to the "id" in the LCM header args: { id : 1, variables : values}
     - a parent device (arduino) that owns this sensor
+    TODO: talk about debounce_threshold and debounce_sensitivity
     """
-    def __init__(self, name: str, should_poll: bool, identifier=None, debounce_threshold=None, lcm_header=None):
+    def __init__(self, name: str, should_poll: bool, identifier=None, debounce_threshold=None, debounce_sensitivity=0.7,lcm_header=None):
         self.name = name
         self.should_poll = should_poll
         self.identifier = identifier
         self.__device = None
-        self.debounce_threshold = None
+        self.debounce_threshold = debounce_threshold
+        self.debounce_sensitivity = debounce_sensitivity
         self.lcm_header = lcm_header
-        previous_parameter_values[self] = None # TODO: is it ok to init this to None
 
     @property
     def device(self):
@@ -145,15 +146,15 @@ class Parameter:
         """
         raise Exception("override this function plz")
     
-    def is_state_change_significant(self, value: float, previous_value: float):
+    def is_state_change_significant(self, value, previous_value: float):
         raise Exception("override this function you sad little sheep")
     
     def lcm_message_from_state_change(self, value: float):
         # feel free to add previous_value as a param if needed
         raise Exception("override this function you sad little sheep")
 
-    def __str__(self):
-        return f"Device({self.name}, {self.identifier})"
+    def __repr__(self):
+        return f"Parameter({self.name}, {self.identifier})"
 
 def parameter_from_header(header):
     """
@@ -180,6 +181,7 @@ def translate_lcm_message(header):
     return message
     
 previous_parameter_values = {} # TODO: where should we put this?
+previous_debounced_value = {} # TODO: this too.
 
 ################################################
 # Game Specific Variables
@@ -198,10 +200,8 @@ class Light(Parameter):
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
 class DehydrationButton(Parameter):
-    def is_state_change_significant(self, value: float, previous_value: float):
-        if value == 1.0 and previous_value == 0.0:
-            return True
-        return False
+    def is_state_change_significant(self, value: bool, previous_value: bool):
+        return value == True and previous_value == False
 
     def lcm_message_from_state_change(self, value: float):
         # fire lever, traffic button
@@ -212,10 +212,8 @@ class DehydrationButton(Parameter):
         # self.identifier is which button
     
 class GenericButton(Parameter):
-    def is_state_change_significant(self, value: float, previous_value: float):
-        if value == 1.0 and previous_value == 0.0:
-            return True
-        return False
+    def is_state_change_significant(self, value: bool, previous_value: bool):
+        return value == True and previous_value == False
 
     def lcm_message_from_state_change(self, value: float):
         # fire lever, traffic button
@@ -230,7 +228,9 @@ class TrafficLight(Parameter):
             return self.COLORS[header[1]["color"]]
         raise Exception(f"Attempting to get value of traffic light but header[0] is {header[0]}")
 
-linebreak_debounce_threshold = 10
+linebreak_debounce_threshold = 10 # samples
+
+# how fast are we polling? 100 Hz
 
 city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
 traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, lcm_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
@@ -246,15 +246,15 @@ traffic_lights = [TrafficLight(name="traffic_light", should_poll=False)]
 
 num_dehydration_buttons = 7
 
-dehydration_buttons = [DehydrationButton(name=f"light{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
+dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
 fire_light = Light(name="fire_light", should_poll=False)
 
 lasers = Light(name="lasers", should_poll=False)
 
-arduino_1 = Device(1, 1, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
-arduino_2 = Device(2, 2, [traffic_lights[0]]) # fix NOW TODO
-arduino_3 = Device(3, 3, [traffic_lights[0]]) # fix
+arduino_1 = Device(1, 1, lights + dehydration_buttons)
+arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
+arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_lights[0]]) # fix
 arduino_4 = Device(4, 4, [lasers])
 
 
@@ -278,9 +278,9 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    arduino_1.get_identifier(): arduino_1, 
-    arduino_2.get_identifier(): arduino_2,
-    arduino_3.get_identifier(): arduino_3,
+    # arduino_1.get_identifier(): arduino_1, 
+    # arduino_2.get_identifier(): arduino_2,
+    # arduino_3.get_identifier(): arduino_3,
     arduino_4.get_identifier(): arduino_4,
 }
 

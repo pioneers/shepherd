@@ -17,17 +17,15 @@ from LCM import (
     lcm_send,
     lcm_start_read
 )
+from typing import List, Union
 from Sensors import (
-    arduino_1,
-    arduino_2,
-    arduino_3,
-    arduino_4,
     arduinos,
     translate_lcm_message,
     HEADER_MAPPINGS,
     HEADER_COMMAND_MAPPINGS,
     Parameter,
     previous_parameter_values,
+    previous_debounced_value,
     LowcarMessage
 )
 from Utils import (
@@ -59,6 +57,7 @@ Ex: buttons
 PARAMS_TO_READ = {
     arduino.get_identifier(): arduino.polling_parameters for arduino in arduinos.values()
 }
+print(f"PARAMS TO READ {PARAMS_TO_READ}")
 
 ############################# START OF EVERGREEN FUNCTIONS #############################
 
@@ -129,23 +128,54 @@ def thread_device_sentinel(params_to_read):
     """
     print("started sentinel thread")
     while (True):
+        # iterate through all devices
         for device in params_to_read:
-            params = params_to_read[device]
-            dev_data: LowcarMessage = read_device_data(device, params)
+            params: List[Parameter] = params_to_read[device] # list of parameters
+            dev_data: LowcarMessage = read_device_data(device, [param.name for param in params])
             # debounce it TODO
             if not (len(dev_data.dev_ids) == 1) or not (len(dev_data.params) == 1):
                 raise Exception("LowcarMessage should only contain information about one device, because only one device is being queried.")
             arduino = arduinos[device]
-            params = dev_data.params[0] # string[]
-            for param_name, device in params:
-                value = params[param_name]
-                param: Parameter = arduino.get_param(param_name)
-                prev_value = previous_parameter_values[param]
-                if param.should_send_LCM(value, prev_value):
+            param_values = dev_data.params[0] # Dictionary: param_name -> value
+
+            for param_name, value in param_values.items():
+                param = arduino.get_param(param_name)
+                time.sleep(0.3)
+                print(f"{param_name}: {value}")
+                value = debounce(value, param)
+                if value is None:
+                    continue
+
+                if (param in previous_debounced_value and
+                     param.is_state_change_significant(value, previous_debounced_value[param])):
                     args = param.lcm_message_from_state_change(value)
+                    print(f"Sending LCM message with header {param.lcm_header} and args {args}")
                     lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
-                # TODO: make debouncer so this will need to be more cool
-                previous_parameter_values[param] = value
+
+                previous_debounced_value[param] = value
+
+def debounce(value: Union[int, float, bool], param: Parameter):
+    """
+    This method performs debouncing by TODO
+    updates state, be careful
+    If there is no debouncing, it returns the value.
+    """
+    if param.debounce_threshold is not None:
+        # Begin Debouncing
+        if param not in previous_parameter_values:
+            previous_parameter_values[param] = []
+        prev_values = previous_parameter_values[param]
+        prev_values.append(value)
+        if len(prev_values) > param.debounce_threshold:
+            prev_values.pop(0)
+
+        # ex: if 70% of samples greater than some value
+        for value in set(prev_values):
+            if len([v for v in prev_values if v == value]) / param.debounce_threshold > param.debounce_sensitivity:
+                return value
+        return None
+
+    return value
 
 def main():
     try:

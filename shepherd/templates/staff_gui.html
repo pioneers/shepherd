@@ -96,6 +96,7 @@
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
         emit('ui-to-server-teams-info-request-no-args');
+        emit('ui-to-server-get-biome');
       });
 
       socket.on('server-to-ui-teams-info', function (data) {
@@ -112,6 +113,17 @@
         }
         setDefaultTeamsInfo()
       });
+
+      socket.on('server-to-ui-biome', function (data) {
+        logg("server-to-ui-biome" + data);
+        data = JSON.parse(data);
+        const biome = data.biome;
+        updateBiome(biome);
+      });
+
+      function updateBiome(biome) {
+        $("#biome").val(biome);
+      }
       
       function setDefaultTeamsInfo() {
         $("#select-match-number").val(match_num);
@@ -307,6 +319,10 @@
           <h3>Team Name:</h3>
           <input type="text" class="form-control" id="team-name">
         </div>
+    </div>
+    <div class="row bottom-padding">
+        <h3>Biome:</h3>
+        <h3 id="biome"> None </3>
     </div>
     
 

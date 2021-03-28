@@ -78,6 +78,12 @@ class SHEPHERD_HEADER():
     REQUEST_CONNECTIONS = "request_connections"
     # REQUEST_CONNECTIONS{}
 
+    GET_BIOME = "get_biome"
+    # GET_BIOME{}
+
+    SET_BIOME = "set_biome"
+    # GET_BIOME{biome: str}
+
     # AUTO
     CITY_LINEBREAK = "city_linebreak"
 
@@ -157,7 +163,9 @@ class UI_HEADER():
     SENSORS_INFO = "sensors_info"
     # SENSORS_INFO{tinder}
     STAGE = "stage"
-    # START_TIMESTAMP{is_auto[boolean], start_time[datetime]}
+    # STAGE{is_auto[boolean], start_time[datetime]}
+    BIOME = "biome"
+    # BIOME{string}
     ALL_INFO = "all_info"
     # ALL_INFO{}
 

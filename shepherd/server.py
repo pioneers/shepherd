@@ -103,6 +103,11 @@ def ui_to_server_custom_ip(args):
     lcm_send(LCM_TARGETS.SHEPHERD, 
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
+@socketio.on('ui-to-server-get-biome')
+def ui_to_server_get_biome(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.GET_BIOME, json.loads(args))
+
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
@@ -130,6 +135,9 @@ def receiver():
                               json.dumps(event[1], ensure_ascii=False))
             elif event[0] == UI_HEADER.ROBOT_CONNECTION:
                 socketio.emit('server-to-ui-robot-connection',
+                              json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.BIOME:
+                socketio.emit('server-to-ui-biome',
                               json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 

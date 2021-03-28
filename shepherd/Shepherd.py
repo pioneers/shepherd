@@ -143,6 +143,9 @@ def to_setup(args):
     # so if there are other UIs open they get the update
     send_round_info()
 
+    # turn on lasers
+    LCM.lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
+
     # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
@@ -170,6 +173,8 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.AUTO})
     send_score_to_ui()
     enable_robots(True)
     check_code()
@@ -250,6 +255,8 @@ def send_round_info(args = None):
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
 
+def get_biome(args):
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, GAME_STATE)
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
@@ -428,6 +435,8 @@ def to_city(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
              "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.CITY})
     print("ENTERING CITY STATE")
 
 # ----------
@@ -474,6 +483,8 @@ def to_desert(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.DESERT})
     if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
@@ -493,8 +504,9 @@ def to_dehydration(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.DEHYDRATION})
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
-    BUTTONS.illuminate_buttons()
 
 # ----------
 # DEHYDRATION STAGE
@@ -558,6 +570,8 @@ def to_hypothermia(args):
     '''
     global GAME_STATE, FIRE_LIT
     GAME_STATE = STATE.HYPOTHERMIA
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.HYPOTHERMIA})
     # TODO: change if tinder is not removed
     if not (FIRE_LIT and TINDER > 0):
         CLIENTS.send_game_state(State.HYPOTHERMIA_START)
@@ -573,6 +587,8 @@ def to_final(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FINAL
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.FINAL})
     CLIENTS.send_game_state(State.HYPOTHERMIA_STOP)
 
 # ----------
@@ -589,6 +605,8 @@ def to_end(args):
     LAST_BUTTONS = BUTTONS.copy()
     LAST_FIRE_LIT = FIRE_LIT
     GAME_STATE = STATE.END
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.END})
     disable_robots()
     CLIENTS.reset()
     ROBOT.end_time = time.time()
@@ -598,6 +616,9 @@ def to_end(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+
+    # turn off lasers
+    LCM.lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
     try:
         flush_scores()
     except:
@@ -680,6 +701,8 @@ END_FUNCTIONS = {
 }
 
 EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.GET_BIOME: get_biome,
+    SHEPHERD_HEADER.SET_BIOME: set_biome,
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
