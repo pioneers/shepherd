@@ -61,6 +61,7 @@ enum class DeviceType : uint8_t {
     ARDUINO1 = 0x01,
     ARDUINO2 = 0x02,
     ARDUINO3 = 0x03,
+    ARDUINO4 = 0x04,
     // DISTANCE_SENSOR   = 0x07 Uncomment when implemented
 };
 

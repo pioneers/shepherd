@@ -187,9 +187,13 @@ previous_parameter_values = {} # TODO: where should we put this?
 
 class Light(Parameter):
     def value_from_header(self, header):
-        if header[0] == SENSOR_HEADER.TURN_ON_LIGHT or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT:
+        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT 
+            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT
+            or header[0] == SENSOR_HEADER.TURN_ON_LASERS):
             return True
-        elif header[0] == SENSOR_HEADER.TURN_OFF_LIGHT or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT:
+        elif (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT 
+            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT
+            or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS):
             return False
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
@@ -246,9 +250,13 @@ dehydration_buttons = [DehydrationButton(name=f"light{i}", should_poll=True, ide
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
 fire_light = Light(name="fire_light", should_poll=False)
 
+lasers = Light(name="lasers", should_poll=False)
 
-arduino_1 = Device(1, 81985529216486895, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
-arduino_2 = Device(2, 2, [traffic_lights[0]])
+arduino_1 = Device(1, 1, [lights[0], lights[1], lights[2], lights[3], lights[4], lights[5], lights[6]])
+arduino_2 = Device(2, 2, [traffic_lights[0]]) # fix NOW TODO
+arduino_3 = Device(3, 3, [traffic_lights[0]]) # fix
+arduino_4 = Device(4, 4, [lasers])
+
 
 ################################################
 # Evergreen Variables (may still need to be updated)
@@ -259,7 +267,9 @@ HEADER_MAPPINGS = {
     SENSOR_HEADER.TURN_OFF_LIGHT : lights,
     SENSOR_HEADER.SET_TRAFFIC_LIGHT : traffic_lights,
     SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
-    SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light]
+    SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light],
+    SENSOR_HEADER.TURN_OFF_LASERS: [lasers],
+    SENSOR_HEADER.TURN_ON_LASERS: [lasers]
 }
 
 #used to request values from lowcar (non-polled)
@@ -270,6 +280,8 @@ HEADER_COMMAND_MAPPINGS = {
 arduinos = {
     arduino_1.get_identifier(): arduino_1, 
     arduino_2.get_identifier(): arduino_2,
+    arduino_3.get_identifier(): arduino_3,
+    arduino_4.get_identifier(): arduino_4,
 }
 
 ################################################

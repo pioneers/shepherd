@@ -110,7 +110,7 @@ device_t Arduino4 = {
     .num_params = 1,
     .params = {
         // Read-only
-        {.name = "lasers", .type = BOOL, .read = 1, .write = 0},
+        {.name = "lasers", .type = BOOL, .read = 0, .write = 1},
     }
 };
 

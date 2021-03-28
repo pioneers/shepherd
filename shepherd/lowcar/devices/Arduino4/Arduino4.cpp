@@ -1,9 +1,9 @@
-#include "Arduino3.h"
+#include "Arduino4.h"
 
-const int Arduino4::LASERS_PIN = 2
+const int Arduino4::LASERS_PIN = 2;
 
 // Constructor is called once and immediately when the Arduino is plugged in
-Arduino4::Arduino4() : Device(DeviceType::Arduino4, 13) {
+Arduino4::Arduino4() : Device(DeviceType::ARDUINO4, 13) {
 }
 
 size_t Arduino4::device_write(uint8_t param, uint8_t* data_buf) {

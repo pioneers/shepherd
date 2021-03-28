@@ -12,7 +12,7 @@ Device* device;  //declare the device
 
 void setup() {
     device = new Arduino1();          //flash script will replace DEVICE with requested Device type
-    device->set_uid(0x123456789ABCDEF);  //flash script will replace UID_INSERTED with randomly generated 64-bit value
+    device->set_uid(0x1);  //flash script will replace UID_INSERTED with randomly generated 64-bit value
 }
 
 void loop() {

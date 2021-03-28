@@ -1,5 +1,5 @@
 import random
-import Utils
+from Utils import *
 from LCM import *
 
 class Buttons:
@@ -15,7 +15,7 @@ class Buttons:
 
     def randomize_correct_button(self):
         self.correct_button = random.choice(
-            [i for i in range(len(self.NUM_BUTTONS)) if self.buttons_illuminated[i]])
+            [i for i in range(self.NUM_BUTTONS) if self.buttons_illuminated[i]])
 
     def illuminate_buttons(self):
         """
@@ -24,7 +24,7 @@ class Buttons:
         for i in range(self.NUM_BUTTONS):
             if self.buttons_illuminated[i]:
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
-                         num: button_to_id(i)})
+                         "num": i})
 
     def press_button_and_check(self, button_id, robot):
         button = self.id_to_button(button_id)
@@ -32,7 +32,7 @@ class Buttons:
         if self.is_correct_button(button_id) and robot.coding_challenge[self.challenges[button]]:
             for i in range(self.NUM_BUTTONS):
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
-                         num: i})
+                         "num": i})
             self.illuminated = 0
             self.buttons_illuminated = [False] * self.NUM_BUTTONS
             return True
@@ -46,16 +46,6 @@ class Buttons:
 
     def is_correct_button(self, button):
         return button == self.correct_button
-
-    def button_to_id(self, button):
-        dic = {0: 2,
-               1: 4,
-               2: 6,
-               3: 8,
-               4: 10,
-               5: 14,
-               6: 15}
-        return dic[button]
 
     def id_to_button(self, id):
         dic = {2: 0,

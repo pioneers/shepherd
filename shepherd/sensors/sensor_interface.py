@@ -20,6 +20,8 @@ from LCM import (
 from Sensors import (
     arduino_1,
     arduino_2,
+    arduino_3,
+    arduino_4,
     arduinos,
     translate_lcm_message,
     HEADER_MAPPINGS,
@@ -55,8 +57,7 @@ Ex: buttons
 """
 
 PARAMS_TO_READ = {
-    arduino_1.get_identifier(): arduino_1.polling_parameters,
-    arduino_2.get_identifier(): arduino_2.polling_parameters
+    arduino.get_identifier(): arduino.polling_parameters for arduino in arduinos.values()
 }
 
 ############################# START OF EVERGREEN FUNCTIONS #############################

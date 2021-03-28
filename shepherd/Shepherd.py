@@ -174,7 +174,7 @@ def to_auto(args):
     enable_robots(True)
     check_code()
 
-    BUTTONS.illuminate_buttons(ROBOT)
+    BUTTONS.illuminate_buttons()
     BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
