@@ -34,7 +34,7 @@ size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
 
     // log each button every 500ms
     if (curr - last_update_time[param] > 500) {
-        this->msngr->lowcar_printf("Device 2: param %d is %s", param, data_buf[0] == 1 ? "true" : "false");
+        this->msngr->lowcar_printf("param %d is %s", param, data_buf[0] == 1 ? "true" : "false");
         last_update_time[param] = curr;
     }
 
@@ -45,12 +45,12 @@ size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
     int min_index = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
     if (param <  min_index|| 
         param >= min_index + Arduino2::NUM_LIGHTS) {
-        this->msngr->lowcar_printf("Device 2: Trying to write to something that is not fire light.");
+        this->msngr->lowcar_printf("Trying to write to something that is not fire light.");
         return 0;
     }
 
     if (data_buf[0] > 1) {
-        this->msngr->lowcar_printf("Device 2: data_buf[0] is %d, but can only be 0 or 1.", data_buf[0]);
+        this->msngr->lowcar_printf("data_buf[0] is %d, but can only be 0 or 1.", data_buf[0]);
     }
 
     digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH: LOW);
