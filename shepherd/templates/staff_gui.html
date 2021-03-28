@@ -122,7 +122,8 @@
       });
 
       function updateBiome(biome) {
-        $("#biome").val(biome);
+        console.log(`updating biome to ${biome}`)
+        $("#biome").text(biome);
       }
       
       function setDefaultTeamsInfo() {
@@ -322,7 +323,7 @@
     </div>
     <div class="row bottom-padding">
         <h3>Biome:</h3>
-        <h3 id="biome"> None </3>
+        <h3 id="biome"> None </h3>
     </div>
     
 

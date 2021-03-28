@@ -104,9 +104,9 @@ def ui_to_server_custom_ip(args):
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
 @socketio.on('ui-to-server-get-biome')
-def ui_to_server_get_biome(args):
+def ui_to_server_get_biome():
     lcm_send(LCM_TARGETS.SHEPHERD, 
-             SHEPHERD_HEADER.GET_BIOME, json.loads(args))
+             SHEPHERD_HEADER.GET_BIOME)
 
 @socketio.on('ui-to-server-set-biome')
 def ui_to_server_get_biome(args):

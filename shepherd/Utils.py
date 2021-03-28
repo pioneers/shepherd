@@ -234,9 +234,9 @@ class TABLET_HEADER():
 
 
 class CONSTANTS():
-    AUTO_TIME = 5  # 20
+    AUTO_TIME = 20  # 20
     TOTAL_TIME = 600 # 600
-    STOPLIGHT_TIME = 5  # 30
+    STOPLIGHT_TIME = 30  # 30
     SANDSTORM_COVER_TIME = 10 # 10
     DEHYRATION_TIME = 30 # 30
     ROBOT_DEHYDRATED_TIME = 10 # 10
@@ -288,7 +288,7 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     CITY = "city"
-    FOREST = "forest"
+    # FOREST = "forest"
     SANDSTORM = "sandstorm"
     DEHYDRATION = "dehydration"
     FIRE = "fire"

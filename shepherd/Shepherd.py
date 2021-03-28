@@ -256,7 +256,7 @@ def send_round_info(args = None):
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
 
 def get_biome(args):
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, GAME_STATE)
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, {"biome": GAME_STATE})
 
 def set_biome(args):
     biome = args["biome"]
@@ -271,7 +271,7 @@ def set_biome(args):
     if biome not in state_to_transition_function:
         print(f"Sorry, {biome} is not a valid state to move to.")
         return
-    state_to_transition_function[biome]()
+    state_to_transition_function[biome]({})
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
@@ -499,7 +499,7 @@ def to_desert(args):
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
     lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.DESERT})
+             UI_HEADER.BIOME, {"biome": STATE.SANDSTORM})
     if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
@@ -537,6 +537,8 @@ def dehydration_button_press(args):
     if BUTTONS.press_button_and_check(button_number, ROBOT):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
+        lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.FIRE})
 
 
 def dehydration_penalty_timer_start(args):
@@ -576,7 +578,7 @@ def fire_lever(args):
     Toggle the fire.
     '''
     global FIRE_LIT
-    FIRE_LIT = True
+    FIRE_LIT = True # this just means the lever was flipped.
 
 
 def to_hypothermia(args):
@@ -604,7 +606,7 @@ def to_final(args):
     GAME_STATE = STATE.FINAL
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.FINAL})
-    CLIENTS.send_game_state(State.HYPOTHERMIA_STOP)
+    CLIENTS.send_game_state(State.HYPOTHERMIA_END)
 
 # ----------
 # AIRPORT STAGE
@@ -624,6 +626,7 @@ def to_end(args):
              UI_HEADER.BIOME, {"biome": STATE.END})
     disable_robots()
     CLIENTS.reset()
+    GAME_TIMER.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
     send_score_to_ui()
@@ -636,8 +639,8 @@ def to_end(args):
     LCM.lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
     try:
         flush_scores()
-    except:
-        print("Unable to push scores to spreadsheet.")
+    except Exception as e:
+        print(f"Unable to push scores to spreadsheet: {e}")
 
 
 ###########################################

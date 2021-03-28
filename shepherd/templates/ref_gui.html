@@ -73,6 +73,7 @@
         emit('join', 'ref_gui');
         emit('ui-to-server-teams-info-request-no-args');
         emit('ui-to-server-score-request');
+        emit('ui-to-server-get-biome');
       });
 
 
@@ -119,7 +120,7 @@
       });
 
       function updateBiome(biome) {
-        $("#biome").val(biome);
+        $("#biome").text(biome);
       }
 
 
@@ -177,6 +178,30 @@
       
       $("#exbtn1").click(() => {
           logg('example button [unimplemented]');
+      });
+
+      $("#city").click(() => {
+        emit("ui-to-server-set-biome", JSON.stringify({"biome": "city"}));
+      });
+
+      $("#desert").click(() => {
+        emit('ui-to-server-set-biome', JSON.stringify({"biome": "sandstorm"}))
+      });
+
+      $("#dehydration").click(() => {
+        emit('ui-to-server-set-biome', JSON.stringify({"biome": "dehydration"}))
+      });
+
+      $("#hypothermia").click(() => {
+        emit('ui-to-server-set-biome', JSON.stringify({"biome": "hypothermia"}))
+      });
+
+      $("#final").click(() => {
+        emit('ui-to-server-set-biome', JSON.stringify({"biome": "final"}))
+      });
+
+      $("#end").click(() => {
+        emit('ui-to-server-set-biome', JSON.stringify({"biome": "end"}))
       });
 
       
