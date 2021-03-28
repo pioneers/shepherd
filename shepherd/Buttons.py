@@ -1,5 +1,5 @@
 import random
-import Utils
+from Utils import *
 from LCM import *
 
 class Buttons:
@@ -20,7 +20,7 @@ class Buttons:
         for i in range(self.NUM_BUTTONS):
             if self.buttons_illuminated[i]:
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
-                         num: button_to_id(i)})
+                         "num": self.button_to_id(i)})
 
     def press_button_and_check(self, button_id, robot):
         button = self.id_to_button(button_id)
@@ -28,7 +28,7 @@ class Buttons:
         if self.is_correct_button(button) and robot.coding_challenge[self.challenges[button]]:
             for i in range(self.NUM_BUTTONS):
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
-                         num: button_to_id(i)})
+                         "num": self.button_to_id(i)})
             self.illuminated = 0
             self.buttons_illuminated = [False] * self.NUM_BUTTONS
             return True
