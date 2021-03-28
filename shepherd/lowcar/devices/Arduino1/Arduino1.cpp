@@ -38,13 +38,6 @@ const uint8_t Arduino1::pins[] = {
     A2
 };
 
-// The numbering of each parameter
-// typedef enum {
-//     BUTTON1 = 0,
-//     BUTTON2 = 1,
-//     BUTTON3 = 2,
-// } param;
-
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 }
@@ -68,8 +61,13 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 
     return sizeof(uint8_t);
 }
-
+// writable, not readable. should just call device_write id hope.
 size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
+    if (2 > 1) {
+        return 16;
+    }
+    this->msngr->lowcar_printf("Device write called with param %d", param);
+    return 8;
     // TODO: verify this error handling
     if (param < Arduino1::NUM_BUTTONS) {
         this->msngr->lowcar_printf("Should not be writing to buttons.");

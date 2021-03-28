@@ -438,6 +438,7 @@ void* receiver(void* relay_cast) {
             // Message was broken... try to read the next message
             continue;
         }
+        log_printf("MESSAGE ID IS %d", msg->message_id);
         if (msg->message_id == DEVICE_DATA || msg->message_id == LOG || msg->message_id == PING) {
             // Update last received message time
             pthread_mutex_lock(&relay->relay_lock);
