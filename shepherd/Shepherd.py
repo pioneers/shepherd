@@ -258,6 +258,21 @@ def send_round_info(args = None):
 def get_biome(args):
     lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, GAME_STATE)
 
+def set_biome(args):
+    biome = args["biome"]
+    state_to_transition_function = {
+        STATE.CITY: to_city,
+        STATE.SANDSTORM: to_desert,
+        STATE.DEHYDRATION: to_dehydration,
+        STATE.HYPOTHERMIA: to_hypothermia,
+        STATE.FINAL: to_final,
+        STATE.END: to_end
+    }
+    if biome not in state_to_transition_function:
+        print(f"Sorry, {biome} is not a valid state to move to.")
+        return
+    state_to_transition_function[biome]()
+
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
     connect()

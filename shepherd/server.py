@@ -108,6 +108,11 @@ def ui_to_server_get_biome(args):
     lcm_send(LCM_TARGETS.SHEPHERD, 
              SHEPHERD_HEADER.GET_BIOME, json.loads(args))
 
+@socketio.on('ui-to-server-set-biome')
+def ui_to_server_get_biome(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.SET_BIOME, json.loads(args))
+
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():

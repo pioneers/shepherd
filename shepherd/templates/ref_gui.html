@@ -111,6 +111,17 @@
         tinder = parseInt(parsed_data.tinder);
       });
 
+      socket.on('server-to-ui-biome', function (data) {
+        logg("server-to-ui-biome" + data);
+        data = JSON.parse(data);
+        const biome = data.biome;
+        updateBiome(biome);
+      });
+
+      function updateBiome(biome) {
+        $("#biome").val(biome);
+      }
+
 
       $("#penalty-change").click(() => {
           let v = parseInt($("#penalty-adjustment").val());
@@ -257,7 +268,25 @@
         </div>
       </div>
     </div>
-
+    <div class="row bottom-padding">
+      <h3>Biome:</h3>
+      <h3 id="biome"> None </3>
+    </div>
+    <div class="row bottom-padding">
+      <div>
+        <div class="input-group">
+          <h3>Change State:</h3>
+          <span class="input-group-btn">
+            <button class="btn btn-info" type="button" id="city">City</button>
+            <button class="btn btn-info" type="button" id="desert">Desert</button>
+            <button class="btn btn-info" type="button" id="dehydration">Dehydration</button>
+            <button class="btn btn-info" type="button" id="hypothermia">Hypothermia</button>
+            <button class="btn btn-info" type="button" id="final">Final</button>
+            <button class="btn btn-info" type="button" id="end">End</button>
+          </span>
+        </div>
+      </div>
+    </div>
 
     <a href="" id="log-toggle">Toggle log</a>
     <pre id="events-log" hidden></pre>
