@@ -4,7 +4,7 @@ import time
 import queue
 import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
-from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-error
+from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
 from Utils import *
 from LCM import *
 
