@@ -10,7 +10,7 @@
 
 class Arduino1 : public Device {
   public:
-    // construct a Dummy device
+    // construct an Arduino 1
     Arduino1();
 
     virtual size_t device_read(uint8_t param, uint8_t* data_buf);

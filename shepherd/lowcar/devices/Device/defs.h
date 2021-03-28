@@ -56,17 +56,11 @@ enum class MessageID : uint8_t {
 };
 
 // identification for device types
-enum class DeviceType : uint16_t {
+enum class DeviceType : uint8_t {
     DUMMY_DEVICE = 0x00,
-    LIMIT_SWITCH = 0x01,
-    LINE_FOLLOWER = 0x02,
-    BATTERY_BUZZER = 0x03,
-    SERVO_CONTROL = 0x04,
-    POLAR_BEAR = 0x05,
-    KOALA_BEAR = 0x06,
-    ARDUINO1 = 0x07,
-    ARDUINO2 = 0x08,
-    ARDUINO3 = 0x09,
+    ARDUINO1 = 0x01,
+    ARDUINO2 = 0x02,
+    ARDUINO3 = 0x03,
     // DISTANCE_SENSOR   = 0x07 Uncomment when implemented
 };
 

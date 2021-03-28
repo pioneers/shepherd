@@ -14,7 +14,7 @@
 
 /* The maximum number of milliseconds to wait between each PING from a device
  * Waiting for this long will exit all threads for that device (doing cleanup as necessary) */
-#define TIMEOUT 2000
+#define TIMEOUT 1000
 
 // The number of milliseconds between each PING sent to the device
 #define PING_FREQ 250

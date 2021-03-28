@@ -44,18 +44,18 @@ Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
     // put pin value into data_buf and return the amount of bytes written
-    if (param > Arduino1::NUM_BUTTONS) {
-        this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
+    if (param >= Arduino1::NUM_BUTTONS) {
+        // this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
         return 0;
     }
-    data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+    data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? TRUE : FALSE;
 
     static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
 
     // log each button every 500ms
     if (curr - last_update_time[param] > 500) {
-        this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
+        // this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
         last_update_time[param] = curr;
     }
 
@@ -63,30 +63,28 @@ size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
 }
 // writable, not readable. should just call device_write id hope.
 size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
-    if (2 > 1) {
-        return 16;
-    }
-    this->msngr->lowcar_printf("Device write called with param %d", param);
-    return 8;
+    // this->msngr->lowcar_printf("hello world");
+    // this->msngr->lowcar_printf("Device write called with param %d", param);
+    // return 8;
     // TODO: verify this error handling
     if (param < Arduino1::NUM_BUTTONS) {
-        this->msngr->lowcar_printf("Should not be writing to buttons.");
+        // this->msngr->lowcar_printf("Should not be writing to buttons.");
         return 0;
     }
     if (data_buf[0] == 1) {
         digitalWrite(Arduino1::pins[param], HIGH);
-        this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
+        // this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
     }
     else {
         digitalWrite(Arduino1::pins[param], LOW);
-        this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino1::pins[param]);
+        // this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino1::pins[param]);
     }
     return sizeof(uint8_t);
 }
 
 void Arduino1::device_enable() {
     // todo: ask ben what is diff between device enable and constructor
-    this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
+    // this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
     // set all pins to INPUT mode
     for (int i = 0; i < Arduino1::NUM_BUTTONS; i++) {
         pinMode(Arduino1::pins[i], INPUT);
@@ -98,7 +96,7 @@ void Arduino1::device_enable() {
 }
 
 void Arduino1::device_disable() {
-    this->msngr->lowcar_printf("ARDUINO 2 DISABLED");
+    // this->msngr->lowcar_printf("ARDUINO 2 DISABLED");
 }
 
 void Arduino1::device_actions() {

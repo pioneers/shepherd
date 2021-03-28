@@ -29,7 +29,7 @@ device_t DummyDevice = {
     }};
 
 device_t Arduino1 = {
-    .type = 7,
+    .type = 1,
     .name = "Arduino1",
     .num_params = 14,
     .params = {
@@ -59,7 +59,7 @@ device_t Arduino1 = {
 };
 
 device_t Arduino2 = {
-    .type = 6,
+    .type = 2,
     .name = "Arduino2",
     .num_params = 6,
     .params = {
@@ -83,7 +83,7 @@ device_t Arduino2 = {
 };
 
 device_t Arduino3 = {
-    .type = 4,
+    .type = 3,
     .name = "Arduino3",
     .num_params = 4,
     .params = {
