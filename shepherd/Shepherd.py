@@ -144,7 +144,7 @@ def to_setup(args):
     send_round_info()
 
     # turn on lasers
-    LCM.lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
 
     # LCM send to scoreboard about robot
 
@@ -153,7 +153,8 @@ def to_setup(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
 
-    # TODO: turn stoplight red
+    # turn stoplight red
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "red"})
 
 
 def to_auto(args):
@@ -462,7 +463,7 @@ def to_city(args):
 def stoplight_timer_end(args):
     # turn stoplight green
     STOPLIGHT_TIMER.reset()
-    # TODO: turn stoplight from red to green
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "green"})
 
 
 def stoplight_button_press(args):
@@ -624,6 +625,7 @@ def to_end(args):
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.END})
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
     disable_robots()
     CLIENTS.reset()
     GAME_TIMER.reset()
@@ -636,7 +638,7 @@ def to_end(args):
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
     # turn off lasers
-    LCM.lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
     try:
         flush_scores()
     except Exception as e:

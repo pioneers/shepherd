@@ -108,7 +108,11 @@ def thread_device_commander():
         payload = events.get(True)
         print(payload)
         if payload[0] in HEADER_MAPPINGS:
-            lowcar_message = translate_lcm_message(payload)
+            # TODO: remove this, after dealing with all exceptions properly
+            try:
+                lowcar_message = translate_lcm_message(payload)
+            except Exception as e:
+                print(f"Exception occured while translating {payload} to a LowcarMessage: {e}.")
             place_device_command(lowcar_message)
         elif payload[0] in HEADER_COMMAND_MAPPINGS:
             HEADER_COMMAND_MAPPINGS[payload[0]](payload[1])
@@ -132,7 +136,7 @@ def thread_device_sentinel(params_to_read):
         for device in params_to_read:
             params: List[Parameter] = params_to_read[device] # list of parameters
             dev_data: LowcarMessage = read_device_data(device, [param.name for param in params])
-            # debounce it TODO
+
             if not (len(dev_data.dev_ids) == 1) or not (len(dev_data.params) == 1):
                 raise Exception("LowcarMessage should only contain information about one device, because only one device is being queried.")
             arduino = arduinos[device]
@@ -140,8 +144,9 @@ def thread_device_sentinel(params_to_read):
 
             for param_name, value in param_values.items():
                 param = arduino.get_param(param_name)
-                print(f"{param_name}: {value}")
-                time.sleep(1)
+                # below logs are for testing buttons, slowly
+                # print(f"{param_name}: {value}")
+                # time.sleep(1)
                 value = debounce(value, param)
                 if value is None:
                     continue
