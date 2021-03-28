@@ -184,6 +184,7 @@ class SENSOR_HEADER():
     TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
     TURN_ON_LASERS = "turn_on_lasers"
     TURN_OFF_LASERS = "turn_off_lasers"
+    TURN_OFF_TRAFFIC_LIGHT = "turn_off_traffic_light"
 
 # pylint: disable=invalid-name
 

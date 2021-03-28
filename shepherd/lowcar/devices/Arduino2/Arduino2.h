@@ -18,8 +18,6 @@ class Arduino2 : public Device {
     virtual void device_enable();
     virtual void device_disable();
 
-    // Changes several of the readable params for testing
-    virtual void device_actions();
     private:
       const static int NUM_LINEBREAKS;
       const static int NUM_BUTTONS;

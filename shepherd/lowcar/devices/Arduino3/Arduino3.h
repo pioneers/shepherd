@@ -18,12 +18,11 @@ class Arduino3 : public Device {
     virtual void device_enable();
     virtual void device_disable();
 
-    // Changes several of the readable params for testing
-    virtual void device_actions();
     private:
       // number of buttons
-      const static int NUM_INPUTS;
-      const static int NUM_LIGHTS;
+      const static int NUM_LINEBREAKS;
+      const static int NUM_BUTTONS;
+      const static int NUM_LIGHT_PINS;
       // TODO: update pins that the buttons read data from (defined in defs.h)
       const static uint8_t pins[];
 };
