@@ -190,7 +190,7 @@ class SCOREBOARD_HEADER():
     # time: change displayed time to this if not null(?)
 
     TEAM = "team"
-    # TEAM{match_num, round_num, team_num, team_name, custom_ip}
+    # TEAM{match_num, round_num, team_num, team_name, custom_ip, tinder, buttons}
     STAGE = "stage"
     # STAGE{stage, start_time}
     # start_time = timestamp

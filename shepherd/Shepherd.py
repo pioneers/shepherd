@@ -248,7 +248,7 @@ def send_round_info(args = None):
     lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name, "tinder": tinder, "buttons": buttons})
 
 
 def set_custom_ip(args):
