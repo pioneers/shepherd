@@ -111,6 +111,10 @@ def ui_to_server_custom_ip(args):
 def ui_to_server_robot_off(args):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_OFF, json.loads(args))
 
+@socketio.on('ui-to-server-robot-on')
+def ui_to_server_robot_off(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_ON, json.loads(args))
+
 @socketio.on('ui-to-server-get-biome')
 def ui_to_server_get_biome():
     lcm_send(LCM_TARGETS.SHEPHERD, 

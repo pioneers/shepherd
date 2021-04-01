@@ -35,6 +35,7 @@
   <script type="text/javascript" charset="utf-8">
     $(document).ready(function() {
       var socket = io('/');
+      var team_num = NaN;
       var start_time = NaN;
       var base_time = NaN;
       var penalty_time = 1000;
@@ -106,6 +107,7 @@
         logg("server-to-ui-teams-info" + data);
         let parsed_data = JSON.parse(data);
         
+        team_num = parsed_data.team_num;
         $("#team-number").text(parsed_data.team_num);
         $("#team-name").text(parsed_data.team_name);
         $("#tinder").text(parsed_data.tinder);

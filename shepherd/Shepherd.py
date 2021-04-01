@@ -679,7 +679,6 @@ SETUP_FUNCTIONS = {
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
     SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
@@ -687,7 +686,6 @@ AUTO_FUNCTIONS = {
 
 # This represents City and Forest, since we don't need to detect Forest explicitly
 CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
@@ -698,14 +696,12 @@ CITY_FUNCTIONS = {
 }
 
 SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
@@ -714,7 +710,6 @@ DEHYDRATION_FUNCTIONS = {
 }
 
 FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
     SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
@@ -723,13 +718,11 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
     SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
 }
 
 FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CITY_LINEBREAK: to_end # triggered by line break
 }
@@ -744,6 +737,8 @@ END_FUNCTIONS = {
 }
 
 EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.ROBOT_ON: enable_robot,
     SHEPHERD_HEADER.GET_BIOME: get_biome,
     SHEPHERD_HEADER.SET_BIOME: set_biome,
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,

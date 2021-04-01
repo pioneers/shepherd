@@ -55,6 +55,9 @@ class SHEPHERD_HEADER():
     ROBOT_OFF = "robot_off"
     # ROBOT_OFF{team_number}: takes in team number and disables their robot
 
+    ROBOT_ON = "robot_on"
+    # ROBOT_ON{team_number}: takes in team number and enables their robot
+
     END_EXTENDED_TELEOP = "end_extended_teleop"
     # END_EXTENDED_TELEOP{}: ends the extended teloperated period
 
