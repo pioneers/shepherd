@@ -4,7 +4,7 @@ import time
 import queue
 import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
-from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-error
+from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
 from Utils import *
 from LCM import *
 
@@ -111,6 +111,16 @@ def ui_to_server_custom_ip(args):
 def ui_to_server_robot_off(args):
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_OFF, json.loads(args))
 
+@socketio.on('ui-to-server-get-biome')
+def ui_to_server_get_biome():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.GET_BIOME)
+
+@socketio.on('ui-to-server-set-biome')
+def ui_to_server_get_biome(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.SET_BIOME, json.loads(args))
+
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
@@ -138,6 +148,9 @@ def receiver():
                               json.dumps(event[1], ensure_ascii=False))
             elif event[0] == UI_HEADER.ROBOT_CONNECTION:
                 socketio.emit('server-to-ui-robot-connection',
+                              json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.BIOME:
+                socketio.emit('server-to-ui-biome',
                               json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 

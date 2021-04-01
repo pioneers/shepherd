@@ -6,29 +6,24 @@ class SHEPHERD_HEADER():
     RESET_CURRENT_STAGE = "reset_current_stage"
     # RESET_CURRENT_STAGE{}: resets the current stage
 
-    # TODO: revisit
     RESET_MATCH = "reset_match"
     # RESET_MATCH{}: resets the current match
 
-    # TODO: do
     RESET_ROUND = "reset_round"
     # RESET_ROUND{}: resets the current round, preserving relevant state from the previous round.
 
-    # TODO: make work for 2021
     GET_ROUND_INFO = "get_round_info"
     # GET_ROUND_INFO{match_num, round_num}: gets match info for given match number
 
     GET_ROUND_INFO_NO_ARGS = "get_round_info_no_args"
     # GET_ROUND_INFO_NO_ARGS{}: gets cached match info (called on UI page load)
 
-    # TODO: fix for 2021
     SETUP_MATCH = "setup_match"
     # SETUP_MATCH{team_name, team_num, match_num}
     # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
     # sets up the match given the corresponding info about the teams and match number
     # also has {g1_custom_ip, g2_custom_ip, b1_custom_ip, b2_custom_ip}
 
-    # TODO: do
     SETUP_ROUND = "setup_round"
     # SETUP_ROUND{teamname, team#, match#, round#, tinder, buttons}
 
@@ -83,15 +78,20 @@ class SHEPHERD_HEADER():
     REQUEST_CONNECTIONS = "request_connections"
     # REQUEST_CONNECTIONS{}
 
-    # AUTO
+    GET_BIOME = "get_biome"
+    # GET_BIOME{}
 
-    AUTO_TRACK_COMPLETE = "auto_track_complete"
+    SET_BIOME = "set_biome"
+    # GET_BIOME{biome: str}
+
+    # AUTO
+    CITY_LINEBREAK = "city_linebreak"
 
     # CITY
-
     STOPLIGHT_TIMER_END = "stoplight_timer_end"
     STOPLIGHT_BUTTON_PRESS = "stoplight_button_press"
     STOPLIGHT_PENALTY = "stoplight_penalty"
+    STOPLIGHT_CROSS = "stoplight_cross"
     DRAWBRIDGE_SHORTCUT = "drawbridge_shortcut" #could be in city or forest
     FOREST_ENTRY = "forest_entry"
 
@@ -106,6 +106,7 @@ class SHEPHERD_HEADER():
 
     # DEHYDRATION
     DEHYDRATION_BUTTON_PRESS = "dehydration_button_press"
+    # DEHYDRATION_BUTTON_PRESS{button: int}
     DEHYDRATION_TIMER_END = "dehydration_timer_end"
     ROBOT_DEHYDRATED_TIMER_END = "robot_dehydrated_timer_end"
 
@@ -113,13 +114,12 @@ class SHEPHERD_HEADER():
     # SET_TINDER{tinder: int}
     SET_TINDER = "set_tinder"
     HYPOTHERMIA_ENTRY = "hypothermia_entry"
-    TOGGLE_FIRE = "toggle_fire"
+    FIRE_LEVER = "fire_lever"
 
     # HYPOTHERMIA
     FINAL_ENTRY = "to_final"
 
     # AIRPORT
-    CROSS_FINISH_LINE = "to_end"
 
 # pylint: disable=invalid-name
 
@@ -133,7 +133,6 @@ class DAWN_HEADER():
     ROBOT_STATE = "rs"
     HEARTBEAT = "heartbeat"
     RESET = "reset"
-    # TODO this^
 
 
 class RUNTIME_HEADER():
@@ -157,7 +156,6 @@ class UI_HEADER():
     # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip}
     SCORES = "scores"
     # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
-    # TODO: update for one robot
     ROBOT_CONNECTION = "robot_connection"  # TODO: ask Matt why this function is commented out
     # CONNECTIONS{team_num: int, connected: bool}
     GAME_INFO = "game_info"
@@ -165,10 +163,28 @@ class UI_HEADER():
     SENSORS_INFO = "sensors_info"
     # SENSORS_INFO{tinder}
     STAGE = "stage"
-    # START_TIMESTAMP{is_auto[boolean], start_time[datetime]}
+    # STAGE{is_auto[boolean], start_time[datetime]}
+    BIOME = "biome"
+    # BIOME{string}
     ALL_INFO = "all_info"
     # ALL_INFO{}
 
+
+class SENSOR_HEADER():
+    """
+    Headers used for Shepherd to send messages to the Sensor Interface.
+    """
+    TURN_ON_LIGHT = "turn_on_light"
+    # {num: int}
+    TURN_OFF_LIGHT = "turn_off_light"
+    # {num: int}
+    SET_TRAFFIC_LIGHT = "set_traffic_light"
+    SET_ALL_SENSORS = "set_all_sensors"
+    TURN_ON_FIRE_LIGHT = "turn_on_fire_light"
+    TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
+    TURN_ON_LASERS = "turn_on_lasers"
+    TURN_OFF_LASERS = "turn_off_lasers"
+    TURN_OFF_TRAFFIC_LIGHT = "turn_off_traffic_light"
 
 # pylint: disable=invalid-name
 
@@ -202,6 +218,8 @@ class SCOREBOARD_HEADER():
     # calculate the diff between the start_time and our current time (to account for delay): DONE
     # start the timer from the appropriate time: DONE
     RESET_TIMERS = "reset_timers"
+    SANDSTORM = "sandstorm"
+    # SANDSTORM{on[bool]}
 
 class TABLET_HEADER():
     TEAMS = "teams"
@@ -217,15 +235,16 @@ class TABLET_HEADER():
 
 
 class CONSTANTS():
-    AUTO_TIME = 10  # 20
-    TELEOP_TIME = 20  # 280
-    STOPLIGHT_TIME = 5  # 30
-    SANDSTORM_COVER_TIME = 10
-    DEHYRATION_TIME = 30
-    ROBOT_DEHYDRATED_TIME = 10
-    SPREADSHEET_ID = "1vurNOrlIIeCHEtK5aJVDfHrRM1AC2qWvIbtWqUgnmLk"
-    CSV_FILE_NAME = "Sheets/fc2019.csv"
+    AUTO_TIME = 20  # 20
+    TOTAL_TIME = 600 # 600
+    STOPLIGHT_TIME = 30  # 30
+    SANDSTORM_COVER_TIME = 10 # 10
+    DEHYRATION_TIME = 30 # 30
+    ROBOT_DEHYDRATED_TIME = 10 # 10
+    SPREADSHEET_ID = "1moB8OJC3E8OwnXrRJmO-m5qn_ivXuZzsFse6-LdJy4I"
+    CSV_FILE_NAME = "Sheets/sc2021.csv"
     STUDENT_DECODE_TIME = 1
+    STOPLIGHT_PENALTY = 8
 
 # pylint: disable=invalid-name
 
@@ -270,7 +289,7 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     CITY = "city"
-    FOREST = "forest"
+    # FOREST = "forest"
     SANDSTORM = "sandstorm"
     DEHYDRATION = "dehydration"
     FIRE = "fire"

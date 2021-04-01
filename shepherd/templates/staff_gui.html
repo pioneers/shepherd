@@ -2,11 +2,11 @@
 <!--I like cheese-->
 <head>
   <title>Staff UI</title>
+  <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
   <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
   <!-- <script type="text/javascript" src={{url_for( 'static' , filename='tabletop.js' )}}></script> -->
   <!-- <script type="text/javascript" src={{url_for( 'static' , filename='lcm_ws_bridge.js' )}}></script> -->
-  <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
-  <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script> -->
 
   <!-- Latest compiled and minified CSS -->
   <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
@@ -98,6 +98,7 @@
         emit('join', 'staff_gui');
         emit('ui-to-server-request-connections');
         emit('ui-to-server-teams-info-request-no-args');
+        emit('ui-to-server-get-biome');
       });
 
       socket.on('server-to-ui-teams-info', function (data) {
@@ -114,6 +115,18 @@
         }
         setDefaultTeamsInfo()
       });
+
+      socket.on('server-to-ui-biome', function (data) {
+        logg("server-to-ui-biome" + data);
+        data = JSON.parse(data);
+        const biome = data.biome;
+        updateBiome(biome);
+      });
+
+      function updateBiome(biome) {
+        console.log(`updating biome to ${biome}`)
+        $("#biome").text(biome);
+      }
       
       function setDefaultTeamsInfo() {
         $("#select-match-number").val(match_num);
@@ -323,6 +336,10 @@
           <h3>Team Name:</h3>
           <input type="text" class="form-control" id="team-name">
         </div>
+    </div>
+    <div class="row bottom-padding">
+        <h3>Biome:</h3>
+        <h3 id="biome"> None </h3>
     </div>
     
 

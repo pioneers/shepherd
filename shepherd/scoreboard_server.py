@@ -13,7 +13,7 @@ PORT = 5500
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
-socketio = SocketIO(app, async_mode="gevent")
+socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 
 @app.route('/')
 def hello_world():
@@ -22,6 +22,10 @@ def hello_world():
 @app.route('/scoreboard.html/')
 def scoreboard():
     return render_template('scoreboard.html')
+
+@socketio.event
+def connect():
+    print('established connection')
 
 def receiver():
     events = gevent.queue.Queue()
@@ -40,6 +44,8 @@ def receiver():
                 socketio.emit('stage', json.dumps(event[1], ensure_ascii=False))
             elif event[0] == SCOREBOARD_HEADER.RESET_TIMERS:
                 socketio.emit('reset_timers', json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == SCOREBOARD_HEADER.SANDSTORM:
+                socketio.emit('sandstorm', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
 socketio.start_background_task(receiver)

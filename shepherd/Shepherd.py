@@ -18,6 +18,7 @@ import bot
 import audio
 from Robot import Robot
 from Buttons import Buttons
+from challenge_results import CHALLENGE_RESULTS
 
 # pylint: disable=global-statement
 
@@ -62,6 +63,7 @@ BUTTONS = Buttons()
 FIRE_LIT = False
 LAST_TINDER = 0
 LAST_BUTTONS = Buttons()
+LAST_FIRE_LIT = False
 
 ###########################################
 # Evergreen Methods
@@ -90,7 +92,6 @@ def start():
             STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
             STATE.AUTO: (AUTO_FUNCTIONS, "Auto"),
             STATE.CITY: (CITY_FUNCTIONS, "City"),
-            STATE.FOREST: (FOREST_FUNCTIONS, "Forest"),
             STATE.SANDSTORM: (SANDSTORM_FUNCTIONS, "Sandstorm"),
             STATE.DEHYDRATION: (DEHYDRATION_FUNCTIONS, "Dehydration"),
             STATE.FIRE: (FIRE_FUNCTIONS, "Fire"),
@@ -134,7 +135,6 @@ def to_setup(args):
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
     ROBOT = Robot(name, num, custom_ip)
-    BUTTONS = Buttons()
     CLIENTS = RuntimeClientManager()
     connect()
 
@@ -144,12 +144,18 @@ def to_setup(args):
     # so if there are other UIs open they get the update
     send_round_info()
 
+    # turn on lasers
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
+
     # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
+
+    # turn stoplight red
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "red"})
 
 
 def to_auto(args):
@@ -169,11 +175,14 @@ def to_auto(args):
     STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.AUTO})
     send_score_to_ui()
     enable_robots(True)
     check_code()
 
-    BUTTONS.illuminate_buttons(ROBOT)
+    BUTTONS.illuminate_buttons()
+    BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
 
@@ -183,7 +192,7 @@ def reset_round(args=None):
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS
+    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS, FIRE_LIT
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
@@ -192,7 +201,7 @@ def reset_round(args=None):
     ROBOT.reset()
     TINDER = LAST_TINDER
     BUTTONS = LAST_BUTTONS
-
+    FIRE_LIT = LAST_FIRE_LIT
     """
     CLIENTS = RuntimeClientManager()
     """
@@ -207,8 +216,9 @@ def reset_state(args):
     """
     This is called after a match is complete because tinder and buttons are persisted across rounds for the same alliance but not when the next alliance begins.
     """
-    global TINDER, BUTTONS
+    global TINDER, BUTTONS, FIRE_LIT
     TINDER = 0
+    FIRE_LIT = False
     BUTTONS = Buttons()
 
 
@@ -247,6 +257,23 @@ def send_round_info(args = None):
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, {"team_num": team_num, "team_name": team_name})
 
+def get_biome(args):
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, {"biome": GAME_STATE})
+
+def set_biome(args):
+    biome = args["biome"]
+    state_to_transition_function = {
+        STATE.CITY: to_city,
+        STATE.SANDSTORM: to_desert,
+        STATE.DEHYDRATION: to_dehydration,
+        STATE.HYPOTHERMIA: to_hypothermia,
+        STATE.FINAL: to_final,
+        STATE.END: to_end
+    }
+    if biome not in state_to_transition_function:
+        print(f"Sorry, {biome} is not a valid state to move to.")
+        return
+    state_to_transition_function[biome]({})
 
 def set_custom_ip(args):
     ROBOT.custom_ip = args["custom_ip"]
@@ -361,13 +388,26 @@ def log(Exception):
 
 def disable_robot(args):
     '''
-    Send message to Dawn to disable the robots of team
+    Send message to Dawn to disable the robot of team
     '''
     try:
         team_number = args["team_number"]
         client = CLIENTS.clients[int(team_number)]
         if client:
-            client.set_mode("idle")
+            client.send_mode(Mode.IDLE)
+    except Exception as exc:
+        log(exc)
+
+def enable_robot(args):
+    '''
+    Send message to Dawn to enable the robot of team
+    '''
+    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    try:
+        team_number = args["team_number"]
+        client = CLIENTS.clients[int(team_number)]
+        if client:
+            client.send_mode(mode)
     except Exception as exc:
         log(exc)
 
@@ -410,7 +450,7 @@ def check_code():
     '''
     Check the coding challenges and act appropriately
     '''
-    ROBOT.coding_challenge = get_results(ROBOT.custom_ip)
+    ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
 
 # ----------
 # AUTO STAGE
@@ -422,16 +462,17 @@ def to_city(args):
     Go to the city stage
     '''
     global GAME_STATE
-    enable_robots(False)
+    enable_robots(autonomous=False)
+    curr_time = time.time() - ROBOT.start_time
     GAME_TIMER.reset()
-    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
-    if STOPLIGHT_TIMER.is_running():
-        stoplight_penalty()
+    GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
     GAME_STATE = STATE.CITY
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
              "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.CITY})
     print("ENTERING CITY STATE")
 
 # ----------
@@ -442,35 +483,27 @@ def to_city(args):
 def stoplight_timer_end(args):
     # turn stoplight green
     STOPLIGHT_TIMER.reset()
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "green"})
 
 
 def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    if ROBOT.pass_coding_challenges(n=4, tier=1):
+    if ROBOT.pass_coding_challenges(n=1, tier=1):
         stoplight_timer_end([])
+    
+def stoplight_cross(args):
+    # stoplight is not green
+    if STOPLIGHT_TIMER.is_running():
+        stoplight_penalty()
 
 
 def stoplight_penalty():
     # whatever the penalty is
-    pass
-
-
-def to_forest(args):
-    '''
-    Go to the forest stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.FOREST
-
-def drawbridge_shortcut(args):
-    pass
-    #TODO activate the drawbridge
-
-# ----------
-# FOREST STAGE
-# ----------
+    ROBOT.penalty += CONSTANTS.STOPLIGHT_PENALTY
+    send_score_to_scoreboard()
+    send_score_to_ui()
 
 
 def contact_wall(args):
@@ -486,9 +519,11 @@ def to_desert(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.SANDSTORM})
     if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
-        # TODO: obscure vision
+        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
 
 # ----------
 # SANDSTORM STAGE
@@ -496,8 +531,7 @@ def to_desert(args):
 
 
 def sandstorm_timer_end(args):
-    # TODO: un-obscure vision
-    pass
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
 
 
 def to_dehydration(args):
@@ -506,9 +540,9 @@ def to_dehydration(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.DEHYDRATION})
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
-    # TODO: distribution of which challenges are chosen for each button?
-    BUTTONS.illuminate_buttons(ROBOT)
 
 # ----------
 # DEHYDRATION STAGE
@@ -521,9 +555,11 @@ def dehydration_button_press(args):
     '''
     global GAME_STATE
     button_number = int(args["button"])
-    if BUTTONS.press_button_and_check(button_number):
+    if BUTTONS.press_button_and_check(button_number, ROBOT):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
+        lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.FIRE})
 
 
 def dehydration_penalty_timer_start(args):
@@ -558,26 +594,27 @@ def set_tinder(args):
     send_round_info()
 
 
-def toggle_fire(args):
+def fire_lever(args):
     '''
     Toggle the fire.
     '''
     global FIRE_LIT
-    if not FIRE_LIT:
-        # TODO: light fire on field
-        FIRE_LIT = True
-    else:
-        FIRE_LIT = False
+    FIRE_LIT = True # this just means the lever was flipped.
 
 
 def to_hypothermia(args):
     '''
     Go to the hypothermia zone in the forest biome.
     '''
-    global GAME_STATE, FIRE_LIT
+    global GAME_STATE, FIRE_LIT, TINDER
     GAME_STATE = STATE.HYPOTHERMIA
-    if not FIRE_LIT:
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.HYPOTHERMIA})
+
+    if not (FIRE_LIT and TINDER > 0):
         CLIENTS.send_game_state(State.HYPOTHERMIA_START)
+    elif FIRE_LIT and TINDER > 0:
+        TINDER -= 1
 
 # ----------
 # HYPOTHERMIA STAGE
@@ -590,7 +627,9 @@ def to_final(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FINAL
-    CLIENTS.send_game_state(State.HYPOTHERMIA_STOP)
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.FINAL})
+    CLIENTS.send_game_state(State.HYPOTHERMIA_END)
 
 # ----------
 # AIRPORT STAGE
@@ -601,12 +640,17 @@ def to_end(args):
     '''
     Go to the end state.
     '''
-    global GAME_STATE, LAST_TINDER, LAST_BUTTONS
+    global GAME_STATE, LAST_TINDER, LAST_BUTTONS, LAST_FIRE_LIT
     LAST_TINDER = TINDER
-    LAST_BUTTONS = BUTTONS
+    LAST_BUTTONS = BUTTONS.copy()
+    LAST_FIRE_LIT = FIRE_LIT
     GAME_STATE = STATE.END
+    lcm_send(LCM_TARGETS.UI,
+             UI_HEADER.BIOME, {"biome": STATE.END})
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
     disable_robots()
     CLIENTS.reset()
+    GAME_TIMER.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
     send_score_to_ui()
@@ -614,6 +658,13 @@ def to_end(args):
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
     send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+
+    # turn off lasers
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    try:
+        flush_scores()
+    except Exception as e:
+        print(f"Unable to push scores to spreadsheet: {e}")
 
 
 ###########################################
@@ -630,32 +681,26 @@ SETUP_FUNCTIONS = {
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.AUTO_TRACK_COMPLETE: to_city,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_city
+    SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
+# This represents City and Forest, since we don't need to detect Forest explicitly
 CITY_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press,
+    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
-    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
-    SHEPHERD_HEADER.FOREST_ENTRY: to_forest
-}
-
-FOREST_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.STOPLIGHT_CROSS: stoplight_cross,
     SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DRAWBRIDGE_SHORTCUT: drawbridge_shortcut,
-    SHEPHERD_HEADER.DESERT_ENTRY: to_desert
+    SHEPHERD_HEADER.DESERT_ENTRY: to_desert # triggered by line break sensor
 }
 
 SANDSTORM_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration,
+    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
@@ -672,21 +717,21 @@ FIRE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
-    SHEPHERD_HEADER.TOGGLE_FIRE: toggle_fire,
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line break
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.FINAL_ENTRY: to_final
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
 }
 
 FINAL_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.CROSS_FINISH_LINE: to_end
+    SHEPHERD_HEADER.CITY_LINEBREAK: to_end # triggered by line break
 }
 
 END_FUNCTIONS = {
@@ -699,6 +744,8 @@ END_FUNCTIONS = {
 }
 
 EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.GET_BIOME: get_biome,
+    SHEPHERD_HEADER.SET_BIOME: set_biome,
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,

@@ -1,33 +1,66 @@
 import random
+from Utils import *
+from LCM import *
 
 class Buttons:
 
-    # TODO: make a new field every match
     def __init__(self):
-        self.NUM_BUTTONS = 6
+        self.NUM_BUTTONS = 7
         self.buttons_illuminated = [True] * self.NUM_BUTTONS
-        self.correct_button = random.randint(0, self.NUM_BUTTONS -1)
+        self.illuminate_buttons()
+        self.correct_button = random.randint(0, self.NUM_BUTTONS - 1)
         self.illuminated = self.NUM_BUTTONS
+        # pick the indices of 7 challenges
+        self.challenges = random.sample(range(8), self.NUM_BUTTONS)
 
-    def set_num_buttons(self):
-        #TODO: idk
-        pass
+    def randomize_correct_button(self):
+        self.correct_button = random.choice(
+            [i for i in range(self.NUM_BUTTONS) if self.buttons_illuminated[i]])
 
-    def randomize_buttons(self):
-        random.shuffle(self.buttons_illuminated)
-        self.correct_button = \
-            random.choice([a for a in range(self.NUM_BUTTONS) if self.buttons_illuminated[a]])
+    def illuminate_buttons(self):
+        """
+        Turns on button i if self.buttons_illuminated[i] is True.
+        """
+        for i in range(self.NUM_BUTTONS):
+            if self.buttons_illuminated[i]:
+                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
+                         "num": i})
 
-    def illuminate_buttons(self, robot):
-        challenges = random.sample(range(len(robot.coding_challenge)), self.NUM_BUTTONS)
-        for c in range(len(challenges)):
-            self.buttons_illuminated[c] = not robot.coding_challenge[challenges[c]]
-        self.illuminated = sum(self.buttons_illuminated)
-
-    def press_button_and_check(self, button):
-        self.buttons_illuminated[button] = False
-        self.illuminated -= 1
-        return self.is_correct_button(button)
+    def press_button_and_check(self, button_id, robot):
+        button = self.id_to_button(button_id)
+        # if this is the correct button and the challenge was solved
+        if self.is_correct_button(button_id) and robot.coding_challenge[self.challenges[button]]:
+            for i in range(self.NUM_BUTTONS):
+                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
+                         "num": i})
+            self.illuminated = 0
+            self.buttons_illuminated = [False] * self.NUM_BUTTONS
+            return True
+        # if this is not the correct button and the challenge was solved
+        if self.buttons_illuminated[button] and robot.coding_challenge[self.challenges[button]]:
+            self.illuminated -= 1
+            self.buttons_illuminated[button] = False
+            lcm_send(LCM_TARGETS.SENSORS,
+                     SENSOR_HEADER.TURN_OFF_LIGHT, {num: button_id})
+        return False
 
     def is_correct_button(self, button):
         return button == self.correct_button
+
+    def id_to_button(self, id):
+        dic = {2: 0,
+               4: 1,
+               6: 2,
+               8: 3,
+               10: 4,
+               14: 5,
+               15: 6}
+        return dic[id]
+
+    def copy(self):
+        new_buttons = Buttons()
+        new_buttons.buttons_illuminated = self.buttons_illuminated
+        new_buttons.correct_button = self.correct_button
+        new_buttons.illuminated = self.illuminated
+        new_buttons.challenges = self.challenges
+        return new_buttons
