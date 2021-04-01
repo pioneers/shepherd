@@ -10,7 +10,16 @@ body {
   p {
       padding-left: 5px;
   }
-.container {
+
+  .scoreboard-outer-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 100%;
+}
+
+.scoreboard-container {
     display: flex;
     justify-content: space-evenly;
     align-items: stretch;

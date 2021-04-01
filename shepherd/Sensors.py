@@ -26,7 +26,7 @@ args: {
 Details for each header will live in Utils.py
 """
 from __future__ import annotations
-from Utils import *
+from Utils import SENSOR_HEADER, SHEPHERD_HEADER
 import queue
 from LCM import *
 import time
@@ -290,10 +290,10 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    # arduino_1.get_identifier(): arduino_1, 
-    # arduino_2.get_identifier(): arduino_2,
+    arduino_1.get_identifier(): arduino_1, 
+    arduino_2.get_identifier(): arduino_2,
     arduino_3.get_identifier(): arduino_3,
-    # arduino_4.get_identifier(): arduino_4,
+    arduino_4.get_identifier(): arduino_4,
 }
 
 ################################################

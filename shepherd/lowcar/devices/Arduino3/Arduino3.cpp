@@ -13,18 +13,36 @@ const uint8_t Arduino3::pins[] = {
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
-Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13) {
+Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13)
+{
 }
 
-size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
+size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
+{
     // put pin value into data_buf and return the amount of bytes written
-    if (param < Arduino3::NUM_LINEBREAKS) {
-        data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 0 : 1;
-        this->msngr->lowcar_printf("Linebreaks are not being used, so this should never get logged.");
+    if (param < Arduino3::NUM_LINEBREAKS)
+    {
+        // Reading the output frequency
+        int redFrequency = pulseIn(this->pins[param], LOW);
+
+        // Printing the RED (R) value
+        // Serial.print(redFrequency);
+
+        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
+        {
+            data_buf[0] = 1;
+        }
+        else
+        {
+            data_buf[0] = 0;
+        }
     }
-    else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS) {
+    else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS)
+    {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
-    } else {
+    }
+    else
+    {
         this->msngr->lowcar_printf("Should not be reading from a light. param is %d", param);
         return 0;
     }
@@ -43,49 +61,78 @@ size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
     return sizeof(uint8_t);
 }
 
-size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
+size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
+{
     int min_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     int max_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
-    if (param < min_index || param > min_index) {
+    if (param < min_index || param > min_index)
+    {
         this->msngr->lowcar_printf("Trying to write to something that is not the traffic light.");
         return 0;
     }
     int value = data_buf[0];
-    if (value == 0) {
+    if (value == 0)
+    {
         // off
         digitalWrite(pins[min_index], LOW);
         return 8;
-    } else if (value == 1) {
+    }
+    else if (value == 1)
+    {
         // red
         digitalWrite(pins[min_index + 1], LOW);
         digitalWrite(pins[min_index], HIGH);
         return 16;
-    } else if (value == 2) {
+    }
+    else if (value == 2)
+    {
         // green
         digitalWrite(pins[min_index + 1], HIGH);
         digitalWrite(pins[min_index], HIGH);
         return 16;
-    } else {
+    }
+    else
+    {
         this->msngr->lowcar_printf("Traffic light value must be 0, 1 or 2 but was %d", param);
     }
 
     return 0;
 }
 
-void Arduino3::device_enable() {
-    // todo: ask ben what is diff between device enable and constructor
+void Arduino3::device_enable()
+{
     this->msngr->lowcar_printf("ARDUINO 3 ENABLING");
     // set all pins to INPUT mode
     int num_inputs = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
-    for (int i = 0; i < num_inputs; i++) {
+    for (int i = 0; i < num_inputs; i++)
+    {
         pinMode(Arduino3::pins[i], INPUT);
     }
 
-    for (int i = 0; i < Arduino3::NUM_LIGHT_PINS; i++) {
+    for (int i = 0; i < Arduino3::NUM_LIGHT_PINS; i++)
+    {
         pinMode(Arduino3::pins[i + num_inputs], OUTPUT);
     }
+
+    // Setting the outputs
+    pinMode(S0, OUTPUT);
+    pinMode(S1, OUTPUT);
+    pinMode(S2, OUTPUT);
+    pinMode(S3, OUTPUT);
+    // Setting the sensorOut as an input
+    pinMode(this->pins[0], INPUT);
+    pinMode(this->pins[1], INPUT);
+    // Setting frequency scaling to 20%
+    digitalWrite(S0, HIGH);
+    digitalWrite(S1, LOW);
+    // Setting RED (R) filtered photodiodes to be read
+    digitalWrite(S2, LOW);
+    digitalWrite(S3, LOW);
+    // Begins serial communication
+    Serial.begin(9600);
 }
 
-void Arduino3::device_disable() {
+void Arduino3::device_disable()
+{
     this->msngr->lowcar_printf("ARDUINO 3 DISABLED :(");
 }

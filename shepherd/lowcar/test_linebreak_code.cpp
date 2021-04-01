@@ -32,7 +32,7 @@ void loop(){
   if (sensorState == LOW) {     
     // turn LED on:
     digitalWrite(LEDPIN, HIGH);  
-  } 
+  }
   else {
     // turn LED off:
     digitalWrite(LEDPIN, LOW); 
