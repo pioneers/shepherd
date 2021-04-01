@@ -68,7 +68,11 @@
         e.preventDefault();
         let log = document.getElementById("events-log");
         log.hidden = !log.hidden;
+        localStorage.setItem("log-toggle", !log.hidden);
       });
+      
+      if(localStorage.getItem("log-toggle") === "true")
+        document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function(data) {
         emit('join', 'ref_gui');
@@ -127,55 +131,63 @@
 
 
       $("#penalty-change").click(() => {
-          let v = parseInt($("#penalty-adjustment").val());
-          if(isNaN(v)) { alert("invalid input"); return; }
-          if(v < 0) { alert("Penalty time should be a positive number"); return; }
-          emit('ui-to-server-scores', JSON.stringify({ "penalty": v }));
-          $("#penalty-adjustment").val("");
+        let v = parseInt($("#penalty-adjustment").val());
+        if(isNaN(v)) { alert("invalid input"); return; }
+        if(v < 0) { alert("Penalty time should be a positive number"); return; }
+        emit('ui-to-server-scores', JSON.stringify({ "penalty": v }));
+        $("#penalty-adjustment").val("");
       });
       
       $("#penalty-5").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty_time+5 }));
+        emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty_time+5 }));
       });
       
       $("#stamp-change").click(() => {
-          let v = parseInt($("#stamp-adjustment").val());
-          if(isNaN(v)) { alert("invalid input"); return; }
-          if(v > 0) { alert("Stamp time should be a negative number"); return; }
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": v }));
-          $("#stamp-adjustment").val("");
+        let v = parseInt($("#stamp-adjustment").val());
+        if(isNaN(v)) { alert("invalid input"); return; }
+        if(v > 0) { alert("Stamp time should be a negative number"); return; }
+        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": v }));
+        $("#stamp-adjustment").val("");
       });
       
       $("#stamp-3").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-3 }));
+        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-3 }));
       });
       
       $("#stamp-5").click(() => {
-          emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-5 }));
+        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-5 }));
       });
       
       $("#tinder-change").click(() => {
-          let v = parseInt($("#tinder-adjustment").val());
-          if(isNaN(v)) { alert("invalid input"); return; }
-          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": v }));
-          $("#tinder-adjustment").val("");
+        let v = parseInt($("#tinder-adjustment").val());
+        if(isNaN(v)) { alert("invalid input"); return; }
+        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": v }));
+        $("#tinder-adjustment").val("");
       });
       
       $("#tinder-decrement").click(() => {
-          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder-1 }));
+        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder-1 }));
       });
       
       $("#tinder-increment").click(() => {
-          emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder+1 }));
+        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder+1 }));
       });
 
       
       $("#hit-wall").click(() => {
-          emit('ui-to-server-contact-wall');
+        emit('ui-to-server-contact-wall');
       });
       
       $("#shortcut").click(() => {
-          emit('ui-to-server-drawbridge-shortcut');
+        emit('ui-to-server-drawbridge-shortcut');
+      });
+
+      $("#stop-robot").click(function () {
+        emit('ui-to-server-robot-off', JSON.stringify({ "team_number": team_num }));
+      });
+
+      $("#start-robot").click(function () {
+        emit('ui-to-server-robot-on', JSON.stringify({ "team_number": team_num }));
       });
 
       $("#city").click(() => {
@@ -286,13 +298,14 @@
           <span class="input-group-btn">
             <button class="btn btn-info" type="button" id="hit-wall">Hit Wall</button>
             <button class="btn btn-info" type="button" id="shortcut">Shortcut</button>
+            <button class="btn btn-danger" type="button" id="stop-robot">ESTOP Robot</button>
+            <button class="btn btn-success" type="button" id="start-robot">ESTART Robot</button>
           </span>
         </div>
       </div>
     </div>
-    <div class="row bottom-padding">
-      <h3>Biome:</h3>
-      <h3 id="biome"> None </3>
+    <div class="text-center">
+      <h3>Biome: <span id="biome"> None </span></h3>
     </div>
     <div class="row bottom-padding">
       <div>

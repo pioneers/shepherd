@@ -390,24 +390,20 @@ def disable_robot(args):
     '''
     Send message to Dawn to disable the robot of team
     '''
-    try:
-        team_number = args["team_number"]
-        client = CLIENTS.clients[int(team_number)]
-        if client:
-            client.send_mode(Mode.IDLE)
-    except Exception as exc:
-        log(exc)
+    send_robot_mode(int(args["team_number"]), Mode.IDLE)
 
 def enable_robot(args):
     '''
     Send message to Dawn to enable the robot of team
     '''
     mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    send_robot_mode(int(args["team_number"]), mode)
+
+def send_robot_mode(team_number, mode):
     try:
-        team_number = args["team_number"]
-        client = CLIENTS.clients[int(team_number)]
-        if client:
-            client.send_mode(mode)
+        for client in CLIENTS.clients:
+            if client.robot.number == team_number:
+                client.send_mode(mode)
     except Exception as exc:
         log(exc)
 

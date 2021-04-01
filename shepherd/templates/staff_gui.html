@@ -92,7 +92,11 @@
         e.preventDefault();
         let log = document.getElementById("events-log");
         log.hidden = !log.hidden;
+        localStorage.setItem("log-toggle", !log.hidden);
       });
+      
+      if(localStorage.getItem("log-toggle") === "true")
+        document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
