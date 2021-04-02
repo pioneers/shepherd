@@ -125,6 +125,16 @@ def ui_to_server_get_biome(args):
     lcm_send(LCM_TARGETS.SHEPHERD, 
              SHEPHERD_HEADER.SET_BIOME, json.loads(args))
 
+@socketio.on('ui-to-server-linebreaks-off')
+def ui_to_server_linebreaks_off():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.LINEBREAKS_OFF)
+
+@socketio.on('ui-to-server-linebreaks-on')
+def ui_to_server_linebreaks_on():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.LINEBREAKS_ON)
+
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
@@ -156,6 +166,8 @@ def receiver():
             elif event[0] == UI_HEADER.BIOME:
                 socketio.emit('server-to-ui-biome',
                               json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.LINEBREAK_INFO:
+                socketio.emit('server-to-ui-linebreak-info', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
 

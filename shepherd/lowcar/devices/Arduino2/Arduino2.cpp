@@ -4,20 +4,20 @@ const int Arduino2::NUM_LINEBREAKS = 4; // params 0-4
 const int Arduino2::NUM_BUTTONS = 1;
 const int Arduino2::NUM_LIGHTS = 1;
 
-#define S0 3
-#define S1 4
-#define S2 5
-#define S3 6
+#define S0 2
+#define S1 3
+#define S2 4
+#define S3 5
 
 #define LINEBREAK_THRESHOLD 100
 
 const uint8_t Arduino2::pins[] = {
-    2,  // desert_linebreak
+    6,  // desert_linebreak
     7,  // dehydration_linebreak
     8,  // hypothermia_linebreak
     9,  // airport_linebreak
-    10, // fire_lever
-    14, // FIX: fire_light
+    11, // fire_lever
+    12, // fire_light
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
@@ -26,28 +26,37 @@ Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13)
 }
 
 size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
-{
+{   
+    // return 1;
+    // this->msngr->lowcar_printf("hullo wurld\n");
+    // this->msngr->lowcar_printf("param is %d\n", param);
     // put pin value into data_buf
     if (param < Arduino2::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        int redFrequency = pulseIn(this->pins[param], LOW);
+        // so i guess this is only gonna work once everything is plugged in
+        // rn it only works for pin 9. all: Arduino2::pins[param]
+        int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
+        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
 
         // Printing the RED (R) value
         // Serial.print(redFrequency);
-
+        //this->msngr->lowcar_printf("hello world\n");
+        //if (param == 2) {
+            //this->msngr->lowcar_printf("%d\n", redFrequency);
+        //}
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
         {
-            data_buf[0] = 1;
+            data_buf[0] = 0;
         }
         else
         {
-            data_buf[0] = 0;
+            data_buf[0] = 1;
         }
     }
     else if (param < Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS)
     {
-        data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+        data_buf[0] = (digitalRead(Arduino2::pins[param]) == HIGH) ? 1 : 0;
     }
     else
     {
@@ -85,9 +94,8 @@ size_t Arduino2::device_write(uint8_t param, uint8_t *data_buf)
     }
 
     digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH : LOW);
-    digitalWrite(Arduino2::pins[param], LOW);
 
-    return 0;
+    return sizeof(uint8_t);
 }
 
 void Arduino2::device_enable()
@@ -111,18 +119,16 @@ void Arduino2::device_enable()
     pinMode(S2, OUTPUT);
     pinMode(S3, OUTPUT);
     // Setting each linebreak sensor as an input
-    pinMode(this->pins[0], INPUT);
-    pinMode(this->pins[1], INPUT);
-    pinMode(this->pins[2], INPUT);
-    pinMode(this->pins[3], INPUT);
+    pinMode(Arduino2::pins[0], INPUT);
+    pinMode(Arduino2::pins[1], INPUT);
+    pinMode(Arduino2::pins[2], INPUT);
+    pinMode(Arduino2::pins[3], INPUT);
     // Setting frequency scaling to 20%
     digitalWrite(S0, HIGH);
     digitalWrite(S1, LOW);
     // Setting RED (R) filtered photodiodes to be read
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
-    // Begins serial communication
-    Serial.begin(9600);
 }
 
 void Arduino2::device_disable()

@@ -1,8 +1,8 @@
 // TCS230 or TCS3200 pins wiring to Arduino
-#define S0 3
-#define S1 4
-#define S2 5
-#define S3 6
+#define S0 2
+#define S1 3
+#define S2 4
+#define S3 5
 #define sensorOut 2
 // Stores frequency read by the photodiodes
 int redFrequency = 0;

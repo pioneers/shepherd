@@ -2,6 +2,7 @@ import argparse
 import queue
 import time
 import traceback
+import threading
 from datetime import datetime
 from Utils import SHEPHERD_HEADER
 from Alliance import *
@@ -65,6 +66,9 @@ LAST_TINDER = 0
 LAST_BUTTONS = Buttons()
 LAST_FIRE_LIT = False
 
+CHECKING_LINEBREAKS = False
+LINEBREAK_HEADERS = [False] * 6
+
 ###########################################
 # Evergreen Methods
 ###########################################
@@ -79,6 +83,7 @@ def start():
     '''
     global LAST_HEADER
     global EVENTS
+    global LINEBREAK_HEADERS
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     while True:
@@ -87,6 +92,20 @@ def start():
         payload = EVENTS.get(True)
         LAST_HEADER = payload
         print(payload)
+
+        # check if linebreak
+        if payload[0] == SHEPHERD_HEADER.CITY_LINEBREAK:
+            LINEBREAK_HEADERS[0] = True
+        elif payload[0] == SHEPHERD_HEADER.STOPLIGHT_CROSS:
+            LINEBREAK_HEADERS[1] = True
+        elif payload[0] == SHEPHERD_HEADER.DESERT_ENTRY:
+            LINEBREAK_HEADERS[2] = True
+        elif payload[0] == SHEPHERD_HEADER.DEHYDRATION_ENTRY:
+            LINEBREAK_HEADERS[3] = True
+        elif payload[0] == SHEPHERD_HEADER.HYPOTHERMIA_ENTRY:
+            LINEBREAK_HEADERS[4] = True
+        elif payload[0] == SHEPHERD_HEADER.FINAL_ENTRY:
+            LINEBREAK_HEADERS[5] = True
 
         funcmappings = {
             STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
@@ -206,6 +225,8 @@ def reset_round(args=None):
     CLIENTS = RuntimeClientManager()
     """
     disable_robots()
+
+    turn_off_all_lights()
 
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
     lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
@@ -486,7 +507,7 @@ def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    if ROBOT.pass_coding_challenges(n=1, tier=1):
+    if ROBOT.pass_coding_challenges(n=1, tier=2):
         stoplight_timer_end([])
     
 def stoplight_cross(args):
@@ -517,7 +538,7 @@ def to_desert(args):
     GAME_STATE = STATE.SANDSTORM
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.SANDSTORM})
-    if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
+    if ROBOT.pass_coding_challenges(n=1, tier=2) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
 
@@ -596,7 +617,8 @@ def fire_lever(args):
     '''
     global FIRE_LIT
     FIRE_LIT = True # this just means the lever was flipped.
-
+    if TINDER > 0:
+        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
 def to_hypothermia(args):
     '''
@@ -643,7 +665,6 @@ def to_end(args):
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.END})
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
     disable_robots()
     CLIENTS.reset()
     GAME_TIMER.reset()
@@ -655,12 +676,49 @@ def to_end(args):
     send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
-    # turn off lasers
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    turn_off_all_lights()
+
     try:
         flush_scores()
     except Exception as e:
         print(f"Unable to push scores to spreadsheet: {e}")
+
+def turn_off_all_lights():
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_FIRE_LIGHT)
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    for i in range(Buttons.NUM_BUTTONS):
+        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
+
+def linebreaks_on(args):
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
+
+def linebreaks_off(args):
+    global CHECKING_LINEBREAKS, LINEBREAK_HEADERS
+    LINEBREAK_HEADERS = [False] * 6
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
+    CHECKING_LINEBREAKS = True
+    timer = threading.Timer(2.0, check_linebreaks)
+    timer.start()
+
+def check_linebreaks():
+    ret = ""
+    if not LINEBREAK_HEADERS[0]:
+        ret += "city "
+    if not LINEBREAK_HEADERS[1]:
+        ret += "stoplight "
+    if not LINEBREAK_HEADERS[2]:
+        ret += "desert "
+    if not LINEBREAK_HEADERS[3]:
+        ret += "dehydration "
+    if not LINEBREAK_HEADERS[4]:
+        ret += "hypothermia "
+    if not LINEBREAK_HEADERS[5]:
+        ret += "final "
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.LINEBREAK_INFO, {"text": ret})
+
+
+# TODO: someone would have to read headers to figure out which linebreaks were not working
 
 
 ###########################################
@@ -729,7 +787,9 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
-    SHEPHERD_HEADER.RESET_MATCH: reset_state
+    SHEPHERD_HEADER.RESET_MATCH: reset_state,
+    SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
+    SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
 }
 
 EVERYWHERE_FUNCTIONS = {
