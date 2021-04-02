@@ -206,6 +206,8 @@ def reset_round(args=None):
     """
     disable_robots()
 
+    turn_off_all_lights()
+
     lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
     lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
@@ -470,7 +472,7 @@ def stoplight_button_press(args):
     '''
     Triggered by a press of the stoplight button
     '''
-    if ROBOT.pass_coding_challenges(n=1, tier=1):
+    if ROBOT.pass_coding_challenges(n=1, tier=2):
         stoplight_timer_end([])
     
 def stoplight_cross(args):
@@ -501,7 +503,7 @@ def to_desert(args):
     GAME_STATE = STATE.SANDSTORM
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.SANDSTORM})
-    if ROBOT.pass_coding_challenges(n=1, tier=1) == 0:
+    if ROBOT.pass_coding_challenges(n=1, tier=2) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
         lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
 
@@ -580,7 +582,8 @@ def fire_lever(args):
     '''
     global FIRE_LIT
     FIRE_LIT = True # this just means the lever was flipped.
-
+    if TINDER > 0:
+        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
 def to_hypothermia(args):
     '''
@@ -625,7 +628,6 @@ def to_end(args):
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.END})
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
     disable_robots()
     CLIENTS.reset()
     GAME_TIMER.reset()
@@ -637,14 +639,19 @@ def to_end(args):
     send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
-    # turn off lasers
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    turn_off_all_lights()
+
     try:
         flush_scores()
     except Exception as e:
         print(f"Unable to push scores to spreadsheet: {e}")
 
-
+def turn_off_all_lights():
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_FIRE_LIGHT)
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    for i in range(Buttons.NUM_BUTTONS):
+        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################

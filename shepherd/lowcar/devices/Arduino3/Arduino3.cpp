@@ -11,6 +11,7 @@ const uint8_t Arduino3::pins[] = {
     2, // traffic_light on = 1, off = 0
     3, // traffic_light red = 0, green = 1
 };
+// 2 is red, 3 is green, no pin is off
 
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13) {
@@ -44,6 +45,8 @@ size_t Arduino3::device_read(uint8_t param, uint8_t* data_buf) {
 }
 
 size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
+    int red_pin = 2;
+    int green_pin = 3;
     int min_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     int max_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     if (param < min_index || param > min_index) {
@@ -53,17 +56,18 @@ size_t Arduino3::device_write(uint8_t param, uint8_t* data_buf) {
     int value = data_buf[0];
     if (value == 0) {
         // off
-        digitalWrite(pins[min_index], LOW);
+        digitalWrite(red_pin, LOW);
+        digitalWrite(green_pin, LOW);
         return 8;
     } else if (value == 1) {
         // red
-        digitalWrite(pins[min_index + 1], LOW);
-        digitalWrite(pins[min_index], HIGH);
+        digitalWrite(green_pin, LOW);
+        digitalWrite(red_pin, HIGH);
         return 16;
     } else if (value == 2) {
         // green
-        digitalWrite(pins[min_index + 1], HIGH);
-        digitalWrite(pins[min_index], HIGH);
+        digitalWrite(red_pin, LOW);
+        digitalWrite(green_pin, HIGH);
         return 16;
     } else {
         this->msngr->lowcar_printf("Traffic light value must be 0, 1 or 2 but was %d", param);

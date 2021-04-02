@@ -10,7 +10,7 @@ const uint8_t Arduino2::pins[] = {
     6, // hypothermia_linebreak 6
     8, // airport_linebreak
     10, // fire_lever
-    14, // FIX: fire_light
+    12, // fire_light
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
@@ -57,7 +57,6 @@ size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
     }
 
     digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH: LOW);
-    digitalWrite(Arduino2::pins[param], LOW);
 
     return 0;
 }

@@ -111,9 +111,9 @@ def thread_device_commander():
             # TODO: remove this, after dealing with all exceptions properly
             try:
                 lowcar_message = translate_lcm_message(payload)
+                place_device_command(lowcar_message)
             except Exception as e:
-                print(f"Exception occured while translating {payload} to a LowcarMessage: {e}.")
-            place_device_command(lowcar_message)
+                print(f"Exception occured while translating {payload} to a LowcarMessage or placing command: {e}.")
         elif payload[0] in HEADER_COMMAND_MAPPINGS:
             HEADER_COMMAND_MAPPINGS[payload[0]](payload[1])
 
