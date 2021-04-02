@@ -157,7 +157,7 @@
       });
       
       socket.on('server-to-ui-linebreak-info', function(data) {
-        $("#linebreak-info").text("Not working: " + JSON.parse(data).text);
+        $("#linebreaks-info").text("Not working: " + JSON.parse(data).text);
       })
 
       $("#next-round").click(() => {
@@ -236,12 +236,12 @@
         toggleHeartbeat(false);
       });
 
-      $("linebreaks-off").click(function () {
+      $("#linebreaks-off").click(function () {
         emit('ui-to-server-linebreaks-off');
       });
 
-      $("linebreaks-on").click(function () {
-        emit('ui-to-server-linebreaks-off');
+      $("#linebreaks-on").click(function () {
+        emit('ui-to-server-linebreaks-on');
       });
       
     });
@@ -356,7 +356,7 @@
             aria-hidden="true"></span>Linebreaks Off</button>
         <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
             aria-hidden="true"></span>Linebreaks On</button>
-          <h3 id="linebreaks-status">N/A</h3>
+          <h3 id="linebreaks-info">N/A</h3>
       </div>
     </div>
     

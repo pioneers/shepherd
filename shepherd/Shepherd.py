@@ -687,10 +687,10 @@ def turn_off_all_lights():
     for i in range(Buttons.NUM_BUTTONS):
         lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
 
-def linebreaks_on():
+def linebreaks_on(args):
     lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
 
-def linebreaks_off():
+def linebreaks_off(args):
     global CHECKING_LINEBREAKS, LINEBREAK_HEADERS
     LINEBREAK_HEADERS = [False] * 6
     lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
