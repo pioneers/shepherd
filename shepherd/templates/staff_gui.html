@@ -58,6 +58,7 @@
     $(document).ready(function () {
 
       var socket = io('/');
+      var robot_connected = false;
       var match_num = "";
       var round_num = "";
       var team_num = "";
@@ -91,10 +92,15 @@
         e.preventDefault();
         let log = document.getElementById("events-log");
         log.hidden = !log.hidden;
+        localStorage.setItem("log-toggle", !log.hidden);
       });
+      
+      if(localStorage.getItem("log-toggle") === "true")
+        document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
+        emit('ui-to-server-request-connections');
         emit('ui-to-server-teams-info-request-no-args');
         emit('ui-to-server-get-biome');
       });
@@ -136,7 +142,8 @@
         $("#custom-ip-adjustment").val(custom_ip);
       }
 
-      function toggleHeartbeat(connected) {
+      function toggleHeartbeat(connected, message) {
+        robot_connected = connected;
         const hbl = $("#heartbeat-light");
         if (connected == null) {
           hbl.toggleClass("led-green", false);
@@ -145,14 +152,17 @@
           hbl.toggleClass("led-green", connected);
           hbl.toggleClass("led-red",  !connected);
         }
+        $("#heartbeat-message").text(message);
       }
       
-      socket.on('server-to-ui-robot-connection', function (data) { //TODO right header?
+      socket.on('server-to-ui-robot-connection', function (data) {
         logg("server-to-ui-robot-connection" + data);
         data = JSON.parse(data);
-        const connected = data.connected; //TODO right field?
-        if (data.team_num == team_num) {
-          toggleHeartbeat(connected);
+        const connected = data.connected;
+        if (typeof data.team_num == 'undefined') {
+          toggleHeartbeat(connected, "Not connected to any robot");
+        } else if (data.team_num == team_num) {
+          toggleHeartbeat(connected, `Robot #: ${data.team_num} IP: ${data.custom_ip}`);
         }
       });
       
@@ -194,7 +204,7 @@
         if(isNaN(round_num)) { alert("invalid round number"); return; }
         if(isNaN(team_num)) { alert("invalid team number"); return; }
         if(team_name === "") { alert("empty team name"); return; } 
-        toggleHeartbeat(null);
+        toggleHeartbeat(null, "awaiting connection");
         let data = {
             "match_num": match_num,
             "round_num": round_num,
@@ -233,7 +243,13 @@
         let ip = $("#custom-ip-adjustment").val();
         if(ip == "") { alert("empty custom ip"); return; } 
         emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
-        toggleHeartbeat(false);
+        toggleHeartbeat(null, "awaiting connection");
+      });
+
+      $("#stop-robot").click(function () {
+        if(robot_connected || confirm("Not connected to a robot. Try anyway?")) {
+          emit('ui-to-server-robot-off', JSON.stringify({ "team_number": team_num }));
+        }
       });
 
       $("#linebreaks-off").click(function () {
@@ -302,8 +318,12 @@
           <span class="input-group-btn">
             <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
           </span>
+          <span class="input-group-btn">
+            <button class="btn btn-danger" type="button" id="stop-robot" style="margin-left:5px;margin-right:5px;">Stop Robot</button>
+          </span>
           <span class="spaced">Heartbeat:</span> 
           <div class="form-group spaced" id="heartbeat-light"></div>
+          <span class="spaced" id="heartbeat-message"></span>
         </div>
       </div>
     </div>
