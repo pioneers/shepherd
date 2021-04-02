@@ -64,10 +64,10 @@ device_t Arduino2 = {
     .num_params = 6,
     .params = {
         // temporarily disabled linebreak sensors
-        {.name = "desert_linebreak", .type = BOOL, .read = 0, .write = 0},
-        {.name = "dehydration_linebreak", .type = BOOL, .read = 0, .write = 0},
-        {.name = "hypothermia_linebreak", .type = BOOL, .read = 0, .write = 0},
-        {.name = "airport_linebreak", .type = BOOL, .read = 0, .write = 0},
+        {.name = "desert_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "dehydration_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "hypothermia_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "airport_linebreak", .type = BOOL, .read = 1, .write = 0},
 
         {.name = "fire_lever", .type = BOOL, .read = 1, .write = 0},
 
@@ -88,8 +88,8 @@ device_t Arduino3 = {
     .num_params = 4,
     .params = {
         // disable linebreaks for now
-        {.name = "city_linebreak", .type = BOOL, .read = 0, .write = 0},
-        {.name = "traffic_linebreak", .type = BOOL, .read = 0, .write = 0},       
+        {.name = "city_linebreak", .type = BOOL, .read = 1, .write = 0},
+        {.name = "traffic_linebreak", .type = BOOL, .read = 1, .write = 0},       
         {.name = "traffic_button", .type = BOOL, .read = 1, .write = 0},
         // 0 = off, 1 = red, 2 = green.
         {.name = "traffic_light", .type = INT, .read = 0, .write = 1}, 

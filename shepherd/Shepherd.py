@@ -383,13 +383,26 @@ def log(Exception):
 
 def disable_robot(args):
     '''
-    Send message to Dawn to disable the robots of team
+    Send message to Dawn to disable the robot of team
     '''
     try:
         team_number = args["team_number"]
         client = CLIENTS.clients[int(team_number)]
         if client:
-            client.set_mode("idle")
+            client.send_mode(Mode.IDLE)
+    except Exception as exc:
+        log(exc)
+
+def enable_robot(args):
+    '''
+    Send message to Dawn to enable the robot of team
+    '''
+    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    try:
+        team_number = args["team_number"]
+        client = CLIENTS.clients[int(team_number)]
+        if client:
+            client.send_mode(mode)
     except Exception as exc:
         log(exc)
 
@@ -589,13 +602,15 @@ def to_hypothermia(args):
     '''
     Go to the hypothermia zone in the forest biome.
     '''
-    global GAME_STATE, FIRE_LIT
+    global GAME_STATE, FIRE_LIT, TINDER
     GAME_STATE = STATE.HYPOTHERMIA
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.HYPOTHERMIA})
-    # TODO: change if tinder is not removed
+
     if not (FIRE_LIT and TINDER > 0):
         CLIENTS.send_game_state(State.HYPOTHERMIA_START)
+    elif FIRE_LIT and TINDER > 0:
+        TINDER -= 1
 
 # ----------
 # HYPOTHERMIA STAGE
