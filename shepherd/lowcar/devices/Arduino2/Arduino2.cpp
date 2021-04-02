@@ -16,7 +16,7 @@ const uint8_t Arduino2::pins[] = {
     7,  // dehydration_linebreak
     8,  // hypothermia_linebreak
     9,  // airport_linebreak
-    10, // fire_lever
+    11, // fire_lever
     12, // fire_light
 };
 
@@ -36,7 +36,8 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         // Reading the output frequency
         // so i guess this is only gonna work once everything is plugged in
         // rn it only works for pin 9. all: Arduino2::pins[param]
-        int redFrequency = pulseIn(9, LOW);
+        int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
+        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
 
         // Printing the RED (R) value
         // Serial.print(redFrequency);
@@ -46,7 +47,7 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         //}
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
         {
-            data_buf[0] = 1;
+            data_buf[0] = 0;
         }
         else
         {
@@ -128,7 +129,6 @@ void Arduino2::device_enable()
     // Setting RED (R) filtered photodiodes to be read
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
-    this->msngr->lowcar_printf("ARDUINO 2 ENABLED");
 }
 
 void Arduino2::device_disable()

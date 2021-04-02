@@ -290,9 +290,9 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    # arduino_1.get_identifier(): arduino_1, 
-    # arduino_2.get_identifier(): arduino_2,
-    # arduino_3.get_identifier(): arduino_3,
+    arduino_1.get_identifier(): arduino_1, 
+    arduino_2.get_identifier(): arduino_2,
+    arduino_3.get_identifier(): arduino_3,
     arduino_4.get_identifier(): arduino_4,
 }
 

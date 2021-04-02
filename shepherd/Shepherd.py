@@ -2,6 +2,7 @@ import argparse
 import queue
 import time
 import traceback
+import threading
 from datetime import datetime
 from Utils import SHEPHERD_HEADER
 from Alliance import *
@@ -65,6 +66,9 @@ LAST_TINDER = 0
 LAST_BUTTONS = Buttons()
 LAST_FIRE_LIT = False
 
+CHECKING_LINEBREAKS = False
+LINEBREAK_HEADERS = [False] * 6
+
 ###########################################
 # Evergreen Methods
 ###########################################
@@ -79,6 +83,7 @@ def start():
     '''
     global LAST_HEADER
     global EVENTS
+    global LINEBREAK_HEADERS
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     while True:
@@ -87,6 +92,20 @@ def start():
         payload = EVENTS.get(True)
         LAST_HEADER = payload
         print(payload)
+
+        # check if linebreak
+        if payload[0] == SHEPHERD_HEADER.CITY_LINEBREAK:
+            LINEBREAK_HEADERS[0] = True
+        elif payload[0] == SHEPHERD_HEADER.STOPLIGHT_CROSS:
+            LINEBREAK_HEADERS[1] = True
+        elif payload[0] == SHEPHERD_HEADER.DESERT_ENTRY:
+            LINEBREAK_HEADERS[2] = True
+        elif payload[0] == SHEPHERD_HEADER.DEHYDRATION_ENTRY:
+            LINEBREAK_HEADERS[3] = True
+        elif payload[0] == SHEPHERD_HEADER.HYPOTHERMIA_ENTRY:
+            LINEBREAK_HEADERS[4] = True
+        elif payload[0] == SHEPHERD_HEADER.FINAL_ENTRY:
+            LINEBREAK_HEADERS[5] = True
 
         funcmappings = {
             STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
@@ -667,6 +686,38 @@ def turn_off_all_lights():
     lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
     for i in range(Buttons.NUM_BUTTONS):
         lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
+
+def linebreaks_on():
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
+
+def linebreaks_off():
+    global CHECKING_LINEBREAKS, LINEBREAK_HEADERS
+    LINEBREAK_HEADERS = [False] * 6
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
+    CHECKING_LINEBREAKS = True
+    timer = threading.Timer(2.0, check_linebreaks)
+    timer.start()
+
+def check_linebreaks():
+    ret = ""
+    if not LINEBREAK_HEADERS[0]:
+        ret += "city "
+    if not LINEBREAK_HEADERS[1]:
+        ret += "stoplight "
+    if not LINEBREAK_HEADERS[2]:
+        ret += "desert "
+    if not LINEBREAK_HEADERS[3]:
+        ret += "dehydration "
+    if not LINEBREAK_HEADERS[4]:
+        ret += "hypothermia "
+    if not LINEBREAK_HEADERS[5]:
+        ret += "final "
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.LINEBREAK_INFO, {"text": ret})
+
+
+# TODO: someone would have to read headers to figure out which linebreaks were not working
+
+
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################
@@ -739,7 +790,9 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
-    SHEPHERD_HEADER.RESET_MATCH: reset_state
+    SHEPHERD_HEADER.RESET_MATCH: reset_state,
+    SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
+    SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
 }
 
 EVERYWHERE_FUNCTIONS = {

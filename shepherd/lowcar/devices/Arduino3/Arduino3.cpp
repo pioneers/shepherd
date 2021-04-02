@@ -31,18 +31,18 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
     if (param < Arduino3::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        delay(1000);
-        int redFrequency = 5; // pulseIn(Arduino3::pins[param], LOW);
-        this->msngr->lowcar_printf("red freq is %d", redFrequency);
+        // delay(1000);
+        int redFrequency = pulseIn(Arduino3::pins[param], LOW, 50000);
+        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
         // Printing the RED (R) value
 
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
         {
-            data_buf[0] = 1;
+            data_buf[0] = 0;
         }
         else
         {
-            data_buf[0] = 0;
+            data_buf[0] = 1;
         }
     }
     else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS)

@@ -156,7 +156,9 @@
         }
       });
       
-      
+      socket.on('server-to-ui-linebreak-info', function(data) {
+        $("#linebreak-info").text("Not working: " + JSON.parse(data).text);
+      })
 
       $("#next-round").click(() => {
         if(round_num >= 3){
@@ -232,6 +234,14 @@
         if(ip == "") { alert("empty custom ip"); return; } 
         emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
         toggleHeartbeat(false);
+      });
+
+      $("linebreaks-off").click(function () {
+        emit('ui-to-server-linebreaks-off');
+      });
+
+      $("linebreaks-on").click(function () {
+        emit('ui-to-server-linebreaks-off');
       });
       
     });
@@ -337,6 +347,16 @@
             aria-hidden="true"></span>Start Round</button>
         <button type="button" class="btn btn-danger spaced" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
             aria-hidden="true"></span>Reset Round</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="btn-group bottom-padding" role="group" aria-label="...">
+        <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Linebreaks Off</button>
+        <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
+            aria-hidden="true"></span>Linebreaks On</button>
+          <h3 id="linebreaks-status">N/A</h3>
       </div>
     </div>
     

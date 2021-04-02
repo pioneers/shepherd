@@ -84,6 +84,9 @@ class SHEPHERD_HEADER():
     SET_BIOME = "set_biome"
     # GET_BIOME{biome: str}
 
+    LINEBREAKS_ON = "linebreaks_on"
+    LINEBREAKS_OFF = "linebreaks_off"
+
     # AUTO
     CITY_LINEBREAK = "city_linebreak"
 
@@ -168,6 +171,7 @@ class UI_HEADER():
     # BIOME{string}
     ALL_INFO = "all_info"
     # ALL_INFO{}
+    LINEBREAK_INFO = "linebreak_info"
 
 
 class SENSOR_HEADER():
