@@ -4,6 +4,13 @@ const int Arduino3::NUM_LINEBREAKS = 2;
 const int Arduino3::NUM_BUTTONS = 1;
 const int Arduino3::NUM_LIGHT_PINS = 2;
 
+#define S0 2
+#define S1 3
+#define S2 4
+#define S3 5
+
+#define LINEBREAK_THRESHOLD 100
+
 const uint8_t Arduino3::pins[] = {
     0, // city_linebreak
     1, // traffic_linebreak
@@ -24,10 +31,10 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
     if (param < Arduino3::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        int redFrequency = pulseIn(this->pins[param], LOW);
-
+        delay(1000);
+        int redFrequency = 5; // pulseIn(Arduino3::pins[param], LOW);
+        this->msngr->lowcar_printf("red freq is %d", redFrequency);
         // Printing the RED (R) value
-        // Serial.print(redFrequency);
 
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
         {
@@ -64,6 +71,9 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
 
 size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
 {
+    this->msngr->lowcar_printf("write called with %d", param);
+    int red_pin = 2;
+    int green_pin = 3;
     int min_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     int max_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     if (param < min_index || param > min_index)
@@ -130,8 +140,6 @@ void Arduino3::device_enable()
     // Setting RED (R) filtered photodiodes to be read
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
-    // Begins serial communication
-    Serial.begin(9600);
 }
 
 void Arduino3::device_disable()

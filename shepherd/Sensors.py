@@ -243,12 +243,12 @@ linebreak_debounce_threshold = 10 # samples
 
 # how fast are we polling? 100 Hz
 
-city_linebreak = GenericButton(name="city_linebreak", should_poll=False, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
-traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=False, identifier=1, lcm_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
-desert_linebreak = GenericButton(name="desert_linebreak", should_poll=False, identifier=2, lcm_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=False, identifier=3, lcm_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=False, identifier=4, lcm_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-airport_linebreak = GenericButton(name="airport_linebreak", should_poll=False, identifier=5, lcm_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
+traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, lcm_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
+desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, lcm_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, lcm_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, lcm_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, lcm_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
 
 fire_lever = GenericButton(name="fire_lever", should_poll=True, lcm_header=SHEPHERD_HEADER.FIRE_LEVER)
 
@@ -290,9 +290,9 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    arduino_1.get_identifier(): arduino_1, 
-    arduino_2.get_identifier(): arduino_2,
-    arduino_3.get_identifier(): arduino_3,
+    # arduino_1.get_identifier(): arduino_1, 
+    # arduino_2.get_identifier(): arduino_2,
+    # arduino_3.get_identifier(): arduino_3,
     arduino_4.get_identifier(): arduino_4,
 }
 

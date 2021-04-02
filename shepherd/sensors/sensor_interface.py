@@ -141,12 +141,11 @@ def thread_device_sentinel(params_to_read):
                 raise Exception("LowcarMessage should only contain information about one device, because only one device is being queried.")
             arduino = arduinos[device]
             param_values = dev_data.params[0] # Dictionary: param_name -> value
-
             for param_name, value in param_values.items():
                 param = arduino.get_param(param_name)
                 # below logs are for testing buttons, slowly
-                # print(f"{param_name}: {value}")
-                # time.sleep(1)
+                print(f"{param_name}: {value}")
+                time.sleep(1)
                 value = debounce(value, param)
                 if value is None:
                     continue

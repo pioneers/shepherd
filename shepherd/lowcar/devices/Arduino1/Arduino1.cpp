@@ -80,7 +80,8 @@ size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
 
 void Arduino1::device_enable() {
     // todo: ask ben what is diff between device enable and constructor
-    // this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
+    this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
+
     // set all pins to INPUT mode
     for (int i = 0; i < Arduino1::NUM_BUTTONS; i++) {
         pinMode(Arduino1::pins[i], INPUT);
@@ -92,7 +93,7 @@ void Arduino1::device_enable() {
 }
 
 void Arduino1::device_disable() {
-    // this->msngr->lowcar_printf("ARDUINO 2 DISABLED");
+    this->msngr->lowcar_printf("ARDUINO 1 DISABLED");
 }
 
 void Arduino1::device_actions() {
