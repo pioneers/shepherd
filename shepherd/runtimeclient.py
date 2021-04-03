@@ -116,7 +116,7 @@ class RuntimeClient:
         if not silent:
             print(message)
         self.is_alive = connected
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": connected})
+        self.send_connection_status_to_ui()
         if connected:
             thr = threading.Thread(target=self.start_recv)
             thr.start()
@@ -133,6 +133,15 @@ class RuntimeClient:
             self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
+            self.send_connection_status_to_ui()
+
+    def send_connection_status_to_ui(self):
+        data = {
+            "team_num": self.robot.number,
+            "connected": self.is_alive,
+            "custom_ip": self.robot.custom_ip
+        }
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, data)
 
     def start_recv(self):
         """
@@ -150,7 +159,6 @@ class RuntimeClient:
             print(f"Received message from Robot {self.robot}: ", received)
             if received is False:
                 # socket has been closed oops
-                lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
                 self.close_connection()
                 if self.client_exists:
@@ -181,6 +189,13 @@ class RuntimeClientManager:
         client = RuntimeClient(host_url, robot)
         if client.is_alive:
             self.clients.append(client)
+
+    def send_connection_status_to_ui(self):
+        if len(self.clients) > 0:
+            for client in self.clients:
+                client.send_connection_status_to_ui()
+        else:
+            lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"connected": False})
 
     def get_clients(self, host_urls, robots: List[Robot]):
         for i in range(len(host_urls)):

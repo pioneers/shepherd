@@ -140,7 +140,7 @@ def to_setup(args):
     load the teams for the upcoming match, reset all state, and send information to scoreboard.
     By the end, should be ready to start match.
     '''
-    global MATCH_NUMBER
+    global MATCH_NUMBER, ROUND_NUMBER
     global GAME_STATE
     global STARTING_SPOTS
     global ROBOT
@@ -149,6 +149,7 @@ def to_setup(args):
 
     # code_setup()
 
+    MATCH_NUMBER, ROUND_NUMBER = args["match_num"], args["round_num"]
     name, num = args["team_name"], args["team_num"]
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
@@ -302,6 +303,12 @@ def set_custom_ip(args):
 def connect():
     CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
 
+def send_connection_status_to_ui(args = None):
+    '''
+    Sends the connection status of all runtime clients to the UI
+    '''
+    CLIENTS.send_connection_status_to_ui()
+
 def score_adjust(args):
     '''
     Allow for score to be changed based on referee decisions
@@ -316,9 +323,9 @@ def score_adjust(args):
         ROBOT.penalty = penalty
     if stamp_time is not None:
         ROBOT.stamp_time = stamp_time
-    # TODO: send dummy elapsed time if during game (-1) maybe this should be none
     send_score_to_scoreboard()
     send_score_to_ui()
+    flush_scores()
 
 def send_score_to_ui(args = None):
     '''
@@ -404,24 +411,20 @@ def disable_robot(args):
     '''
     Send message to Dawn to disable the robot of team
     '''
-    try:
-        team_number = args["team_number"]
-        client = CLIENTS.clients[int(team_number)]
-        if client:
-            client.send_mode(Mode.IDLE)
-    except Exception as exc:
-        log(exc)
+    send_robot_mode(int(args["team_number"]), Mode.IDLE)
 
 def enable_robot(args):
     '''
     Send message to Dawn to enable the robot of team
     '''
     mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    send_robot_mode(int(args["team_number"]), mode)
+
+def send_robot_mode(team_number, mode):
     try:
-        team_number = args["team_number"]
-        client = CLIENTS.clients[int(team_number)]
-        if client:
-            client.send_mode(mode)
+        for client in CLIENTS.clients:
+            if client.robot.number == team_number:
+                client.send_mode(mode)
     except Exception as exc:
         log(exc)
 
@@ -726,11 +729,12 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
-    SHEPHERD_HEADER.RESET_MATCH: reset_state
+    SHEPHERD_HEADER.RESET_MATCH: reset_state,
+    SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
+    SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
     SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
@@ -738,7 +742,6 @@ AUTO_FUNCTIONS = {
 
 # This represents City and Forest, since we don't need to detect Forest explicitly
 CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
@@ -749,14 +752,12 @@ CITY_FUNCTIONS = {
 }
 
 SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
     SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
 }
 
 DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
@@ -765,7 +766,6 @@ DEHYDRATION_FUNCTIONS = {
 }
 
 FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.SET_TINDER: set_tinder,
     SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
@@ -774,13 +774,11 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
     SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
 }
 
 FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.CITY_LINEBREAK: to_end # triggered by line break
 }
@@ -790,16 +788,20 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.FINAL_SCORE: final_score,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
     SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
     SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
 }
 
 EVERYWHERE_FUNCTIONS = {
+    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
+    SHEPHERD_HEADER.ROBOT_ON: enable_robot,
     SHEPHERD_HEADER.GET_BIOME: get_biome,
     SHEPHERD_HEADER.SET_BIOME: set_biome,
     SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
+    SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
     SHEPHERD_HEADER.RESET_ROUND: reset_round
 }
