@@ -323,9 +323,9 @@ def score_adjust(args):
         ROBOT.penalty = penalty
     if stamp_time is not None:
         ROBOT.stamp_time = stamp_time
-    # TODO: send dummy elapsed time if during game (-1) maybe this should be none
     send_score_to_scoreboard()
     send_score_to_ui()
+    flush_scores()
 
 def send_score_to_ui(args = None):
     '''
