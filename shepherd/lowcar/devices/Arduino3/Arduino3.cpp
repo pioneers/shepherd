@@ -4,6 +4,13 @@ const int Arduino3::NUM_LINEBREAKS = 2;
 const int Arduino3::NUM_BUTTONS = 1;
 const int Arduino3::NUM_LIGHT_PINS = 2;
 
+#define S0 2
+#define S1 3
+#define S2 4
+#define S3 5
+
+#define LINEBREAK_THRESHOLD 100
+
 const uint8_t Arduino3::pins[] = {
     0, // city_linebreak
     1, // traffic_linebreak
@@ -11,6 +18,7 @@ const uint8_t Arduino3::pins[] = {
     2, // traffic_light on = 1, off = 0
     3, // traffic_light red = 0, green = 1
 };
+// 2 is red, 3 is green, no pin is off
 
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13)
@@ -23,18 +31,18 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
     if (param < Arduino3::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        int redFrequency = pulseIn(this->pins[param], LOW);
-
+        // delay(1000);
+        int redFrequency = pulseIn(Arduino3::pins[param], LOW, 50000);
+        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
         // Printing the RED (R) value
-        // Serial.print(redFrequency);
 
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
         {
-            data_buf[0] = 1;
+            data_buf[0] = 0;
         }
         else
         {
-            data_buf[0] = 0;
+            data_buf[0] = 1;
         }
     }
     else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS)
@@ -63,6 +71,9 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
 
 size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
 {
+    this->msngr->lowcar_printf("write called with %d", param);
+    int red_pin = 2;
+    int green_pin = 3;
     int min_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     int max_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
     if (param < min_index || param > min_index)
@@ -74,21 +85,22 @@ size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
     if (value == 0)
     {
         // off
-        digitalWrite(pins[min_index], LOW);
+        digitalWrite(red_pin, LOW);
+        digitalWrite(green_pin, LOW);
         return 8;
     }
     else if (value == 1)
     {
         // red
-        digitalWrite(pins[min_index + 1], LOW);
-        digitalWrite(pins[min_index], HIGH);
+        digitalWrite(green_pin, LOW);
+        digitalWrite(red_pin, HIGH);
         return 16;
     }
     else if (value == 2)
     {
         // green
-        digitalWrite(pins[min_index + 1], HIGH);
-        digitalWrite(pins[min_index], HIGH);
+        digitalWrite(red_pin, LOW);
+        digitalWrite(green_pin, HIGH);
         return 16;
     }
     else
@@ -128,8 +140,6 @@ void Arduino3::device_enable()
     // Setting RED (R) filtered photodiodes to be read
     digitalWrite(S2, LOW);
     digitalWrite(S3, LOW);
-    // Begins serial communication
-    Serial.begin(9600);
 }
 
 void Arduino3::device_disable()

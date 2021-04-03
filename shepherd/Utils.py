@@ -87,6 +87,9 @@ class SHEPHERD_HEADER():
     SET_BIOME = "set_biome"
     # GET_BIOME{biome: str}
 
+    LINEBREAKS_ON = "linebreaks_on"
+    LINEBREAKS_OFF = "linebreaks_off"
+
     # AUTO
     CITY_LINEBREAK = "city_linebreak"
 
@@ -171,6 +174,7 @@ class UI_HEADER():
     # BIOME{string}
     ALL_INFO = "all_info"
     # ALL_INFO{}
+    LINEBREAK_INFO = "linebreak_info"
 
 
 class SENSOR_HEADER():
@@ -209,7 +213,7 @@ class SCOREBOARD_HEADER():
     # time: change displayed time to this if not null(?)
 
     TEAM = "team"
-    # TEAM{match_num, round_num, team_num, team_name, custom_ip}
+    # TEAM{match_num, round_num, team_num, team_name, custom_ip, tinder, buttons}
     STAGE = "stage"
     # STAGE{stage, start_time}
     # start_time = timestamp
