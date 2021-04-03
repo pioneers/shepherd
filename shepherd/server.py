@@ -4,7 +4,7 @@ import time
 import queue
 import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
-from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-error
+from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
 from Utils import *
 from LCM import *
 
@@ -43,7 +43,7 @@ def ref_gui():
 @socketio.on('join')
 def handle_join(client_name):
     print('confirmed join: ' + client_name)
-    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.REQUEST_CONNECTIONS)
+
 
 # Score Adjustment
 
@@ -71,6 +71,10 @@ def ui_to_server_round_info_request(round_info):
     print("TEAMS Info request made")
     lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.GET_ROUND_INFO,
             json.loads(round_info))
+
+@socketio.on('ui-to-server-request-connections')
+def ui_to_server_request_connections():
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.REQUEST_CONNECTIONS)
 
 @socketio.on('ui-to-server-setup-match')
 def ui_to_server_setup_match(teams_info):
@@ -103,6 +107,34 @@ def ui_to_server_custom_ip(args):
     lcm_send(LCM_TARGETS.SHEPHERD, 
              SHEPHERD_HEADER.SET_CUSTOM_IP, json.loads(args))
 
+@socketio.on('ui-to-server-robot-off')
+def ui_to_server_robot_off(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_OFF, json.loads(args))
+
+@socketio.on('ui-to-server-robot-on')
+def ui_to_server_robot_off(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, SHEPHERD_HEADER.ROBOT_ON, json.loads(args))
+
+@socketio.on('ui-to-server-get-biome')
+def ui_to_server_get_biome():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.GET_BIOME)
+
+@socketio.on('ui-to-server-set-biome')
+def ui_to_server_get_biome(args):
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.SET_BIOME, json.loads(args))
+
+@socketio.on('ui-to-server-linebreaks-off')
+def ui_to_server_linebreaks_off():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.LINEBREAKS_OFF)
+
+@socketio.on('ui-to-server-linebreaks-on')
+def ui_to_server_linebreaks_on():
+    lcm_send(LCM_TARGETS.SHEPHERD, 
+             SHEPHERD_HEADER.LINEBREAKS_ON)
+
 #Ref GUI buttons
 @socketio.on('ui-to-server-contact-wall')
 def ui_to_server_contact_wall():
@@ -131,6 +163,11 @@ def receiver():
             elif event[0] == UI_HEADER.ROBOT_CONNECTION:
                 socketio.emit('server-to-ui-robot-connection',
                               json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.BIOME:
+                socketio.emit('server-to-ui-biome',
+                              json.dumps(event[1], ensure_ascii=False))
+            elif event[0] == UI_HEADER.LINEBREAK_INFO:
+                socketio.emit('server-to-ui-linebreak-info', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
 
