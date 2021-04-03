@@ -25,9 +25,6 @@ class RuntimeClient:
         self.is_alive = False
         self.client_exists = True
         self.connect_tcp()
-        # send 0 byte so that Runtime knows it's Shepherd
-        if self.is_alive:
-            self.sock.send(bytes([0]))
 
     def receive_challenge_data(self):
         """
@@ -123,6 +120,9 @@ class RuntimeClient:
         if connected:
             thr = threading.Thread(target=self.start_recv)
             thr.start()
+        # send 0 byte so that Runtime knows it's Shepherd
+        if self.is_alive:
+            self.sock.send(bytes([0]))
         return connected
 
     def close_connection(self):
@@ -148,7 +148,7 @@ class RuntimeClient:
                 print(f"Connection reset error while reading from socket: {e}")
                 received = False
             print(f"Received message from Robot {self.robot}: ", received)
-            if not received:
+            if received is False:
                 # socket has been closed oops
                 lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"team_num": self.robot.number, "connected": False})
                 print(f"Connection lost to Robot {self.robot}, trying again.")
