@@ -154,6 +154,7 @@ def to_setup(args):
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
     ROBOT = Robot(name, num, custom_ip)
+    CLIENTS.reset()
     CLIENTS = RuntimeClientManager()
     connect()
 
