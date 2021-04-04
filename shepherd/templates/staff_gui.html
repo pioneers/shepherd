@@ -100,9 +100,9 @@
 
       socket.on('connect', function (data) {
         emit('join', 'staff_gui');
-        emit('ui-to-server-request-connections');
         emit('ui-to-server-teams-info-request-no-args');
         emit('ui-to-server-get-biome');
+        emit('ui-to-server-request-connections');
       });
 
       socket.on('server-to-ui-teams-info', function (data) {
