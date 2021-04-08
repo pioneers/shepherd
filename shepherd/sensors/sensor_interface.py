@@ -144,8 +144,8 @@ def thread_device_sentinel(params_to_read):
             for param_name, value in param_values.items():
                 param = arduino.get_param(param_name)
                 # below logs are for testing buttons, slowly
-                #print(f"{param_name}: {value}")
-                #time.sleep(1)
+                # print(f"{param_name}: {value}")
+                # time.sleep(.2)
                 value = debounce(value, param)
                 if value is None:
                     continue # unable to debounce anything meaningful
