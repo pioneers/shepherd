@@ -45,7 +45,7 @@ def connect():
 
 @socketio.on('join')
 def handle_join(client_name):
-    print('confirmed join: ' + client_name)
+    print(f'confirmed join: {client_name}')
 
 
 # Score Adjustment
