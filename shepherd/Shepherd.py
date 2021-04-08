@@ -577,7 +577,18 @@ def dehydration_button_press(args):
         GAME_STATE = STATE.FIRE
         lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.FIRE})
+"""
+start
+go to mirage buttons (dehydration stage). 30 second timer starts.
+    - press and solve. also could light fire
+    - stick around and fail
+    - beeline past it
+        - at some point, the timer from above ends. you could be in 
+          hypothermia (past the hypothermia linebreak) at that time
+        - game state would get to fire at the end of the 30 second timer
 
+
+"""
 
 def dehydration_penalty_timer_start(args):
     '''
@@ -761,7 +772,11 @@ DEHYDRATION_FUNCTIONS = {
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
     SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: dehydration_penalty_timer_end,
-    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end,
+    # these three headers are copied from FIRE_FUNCTIONS
+    SHEPHERD_HEADER.SET_TINDER: set_tinder,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line b
 }
 
 FIRE_FUNCTIONS = {
@@ -774,7 +789,9 @@ FIRE_FUNCTIONS = {
 
 HYPOTHERMIA_FUNCTIONS = {
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
-    SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final, # triggered by line break
+    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start, # stop robot for 10 seconds
+    # note that dehydration timer end is not here, because we don't want to move them back to fire.
 }
 
 FINAL_FUNCTIONS = {
