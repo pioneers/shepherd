@@ -50,3 +50,5 @@ def receiver():
 
 socketio.start_background_task(receiver)
 socketio.run(app, host=HOST_URL, port=PORT)
+if __name__ == '__main__':
+    

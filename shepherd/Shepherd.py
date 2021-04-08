@@ -5,12 +5,11 @@ import traceback
 import threading
 from datetime import datetime
 from Utils import SHEPHERD_HEADER
-from Alliance import *
-from LCM import *
+from Alliance import Alliance
+from LCM import lcm_send, lcm_start_read
 from Timer import Timer
 from Utils import *
 from Code import * 
-# TODO: import protos and change things like "auto" to Mode.AUTO
 from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State
@@ -257,11 +256,11 @@ def get_round(args):
         ROUND_NUMBER = round_num
         try:
             info = Sheet.get_round(match_num, round_num)
+            ROBOT.number = info["num"]
+            ROBOT.name = info["name"]
         except Exception as e:
             print("Exception while reading from sheet:",e)
             info = {"num":-1, "name":""}
-        ROBOT.number = info["num"]
-        ROBOT.name = info["name"]
 
     send_round_info()
     
@@ -728,7 +727,6 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
-    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
     SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
     SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
@@ -803,7 +801,8 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.RESET_ROUND: reset_round
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
 }
 
 

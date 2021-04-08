@@ -159,7 +159,7 @@ class RuntimeClient:
             print(f"Received message from Robot {self.robot}: ", received)
             if not received:
                 # socket has been closed oops
-                print(f"Connection lost to Robot {self.robot}, trying again.")
+                print(f"Connection lost to Robot {self.robot}. Trying again? {self.client_exists}")
                 self.close_connection()
                 if self.client_exists:
                     print(f"Attempting to reconnect to robot {self.robot}")
