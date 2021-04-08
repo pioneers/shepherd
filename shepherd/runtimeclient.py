@@ -4,8 +4,8 @@ from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
-from Utils import *
-from LCM import *
+from Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from LCM import lcm_send, lcm_start_read
 from Robot import Robot
 import socket
 from typing import List
