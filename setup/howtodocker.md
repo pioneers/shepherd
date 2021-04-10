@@ -1,6 +1,6 @@
-## Running Shepher with docker
+# Running Shepherd with docker
 
-#### Install Docker
+## Installing Docker
 
 Windows: install Docker Desktop
 Mac: install Docker Desktop
@@ -8,7 +8,7 @@ Linux: install Docker for Linux
 
 Linux users may need to add `sudo` to all Docker commands.
 
-#### Build the Image
+## Building the Image
 
 First, `cd dockerfiles` (the folder with the Dockerfile). This is where Docker will grab the necessary config files from.
 
@@ -16,7 +16,7 @@ Then run `docker build -t shepherd:latest .` (if you get an error that it takes 
 
 This process may take up to 5-10 minutes. After it completes, you can optionally run `docker images` to see the image you just built (or you can see it in the GUI on Docker Desktop).
 
-#### Creating the Container
+## Creating the Container
 
 This only requires one command, but it's a long one:
 ```
@@ -35,7 +35,7 @@ If you are successful, it should pop you into a root shell, and `ls outsideshep`
 
 If you are unsuccessful, run `docker rm sheep` to destroy the bad container, and then try again.
 
-#### Running Shepherd inside the container
+## Running Shepherd inside the container
 
 Run `docker ps -a`. You should see the `sheep` container, and the status should be `exited`.
 
