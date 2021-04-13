@@ -20,18 +20,20 @@ This process may take up to 5-10 minutes. After it completes, you can optionally
 
 This only requires one command, but it's a long one:
 ```
-docker run -it -v '/absolute/path/to/shepherd':/outsideshep -p=5000:5000 -p=5500:5500 --name=sheep shepherdtest:latest
+docker run -it -v '/absolute/path/to/shepherd':/outsideshep -p=5000:5000 -p=5500:5500 --name=sheep shepherd:latest
 ```
 
-A breakdown of what this means:
+Note that the `/absolute/path/to/shepherd` should be the git repository, so the Shepherd.py file should reside in `/absolute/path/to/shepherd/shepherd/Shepherd.py`.
+
+A breakdown of what the command means:
  - `docker run`: this will create the container, and run it
  - `it`: it will run it interactively, so you will be popped into a bash terminal when the container starts
- - `-v '/absolute/path/to/shepherd':/outsideshep`: this will link the shepherd repo on your computer, to a folder named "outsideshep" inside the container. Both must be absolute paths.
+ - `-v '/absolute/path/to/shepherd':/outsideshep`: this will link the shepherd repo on your computer, to a folder named "outsideshep" inside the container. Both must be absolute paths. It is important for the `run` script that it is named `outsideshep`.
  - `-p=5000:5000 -p=5500:5500`: this will link the container's ports to your computer's ports, so you can run the python server inside the container and reach it from your computer's web browser.
  - `--name=sheep`: this names the container "sheep". Otherwise, Docker would give it a random name.
- - `shepherdtest:latest`: this is the name of the image that the container will be created off of.
+ - `shepherd:latest`: this is the name of the image that the container will be created off of.
  
-If you are successful, it should pop you into a root shell, and `ls outsideshep` should list the files in your Shepherd repo. If this is the case, exit the shell (you can run the command `exit`), and procceed to the next section.
+If you are successful, it should pop you into a root shell, and `ls outsideshep` should list the files in your Shepherd repo. If this is the case, exit the shell (you can run the command `exit`), and proceed to the next section.
 
 If you are unsuccessful, run `docker rm sheep` to destroy the bad container, and then try again.
 
@@ -42,19 +44,13 @@ Run `docker ps -a`. You should see the `sheep` container, and the status should 
 Run the following:
 ```
 docker restart sheep # starts the container
-docker exec -it sheep bash # starts a bash terminal inside the container
-    # at this point you should be inside the container
-cd outsideshep/shepherd
-python3 Shepherd.py
+docker exec -it sheep run Shepherd.py
 ```
 
 And then in a seperate terminal window:
 
 ```
-docker exec -it sheep bash
-    # at this point you should be inside the container
-cd outsideshep/shepherd
-python3 server.py
+docker exec -it sheep run server.py
 ```
 
 Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container.
