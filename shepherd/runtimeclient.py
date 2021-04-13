@@ -15,7 +15,7 @@ PORT_RASPI = 8101
 
 class RuntimeClient:
     """
-    This is a client that connects to the server running on a Raspberry Pi. 
+    This is a client that connects to the server running on a Raspberry Pi.
     One client is initialized per robot.
     """
 
@@ -104,7 +104,7 @@ class RuntimeClient:
         - sends connection status to UI
         - starts a receiving thread that reads incoming messages and provides heartbeat
         """
-        # self.sock.connect(("127.0.0.1", int(self.host_url))) 
+        # self.sock.connect(("127.0.0.1", int(self.host_url)))
         connected = True
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -158,6 +158,9 @@ class RuntimeClient:
                 received = self.sock.recv(1)
             except ConnectionResetError as e:
                 print(f"Connection reset error while reading from socket: {e}")
+                received = False
+            except socket.timeout as e:
+                print(f"Ungraceful disconnection from socket: {e}")
                 received = False
             print(f"Received message from Robot {self.robot}: ", received)
             # received could be False or b'' which means EOF
