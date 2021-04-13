@@ -54,7 +54,7 @@ And then in a seperate terminal window:
 docker exec -it sheep bash
     # at this point you should be inside the container
 cd outsideshep/shepherd
-python3 Shepherd.py
+python3 server.py
 ```
 
 Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container.
