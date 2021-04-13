@@ -161,7 +161,10 @@
         const connected = data.connected;
         if (typeof data.team_num == 'undefined') {
           toggleHeartbeat(connected, "Not connected to any robot");
-        } else if (data.team_num == team_num) {
+        } else if (data.team_num == team_num || true) {
+          // the || true is a hotfix because sometimes people want to connect to the robot before submitting the match info
+          // and we only have one robot anyway
+          // in years with multiple robots, remove the || true
           toggleHeartbeat(connected, `Robot #: ${data.team_num} IP: ${data.custom_ip}`);
         }
       });
