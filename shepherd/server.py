@@ -13,6 +13,7 @@ PORT = 5000
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent")
 
 
