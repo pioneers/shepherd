@@ -2,11 +2,9 @@
 
 ## Installing Docker
 
-Windows: install Docker Desktop
-Mac: install Docker Desktop
-Linux: install Docker for Linux
-
-Linux users may need to add `sudo` to all Docker commands.
+ - Windows: install Docker Desktop
+ - Mac: install Docker Desktop
+ - Linux: install Docker for Linux. Linux users may need to add `sudo` to all Docker commands.
 
 ## Building the Image
 
