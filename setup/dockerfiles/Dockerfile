@@ -10,4 +10,5 @@ RUN mv /shepsetup/run-python-scripts /bin/run
 
 RUN pip3 install -r /shepsetup/requirements.txt && /shepsetup/installlcm
 
-CMD ["/bin/bash"]
+CMD ["/usr/bin/echo", "Success! I like cheese"]
+

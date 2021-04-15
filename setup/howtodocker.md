@@ -13,7 +13,7 @@ If you don't have it already, `git clone` the shepherd repo. From within the set
 docker pull pierobotics/shepherd
 ./make-container
 ```
-If the second command is successful, it should pop you into a root shell (something like `root@1d7da336c05d:/#`). Feel free to look around; once you're done, exit the container's shell (you can run the command `exit`).
+If the second command is successful, it should say "Success! I like cheese".
 
 Now, add this line to your `~/.bashrc` file (or `~/.zshrc` or `~/.bash_profile`):
 ```
@@ -51,7 +51,7 @@ Some commands you might find useful:
  - `docker stop sheep` shuts down the sheep container
  - `docker restart sheep` starts the sheep container
  
-If you ever want to build the image (you updated requirements.txt or something), `cd` into the dockerfiles folder and run `docker build -t pioneers/shepherd:latest .` (if you get an error that it takes one argument, you need to include the last `.`). This will build an image using the current directory's files, with the name "shepherd:latest". Then, push it to Dockerhub so that everyone can use your changes.
+If you ever want to build the image (you updated requirements.txt or something), `cd` into the dockerfiles folder and run `docker build -t pierobotics/shepherd:latest .` (if you get an error that it takes one argument, you need to include the last `.`). This will build an image using the current directory's files, with the name "shepherd:latest". Then, push it to Dockerhub so that everyone can use your changes.
 
 Building the image typically takes around 5 minutes.
 

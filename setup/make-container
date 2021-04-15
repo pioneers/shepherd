@@ -10,7 +10,7 @@ if test -f "$SHEP_REPO/shepherd/Shepherd.py"; then
     docker run -it -v "$SHEP_REPO":/outsideshep -p=5000:5000 -p=5500:5500 --name=sheep pierobotics/shepherd:latest
     # a breakdown of what this means:
     # - docker run: this creates the container and runs it
-    # - -it: this runs it interactively so you can look around and see if things are good
+    # - -it: this runs it interactively so you can see output
     # - -v SHEP_REPO:/outsideshep: this links the shepherd repository on your computer, to a folder inside the container
     # - -p=5000:5000 -p=5500:5500: this forwards the ports 5000 and 5500 to the docker container
     # - --name=sheep: this names the container, otherwise would get a random name
