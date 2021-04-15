@@ -411,14 +411,16 @@ def disable_robot(args):
     '''
     Send message to Dawn to disable the robot of team
     '''
-    send_robot_mode(int(args["team_number"]), Mode.IDLE)
+    disable_robots() #hotfix, no idea why other doesn't work
+    #send_robot_mode(int(args["team_number"]), Mode.IDLE)
 
 def enable_robot(args):
     '''
     Send message to Dawn to enable the robot of team
     '''
-    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
-    send_robot_mode(int(args["team_number"]), mode)
+    enable_robots(GAME_STATE == STATE.AUTO) #hotfix, no idea why other doesn't work
+    #mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    #send_robot_mode(int(args["team_number"]), mode)
 
 def send_robot_mode(team_number, mode):
     try:
