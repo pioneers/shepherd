@@ -1,62 +1,60 @@
-# Running Shepherd with docker
+# Running Shepherd with Docker
 
 ## Installing Docker
 
  - Windows: install Docker Desktop
  - Mac: install Docker Desktop
- - Linux: install Docker for Linux. Linux users may need to add `sudo` to all Docker commands.
+ - Linux: install Docker for Linux. Linux users may need to add `sudo` to all Docker commands (including `make-container`).
 
-## Building the Image
+## Setting up the Docker Container
 
-First, `cd dockerfiles` (the folder with the Dockerfile). This is where Docker will grab the necessary config files from.
-
-Then run `docker build -t shepherd:latest .` (if you get an error that it takes one argument, you need to include the last `.`). This will build an image using the current directory's files, with the name "shepherd:latest".
-
-This process may take up to 5-10 minutes. After it completes, you can optionally run `docker images` to see the image you just built (or you can see it in the GUI on Docker Desktop).
-
-## Creating the Container
-
-This only requires one command, but it's a long one:
+If you don't have it already, `git clone` the shepherd repo. From within the setup folder in the repo, run these commands:
 ```
-docker run -it -v '/absolute/path/to/shepherd':/outsideshep -p=5000:5000 -p=5500:5500 --name=sheep shepherd:latest
+docker pull pierobotics/shepherd
+./make-container
 ```
+If the second command is successful, it should pop you into a root shell (something like `root@1d7da336c05d:/#`). Feel free to look around; once you're done, exit the container's shell (you can run the command `exit`).
 
-Note that the `/absolute/path/to/shepherd` should be the git repository, so the Shepherd.py file should reside in `/absolute/path/to/shepherd/shepherd/Shepherd.py`.
-
-A breakdown of what the command means:
- - `docker run`: this will create the container, and run it
- - `it`: it will run it interactively, so you will be popped into a bash terminal when the container starts
- - `-v '/absolute/path/to/shepherd':/outsideshep`: this will link the shepherd repo on your computer, to a folder named "outsideshep" inside the container. Both must be absolute paths. It is important for the `run` script that it is named `outsideshep`.
- - `-p=5000:5000 -p=5500:5500`: this will link the container's ports to your computer's ports, so you can run the python server inside the container and reach it from your computer's web browser.
- - `--name=sheep`: this names the container "sheep". Otherwise, Docker would give it a random name.
- - `shepherd:latest`: this is the name of the image that the container will be created off of.
- 
-If you are successful, it should pop you into a root shell, and `ls outsideshep` should list the files in your Shepherd repo. If this is the case, exit the shell (you can run the command `exit`), and proceed to the next section.
-
-If you are unsuccessful, run `docker rm sheep` to destroy the bad container, and then try again.
-
-## Running Shepherd inside the container
-
-Run `docker ps -a`. You should see the `sheep` container, and the status should be `exited`.
-
-Run the following:
+Now, add this line to your `.bashrc` file (or `.zshrc` or `.bash_profile`):
 ```
-docker restart sheep # starts the container
-docker exec -it sheep run Shepherd.py
+alias whale="docker exec -it sheep run"
+```
+This isn't strictly necessary, but it makes life easier.
+
+## Running Shepherd
+
+Split your terminal window (or open two). In terminal 1, run
+```
+docker restart sheep
+whale Shepherd.py
+```
+In terminal 2, run
+```
+whale server.py
 ```
 
-And then in a seperate terminal window:
-
-```
-docker exec -it sheep run server.py
-```
-
-Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container.
+Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container. 
 
 When you are done, exit both terminals, and then run
 ```
 docker stop sheep
 ```
 If you do not do this step, the container will continue running 24/7, which is a little inefficient. 
+
+## Optional Advanced Stuff
+
+Some commands you might find useful:
+ - `docker ps -a` shows a list of all containers. Shut down running containers if you aren't using them!
+ - `docker images` shows a list of all images
+ - `docker rm sheep` deletes the sheep container. You can recreate it with `./make-container`.
+ - `docker rmi pierobotics/shepherd` deletes the pierobotics/shepherd image. You can get it back with `docker pull pierobotics/shepherd`/
+ - `docker stop sheep` shuts down the sheep container
+ - `docker restart sheep` starts the sheep container
+ 
+If you ever want to build the image (you updated requirements.txt or something), `cd` into the dockerfiles folder and run `docker build -t pioneers/shepherd:latest .` (if you get an error that it takes one argument, you need to include the last `.`). This will build an image using the current directory's files, with the name "shepherd:latest". Then, push it to Dockerhub so that everyone can use your changes.
+
+Building the image typically takes around 5 minutes.
+
+Note that if you want to use ports that aren't 5000 or 5500, you'll have to add those ports to the `./make-container` script. Similarly, if you want to run files outside the innermost shepherd folder, you'll have to edit the `dockerfiles/run-python-scripts` file and `whale` alias accordingly.
 
 
