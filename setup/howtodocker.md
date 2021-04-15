@@ -15,11 +15,11 @@ docker pull pierobotics/shepherd
 ```
 If the second command is successful, it should pop you into a root shell (something like `root@1d7da336c05d:/#`). Feel free to look around; once you're done, exit the container's shell (you can run the command `exit`).
 
-Now, add this line to your `.bashrc` file (or `.zshrc` or `.bash_profile`):
+Now, add this line to your `~/.bashrc` file (or `~/.zshrc` or `~/.bash_profile`):
 ```
 alias whale="docker exec -it sheep run"
 ```
-This isn't strictly necessary, but it makes life easier.
+After adding the line, close and reopen your terminal, or run `source ~/.bashrc` (or equivalent).
 
 ## Running Shepherd
 
