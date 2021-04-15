@@ -132,7 +132,6 @@ class RuntimeClient:
         Closes the connection if not already closed.
         """
         if self.is_alive:
-            # print(f"connection was alive? {self.is_alive}. Closing.")
             self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
