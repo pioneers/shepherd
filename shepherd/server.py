@@ -6,7 +6,7 @@ import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
 from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
 from Utils import LCM_TARGETS, SHEPHERD_HEADER, UI_HEADER
-from LCM import lcm_send, lcm_start_read
+# from LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000
@@ -150,7 +150,7 @@ def ui_to_server_drawbridge_shortcut():
 
 def receiver():
     events = gevent.queue.Queue()
-    lcm_start_read(str.encode(LCM_TARGETS.UI), events)
+    # lcm_start_read(str.encode(LCM_TARGETS.UI), events)
 
     while True:
 
