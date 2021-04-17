@@ -46,7 +46,9 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         //if (param == 2) {
             //this->msngr->lowcar_printf("%d\n", redFrequency);
         //}
-        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
+        // redFrequency == 0 sometimes which seems like a bug. We are just 
+        // going to have 0 mean laser is reaching the other side (default case).
+        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
         {
             data_buf[0] = 0;
         }
