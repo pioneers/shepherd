@@ -35,8 +35,9 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
         int redFrequency = pulseIn(Arduino3::pins[param], LOW, 50000);
         //this->msngr->lowcar_printf("red freq is %d", redFrequency);
         // Printing the RED (R) value
-
-        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
+        // redFrequency == 0 sometimes which seems like a bug. We are just 
+        // going to have 0 mean laser is reaching the other side (default case).
+        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
         {
             data_buf[0] = 0;
         }
