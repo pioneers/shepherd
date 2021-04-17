@@ -132,9 +132,8 @@ class RuntimeClient:
         Closes the connection if not already closed.
         """
         print(f"fileno in close connection is : {self.sock.fileno()}")
-        if self.client_exists and self.is_alive:
+        if self.is_alive:
             self.is_alive = False
-            self.client_exists = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
             self.send_connection_status_to_ui()
@@ -215,9 +214,9 @@ class RuntimeClientManager:
             if robot.number in robot_nums:
                 index = robot_nums.index(robot.number)
                 print(f"Setting client exists of client {self.clients[index]} to False")
+                self.clients[index].client_exists = False
                 print(f"Closing connection to robot {robot.number}")
                 self.clients[index].close_connection()
-                self.clients[index].client_exists = False
                 self.clients.pop(index)
             else:
                 print(f"robot {robot.number} does not exist in robot_nums")
