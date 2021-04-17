@@ -199,9 +199,8 @@ def to_auto(args):
     send_score_to_ui()
     enable_robots(True)
     check_code()
+    BUTTONS.illuminate_all()
 
-    BUTTONS.illuminate_buttons()
-    BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
 
@@ -559,6 +558,7 @@ def to_dehydration(args):
     GAME_STATE = STATE.DEHYDRATION
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.DEHYDRATION})
+    BUTTONS.enter_mirage_wall(ROBOT.coding_challenge)
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
 
 # ----------
@@ -572,7 +572,7 @@ def dehydration_button_press(args):
     '''
     global GAME_STATE
     button_number = int(args["button"])
-    if BUTTONS.press_button_and_check(button_number, ROBOT):
+    if BUTTONS.press_button_and_check(button_number):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
         lcm_send(LCM_TARGETS.UI,
