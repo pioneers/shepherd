@@ -35,8 +35,8 @@ class Buttons:
         print(f"buttons chosen: {chosen}")
         self.correct_button = random.choice(chosen)
         print(f"correct button: {self.correct_button}")
-        self.buttons_illuminated = [i for i in range(
-            self.NUM_BUTTONS) if (i in chosen)]
+        self.buttons_illuminated = [(i in chosen) for i in range(
+            self.NUM_BUTTONS)]
         for i in range(self.NUM_BUTTONS):
             if self.buttons_illuminated[i]:
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
