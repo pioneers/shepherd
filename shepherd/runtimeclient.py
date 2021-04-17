@@ -134,6 +134,7 @@ class RuntimeClient:
         print(f"fileno in close connection is : {self.sock.fileno()}")
         if self.client_exists and self.is_alive:
             self.is_alive = False
+            self.client_exists = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
             self.send_connection_status_to_ui()
