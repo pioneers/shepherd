@@ -160,7 +160,7 @@ class RuntimeClient:
                 print(f"Connection reset error while reading from socket: {ex}")
                 received = False
             except socket.timeout as ex:
-                print("Connection to {self.robot} closed in this thread.")
+                print(f"Connection to {self.robot} closed in this thread.")
                 received = False
             print(f"Received message from Robot {self.robot}: ", received)
             # received could be False or b'' which means EOF
@@ -214,9 +214,9 @@ class RuntimeClientManager:
             if robot.number in robot_nums:
                 index = robot_nums.index(robot.number)
                 print(f"Setting client exists of client {self.clients[index]} to False")
-                self.clients[index].client_exists = False
                 print(f"Closing connection to robot {robot.number}")
                 self.clients[index].close_connection()
+                self.clients[index].client_exists = False
                 self.clients.pop(index)
             else:
                 print(f"robot {robot.number} does not exist in robot_nums")
