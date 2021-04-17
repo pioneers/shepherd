@@ -7,7 +7,7 @@
     <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
     <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='scoreboard.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='bracket.css')}}">
 </head>
 
 <body>
@@ -15,105 +15,88 @@
     <!-- <div class="container" id="stagename-container">
         
     </div> -->
-    <div class="scoreboard-outer-container">
-        <div class="scoreboard-container">
+    <div class="bracket-outer-container">
+        <div class="bracket-container">
             <!-- <div class="stagename">
                 Autonomous
             </div> -->
 
-            <div class="robotinfo">
-                <mark class="black" id="team-num">Team 123</mark>
-                <div id="team-name">Bo Gears Elem.</div>
-            </div>
-
             <div class="time">
-                <mark class="black">[1 seed]</mark><br>
+                <mark class="black">1</mark><br>
                 <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[2 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[3 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[4 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[5 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[6 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[7 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[8 seed]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[sf1]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[sf2]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[sf3]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[sf4]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[f1]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="time">
-                <mark class="black">[f1]</mark><br>
-                <div id="stage-timer">team_name</div>
-            </div>
-
-            <div class="penalty">
-                <mark class="black">Penalty</mark><br>
-                <div id="penalty">+ 0:00</div>
-            </div>
-
-            <div class="stamps">
-                <mark class="black">Stamps</mark><br>
-                <div id="stamp_time">- 0:00</div>
-            </div>
-        </div>
-
-        <div class="total-container">
-            <div class="totalinfo">
-                <mark class="black">Total Score</mark><br>
-                <div id="total">0</div>
             </div>
         </div>
     </div>
+
+    <div class="matches-outer-container">
+        <div class="matches-container">
+                <!-- <div class="stagename">
+                    Autonomous
+                </div> -->
+
+                <div class="team">
+                    <div id="stage-timer">ACLC</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">El Cerrito</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Encinal</div>
+                </div>
+
+                <div class="score">
+                    <div id="stage-timer">1-2</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Salesain</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Skyline</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Hercules</div>
+                </div>
+
+
+
+                <div class="team">
+                    <div id="stage-timer">Bishop</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Hayward</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Arroyo</div>
+                </div>
+
+                <div class="score">
+                    <div id="stage-timer">2-0</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">ACLC</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">El Ceritto</div>
+                </div>
+
+                <div class="team">
+                    <div id="stage-timer">Encinal</div>
+                </div>
+
+                
+            </div>
+    </div>
+
+        
 </body>
 
 </html>
