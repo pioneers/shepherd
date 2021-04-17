@@ -159,9 +159,9 @@ class RuntimeClient:
             except ConnectionResetError as ex:
                 print(f"Connection reset error while reading from socket: {ex}")
                 received = False
-            except socket.timeout as ex:
-                print(f"Connection to {self.robot} closed in this thread.")
-                received = False
+            # except socket.timeout as ex:
+            #     print(f"Connection to {self.robot} closed in this thread.")
+            #     received = False
             print(f"Received message from Robot {self.robot}: ", received)
             # received could be False or b'' which means EOF
             if not received:
