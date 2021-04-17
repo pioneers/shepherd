@@ -153,6 +153,7 @@ class RuntimeClient:
         then tries to reconnect infinitely until either self.client_exists
         is False or the thread is closed in garbage collection.
         """
+        self.sock.settimeout(None)
         while self.client_exists:
             try:
                 received = self.sock.recv(1)
