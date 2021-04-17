@@ -21,8 +21,10 @@ class Buttons:
         """
         Select 6 challenges, turn off buttons based on number solved
         """
+        print(f"challenges are {challenges}")
         self.illuminated = max(1, self.illuminated -
-                               sum([random.sample(challenges, 6)]))
+                               sum(random.sample(challenges, 6)))
+        print(f"illuminated buttons: {self.illuminated}")
         self._illuminate_buttons()
 
     def _illuminate_buttons(self):
@@ -30,7 +32,9 @@ class Buttons:
         Turn on self.illuminated number of buttons (random), and pick one to be correct
         """
         chosen = random.sample(range(self.NUM_BUTTONS), self.illuminated)
+        print(f"buttons chosen: {chosen}")
         self.correct_button = random.choice(chosen)
+        print(f"correct button: {self.correct_button}")
         self.buttons_illuminated = [i for i in range(
             self.NUM_BUTTONS) if (i in chosen)]
         for i in range(self.NUM_BUTTONS):
