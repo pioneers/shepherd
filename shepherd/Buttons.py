@@ -1,6 +1,7 @@
 import random
-from Utils import *
-from LCM import *
+from Utils import SENSOR_HEADER, LCM_TARGETS
+from LCM import lcm_send
+
 
 class Buttons:
 
@@ -8,37 +9,57 @@ class Buttons:
 
     def __init__(self):
         self.buttons_illuminated = [True] * self.NUM_BUTTONS
-        self.illuminate_buttons()
-        self.correct_button = random.randint(0, self.NUM_BUTTONS - 1)
-        self.illuminated = self.NUM_BUTTONS
-        # pick the indices of 7 challenges
-        self.challenges = random.sample(range(8), self.NUM_BUTTONS)
-        print(self.correct_button)
+        self.illuminated: int = self.NUM_BUTTONS
+        self.correct_button = 0
 
-    def randomize_correct_button(self):
-        self.correct_button = random.choice(
-            [i for i in range(self.NUM_BUTTONS) if self.buttons_illuminated[i]])
+    def illuminate_all(self):
+        for i in range(self.NUM_BUTTONS):
+            lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
+                "id": i})
 
-    def illuminate_buttons(self):
+    def enter_mirage_wall(self, challenges):
         """
-        Turns on button i if self.buttons_illuminated[i] is True.
+        Select 6 challenges, turn off buttons based on number solved
         """
+        print(f"challenges are {challenges}")
+        self.illuminated = max(1, self.illuminated -
+                               sum(random.sample(challenges, 6)))
+        print(f"illuminated buttons: {self.illuminated}")
+        self._illuminate_buttons()
+
+    def _illuminate_buttons(self):
+        """
+        Turn on self.illuminated number of buttons (random), and pick one to be correct
+        """
+        chosen = random.sample(range(self.NUM_BUTTONS), self.illuminated)
+        print(f"buttons chosen: {chosen}")
+        self.correct_button = random.choice(chosen)
+        print(f"correct button: {self.correct_button}")
+        self.buttons_illuminated = [(i in chosen) for i in range(
+            self.NUM_BUTTONS)]
         for i in range(self.NUM_BUTTONS):
             if self.buttons_illuminated[i]:
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
                          "id": i})
+            else:
+                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
+                         "id": i})
 
-    def press_button_and_check(self, button_id, robot):
-        # if this is the correct button and the challenge was solved
-        if self.is_correct_button(button_id) and robot.coding_challenge[self.challenges[button_id]]:
+    def press_button_and_check(self, button_id):
+        """
+        If they press the correct button, then all buttons get turned off
+        and the function returns True.
+        If they press a different button, it gets turned off and the function
+        returns False.
+        """
+        if self.is_correct_button(button_id):
             for i in range(self.NUM_BUTTONS):
                 lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
                          "id": i})
             self.illuminated = 0
             self.buttons_illuminated = [False] * self.NUM_BUTTONS
             return True
-        # if this is not the correct button and the challenge was solved
-        if self.buttons_illuminated[button_id] and robot.coding_challenge[self.challenges[button_id]]:
+        if self.buttons_illuminated[button_id]:
             self.illuminated -= 1
             self.buttons_illuminated[button_id] = False
             lcm_send(LCM_TARGETS.SENSORS,
@@ -53,5 +74,4 @@ class Buttons:
         new_buttons.buttons_illuminated = self.buttons_illuminated
         new_buttons.correct_button = self.correct_button
         new_buttons.illuminated = self.illuminated
-        new_buttons.challenges = self.challenges
         return new_buttons
