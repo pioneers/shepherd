@@ -131,7 +131,8 @@ class RuntimeClient:
         """
         Closes the connection if not already closed.
         """
-        if self.is_alive:
+        print(f"fileno in close connection is : {self.sock.fileno()}")
+        if self.client_exists and self.is_alive:
             self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
@@ -155,12 +156,12 @@ class RuntimeClient:
         while self.client_exists:
             try:
                 received = self.sock.recv(1)
-            except ConnectionResetError as e:
-                print(f"Connection reset error while reading from socket: {e}")
+            except ConnectionResetError as ex:
+                print(f"Connection reset error while reading from socket: {ex}")
                 received = False
-            # except socket.timeout as e:
-            #     print(f"Ungraceful disconnection from socket: {e}")
-            #     received = False
+            except socket.timeout as ex:
+                print("Connection to {self.robot} closed in this thread.")
+                received = False
             print(f"Received message from Robot {self.robot}: ", received)
             # received could be False or b'' which means EOF
             if not received:

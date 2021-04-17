@@ -37,15 +37,6 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         // so i guess this is only gonna work once everything is plugged in
         // rn it only works for pin 9. all: Arduino2::pins[param]
         int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
-        if (param == 0) {
-            this->msngr->lowcar_printf("red freq is %d", redFrequency);
-        }
-        // Printing the RED (R) value
-        // Serial.print(redFrequency);
-        //this->msngr->lowcar_printf("hello world\n");
-        //if (param == 2) {
-            //this->msngr->lowcar_printf("%d\n", redFrequency);
-        //}
         // redFrequency == 0 sometimes which seems like a bug. We are just 
         // going to have 0 mean laser is reaching the other side (default case).
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
