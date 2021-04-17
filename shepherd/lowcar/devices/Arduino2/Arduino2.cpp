@@ -37,7 +37,7 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         // so i guess this is only gonna work once everything is plugged in
         // rn it only works for pin 9. all: Arduino2::pins[param]
         int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
-        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
+        this->msngr->lowcar_printf("red freq is %d", redFrequency);
 
         // Printing the RED (R) value
         // Serial.print(redFrequency);

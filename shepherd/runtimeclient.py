@@ -122,9 +122,9 @@ class RuntimeClient:
         if connected:
             thr = threading.Thread(target=self.start_recv)
             thr.start()
-        # send 0 byte so that Runtime knows it's Shepherd
-        if self.is_alive:
+            # send 0 byte so that Runtime knows it's Shepherd
             self.sock.send(bytes([0]))
+
         return connected
 
     def close_connection(self):
