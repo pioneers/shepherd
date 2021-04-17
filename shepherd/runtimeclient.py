@@ -122,9 +122,9 @@ class RuntimeClient:
         if connected:
             thr = threading.Thread(target=self.start_recv)
             thr.start()
-        # send 0 byte so that Runtime knows it's Shepherd
-        if self.is_alive:
+            # send 0 byte so that Runtime knows it's Shepherd
             self.sock.send(bytes([0]))
+
         return connected
 
     def close_connection(self):
@@ -132,7 +132,6 @@ class RuntimeClient:
         Closes the connection if not already closed.
         """
         if self.is_alive:
-            # print(f"connection was alive? {self.is_alive}. Closing.")
             self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
             self.sock.close() # deallocates
