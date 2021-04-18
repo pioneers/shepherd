@@ -795,7 +795,7 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.FINAL_ENTRY: to_final, # triggered by line break
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start, # stop robot for 10 seconds
     # note that dehydration timer end is not here, because we don't want to move them back to fire.
