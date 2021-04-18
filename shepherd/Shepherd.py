@@ -284,7 +284,7 @@ def get_biome(args):
 def set_biome(args):
     biome = args["biome"]
     state_to_transition_function = {
-        STATE.CITY: to_city,
+        STATE.CITY: city_linebreak,
         STATE.SANDSTORM: to_desert,
         STATE.DEHYDRATION: to_dehydration,
         STATE.HYPOTHERMIA: to_hypothermia,
