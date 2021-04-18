@@ -499,7 +499,7 @@ def to_city(args):
 def city_linebreak(args):
     if not STOPLIGHT_TIMER.is_running():
         STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
-    if STATE == STATE.AUTO:
+    if GAME_STATE == STATE.AUTO:
         to_city([])
 
 def stoplight_timer_end(args):
