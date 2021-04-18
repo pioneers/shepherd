@@ -240,6 +240,7 @@ def reset_state(args):
     TINDER = 0
     FIRE_LIT = False
     BUTTONS = Buttons()
+    send_round_info()
 
 
 def get_round(args):
