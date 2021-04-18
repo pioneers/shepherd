@@ -191,7 +191,7 @@ def to_auto(args):
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = time.time()
-    STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
+    # STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI,
@@ -240,6 +240,7 @@ def reset_state(args):
     TINDER = 0
     FIRE_LIT = False
     BUTTONS = Buttons()
+    send_round_info()
 
 
 def get_round(args):
@@ -495,6 +496,11 @@ def to_city(args):
 # CITY STAGE
 # ----------
 
+def city_linebreak():
+    if not STOPLIGHT_TIMER.is_running():
+        STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
+    if STATE == STATE.AUTO:
+        to_city({})
 
 def stoplight_timer_end(args):
     # turn stoplight green
@@ -746,7 +752,7 @@ SETUP_FUNCTIONS = {
 
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor enters city and starts the stoplight timer
     SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
@@ -754,6 +760,7 @@ AUTO_FUNCTIONS = {
 CITY_FUNCTIONS = {
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
+    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor starts the stoplight timer
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
     SHEPHERD_HEADER.STOPLIGHT_CROSS: stoplight_cross,
