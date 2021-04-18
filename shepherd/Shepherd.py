@@ -496,11 +496,11 @@ def to_city(args):
 # CITY STAGE
 # ----------
 
-def city_linebreak():
+def city_linebreak(args):
     if not STOPLIGHT_TIMER.is_running():
         STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     if STATE == STATE.AUTO:
-        to_city({})
+        to_city([])
 
 def stoplight_timer_end(args):
     # turn stoplight green
