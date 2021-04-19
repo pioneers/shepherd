@@ -13,7 +13,7 @@ If you don't have it already, `git clone` the shepherd repo. From within the set
 docker pull pierobotics/shepherd
 ./make-container
 ```
-If the second command is successful, it should say "Success! I like cheese".
+If the second command is successful, it should pop you into a root shell. Feel free to look around; when you're done, exit the container (you can run the command `exit`).
 
 Now, add this line to your `~/.bashrc` file (or `~/.zshrc` or `~/.bash_profile`):
 ```
@@ -35,11 +35,26 @@ whale server.py
 
 Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container. 
 
-When you are done, exit both terminals, and then run
+When you are done, run
 ```
 docker stop sheep
 ```
 If you do not do this step, the container will continue running 24/7, which is a little inefficient. 
+
+## Going inside the Docker container
+
+You may want to run things directly in the Docker container (for example, for literally anything that isn't a Python script). The commands are similar:
+```
+docker restart sheep
+docker attach sheep
+
+# do things
+
+docker stop sheep
+
+```
+Alternatively, you can do `docker exec -it sheep bash` if you want multiple terminals inside the container.
+
 
 ## Optional Advanced Stuff
 
