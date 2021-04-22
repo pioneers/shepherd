@@ -25,7 +25,6 @@ from Sensors import (
     HEADER_MAPPINGS,
     HEADER_COMMAND_MAPPINGS,
     Parameter,
-    previous_parameter_values,
     previous_debounced_value,
     LowcarMessage
 )
