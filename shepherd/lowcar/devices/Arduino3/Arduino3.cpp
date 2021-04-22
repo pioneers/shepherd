@@ -23,6 +23,12 @@ const uint8_t Arduino3::pins[] = {
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13)
 {
+    this->prev_red_frequencies[] = {
+        6000,
+        6000,
+        6000,
+        6000,
+    }
 }
 
 size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
@@ -31,10 +37,13 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
     if (param < Arduino3::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        // delay(1000);
         int redFrequency = pulseIn(Arduino3::pins[param], LOW, 50000);
-        // redFrequency == 0 sometimes which seems like a bug. We are just 
-        // going to have 0 mean laser is reaching the other side (default case).
+        
+        // we should ignore red frequency == 0 because it is a bug
+        if (redFrequency == 0) {
+            redFrequency = this->prev_red_frequencies[param];
+        }
+
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
         {
             data_buf[0] = 0;
@@ -43,6 +52,8 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
         {
             data_buf[0] = 1;
         }
+        this->prev_red_frequencies[param] = redFrequency;
+
         return sizeof(uint8_t);
     }
     else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS)

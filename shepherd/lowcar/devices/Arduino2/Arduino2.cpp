@@ -23,6 +23,12 @@ const uint8_t Arduino2::pins[] = {
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13)
 {
+    this->prev_red_frequencies[] = {
+        6000,
+        6000,
+        6000,
+        6000,
+    }
 }
 
 size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
@@ -37,8 +43,11 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         // so i guess this is only gonna work once everything is plugged in
         // rn it only works for pin 9. all: Arduino2::pins[param]
         int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
-        // redFrequency == 0 sometimes which seems like a bug. We are just 
-        // going to have 0 mean laser is reaching the other side (default case).
+        
+        // we should ignore red frequency == 0 because it is a bug
+        if (redFrequency == 0) {
+            redFrequency = this->prev_red_frequencies[param];
+        }
         if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
         {
             data_buf[0] = 0;
@@ -47,6 +56,7 @@ size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
         {
             data_buf[0] = 1;
         }
+        this->prev_red_frequencies[param] = redFrequency;
     }
     else if (param < Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS)
     {

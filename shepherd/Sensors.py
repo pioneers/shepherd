@@ -180,7 +180,7 @@ def translate_lcm_message(header):
     message = LowcarMessage([device], [{parameter.name:value}])
     return message
     
-previous_debounced_value = {} # TODO: this too.
+previous_debounced_value = {} # TODO: move this.
 
 ################################################
 # Game Specific Variables
