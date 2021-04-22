@@ -16,7 +16,7 @@ body {
     margin-left: auto;
     margin-right: auto;
     top: 0;
-    width: 50%;
+    width: 75%;
     height: 100%;
 }
 
@@ -49,7 +49,11 @@ body {
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: 150%;
+    font-size: 2.5vw;
+    justify-content: center;
+    align-content: center;
+    display: flex;
+    flex-direction: column;
 }
 
 .totalinfo {
@@ -61,7 +65,11 @@ body {
     font-family: "Comic Sans MS", "Comic Sans", cursive;
     width: calc(40vh);
     visibility: visible;
-    font-size: 200%
+    font-size: 200%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
 }
 
 #total {
