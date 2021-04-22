@@ -8,11 +8,12 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send # pylint:
 from Utils import *
 from LCM import *
 
-HOST_URL = "127.0.0.1"
+HOST_URL = "0.0.0.0"
 PORT = 5500
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 
 @app.route('/')
