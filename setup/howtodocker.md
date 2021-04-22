@@ -51,9 +51,8 @@ docker attach sheep
 # do things
 
 docker stop sheep
-
 ```
-Alternatively, you can do `docker exec -it sheep bash` if you want multiple terminals inside the container.
+Alternatively, you can do `docker exec -it sheep bash` if you want multiple terminals. 
 
 
 ## Optional Advanced Stuff
