@@ -26,7 +26,7 @@ body {
     align-items: stretch;
     flex-direction: row;
     padding: 10px;
-    height: calc(20vh);
+    height: calc(25vh);
 }
 
 .total-container {
@@ -35,7 +35,7 @@ body {
     align-items: stretch;
     flex-direction: row;
     padding: 10px;
-    height: calc(25vh);
+    height: calc(30vh);
 }
 
 #stagename-container {
@@ -49,7 +49,7 @@ body {
     border-radius: 25px;
     text-align: center;
     font-family: "Comic Sans MS", "Comic Sans", cursive;
-    font-size: 200%;
+    font-size: 150%;
 }
 
 .totalinfo {
