@@ -468,6 +468,7 @@ def check_code():
     Check the coding challenges and act appropriately
     '''
     ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
+    print(f"ROBOT.coding_challenge is {ROBOT.coding_challenge}")
 
 # ----------
 # AUTO STAGE
