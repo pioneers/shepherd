@@ -23,11 +23,8 @@ const uint8_t Arduino2::pins[] = {
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13)
 {
-    this->prev_red_frequencies[] = {
-        6000,
-        6000,
-        6000,
-        6000,
+    for(int i = 0; i < 4; i++) {
+	this->prev_red_frequencies[i] = 6000;
     }
 }
 

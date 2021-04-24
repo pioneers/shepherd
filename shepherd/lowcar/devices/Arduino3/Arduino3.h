@@ -25,5 +25,5 @@ class Arduino3 : public Device {
       const static int NUM_LIGHT_PINS;
       // TODO: update pins that the buttons read data from (defined in defs.h)
       const static uint8_t pins[];
-      const int prev_red_frequencies[];
+      int prev_red_frequencies[2];
 };
