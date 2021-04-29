@@ -51,7 +51,7 @@ cd shepherd/sensors
 make clean && make
 ./dev_handler
 ```
-Then, run the Shepherd code that interfaces with dev handler in another terminal.
+Then, in another terminal, run the Shepherd code that interfaces with dev handler in another terminal.
 ```
 cd shepherd
 python3 Sensors.py
