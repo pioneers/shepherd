@@ -13,76 +13,48 @@ Shepherd is essentially a [Flask](https://palletsprojects.com/p/flask/) web app 
 * Each scoreboard client, which is rendered with jQuery. Typically, there is a scoreboard on each side of the field, a projection for spectators, and a fourth for the field control staff.
 * Each perk selection tablet (specific to Sugar Blast).
 
-## Installing dependencies
-
-### Python dependencies
-Run the following
-```
-pip install -r requirements.txt
-```
-
-### LCM
-
-#### Linux
-Run the installlcm script
-```
-./installlcm
-```
-
-#### Mac
-1. Set the Java Version to 8
-```
-export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
-```
-2. Run the installlcm script
-```
-./installlcm
-```
-
 ## Running Shepherd
 
-### Instructions for 2018-2019, aka Sugar Blast:
-This year, we ran Shepherd on Ajax, one of the computers owned by PiE. 
-In order to make it easier to run Shepherd on various machines, we added needed dependencies to a Pipfile. 
-This allows you to work in a virtual environment with all necessary dependencies 
-(except for [LCM](https://lcm-proj.github.io/build_instructions.html), which must be installed beforehand) 
-by issuing the following commands in PieCentral/shepherd:
+See the [docker instructions](https://github.com/pioneers/shepherd/blob/docker/setup/howtodocker.md) to pull and create the docker container as well as run Shepherd. If you have already created the container and added the `whale` [alias](https://github.com/pioneers/shepherd/blob/docker/setup/howtodocker.md#setting-up-the-docker-container), you can run the following:
 ```
-pipenv install
-pipenv shell
-```
-Next, open a terminal pane for each of the below (using tmux) and run the following commands in PieCentral/shepherd directory.
-
-1:
-```
-export FLASK_APP=server.py
-flask run
+docker restart sheep
+whale Shepherd.py
 ```
 
-2:
+This will run Shepherd. Based on what you are working on, you may also want to run the staff gui or the scoreboard, which can be done as follows (in seperate terminals)
+
 ```
-export FLASK_APP=scoreboard_server.py
-flask run
+whale server.py
+```
+and 
+```
+whale scoreboard_server.py
 ```
 
-3:
-```
-export FLASK_APP=dawn_server.py
-flask run
-```
+`whale` is short for `docker exec -it sheep run`.
 
-4:
-```
-python3 Shepherd.py
-```
+## Running Sensors
 
-5:
+For talking to sensors, we use a Shepherd specific version of `dev_handler`, which stands for device handler, and the Lowcar Framework which were written by Runtime. First, connect the Arduinos to your computer (they should have already been flashed). Then run the following:
 ```
+cd shepherd/sensors
+make clean && make
+./dev_handler
+```
+Then, run the Shepherd code that interfaces with dev handler in another terminal.
+```
+cd shepherd
 python3 Sensors.py
 ```
 
-6:
+## 2021 Instructions
+
+For competition, we have 6 different scripts to run. Matthew has created a tmux script that we encourage you to modify in future years because it is really easy to use.
+
 ```
-export FLASK_APP=perks_server.py
-flask run
+docker restart sheep
+docker attach
+cd outsideshep/shepherd
+./shepherd_tmux.sh
 ```
+This _almost_ works but **TODO**: we need to modify the docker run command so that dev_handler can talk to serial. Otherwise, the `Sensors.py` terminal will error.
