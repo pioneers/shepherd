@@ -680,6 +680,16 @@ def to_end(args):
     LAST_TINDER = TINDER
     LAST_BUTTONS = BUTTONS.copy()
     LAST_FIRE_LIT = FIRE_LIT
+    if GAME_STATE == STATE.CITY:
+        ROBOT.stamp_time -= 10
+    elif GAME_STATE == STATE.SANDSTORM:
+        ROBOT.stamp_time -= 20
+    elif GAME_STATE == STATE.DEHYDRATION:
+        ROBOT.stamp_time -= 30
+    elif GAME_STATE == STATE.FIRE or GAME_STATE == STATE.HYPOTHERMIA:
+        ROBOT.stamp_time -= 40
+    elif GAME_STATE == STATE.FINAL:
+        ROBOT.stamp_time -= 50
     GAME_STATE = STATE.END
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.END})
