@@ -17,7 +17,7 @@ tmux send-keys -t 'Shepherd:0.1' 'echo free terminal' Enter
 tmux send-keys -t 'Shepherd:0.3' 'python3 server.py' Enter
 tmux send-keys -t 'Shepherd:0.4' 'make clean && make && ./dev_handler' Enter
 tmux send-keys -t 'Shepherd:0.5' 'python3 scoreboard_server.py' Enter
-tmux send-keys -t 'Shepherd:0.2' 'sleep 10' Enter
+tmux send-keys -t 'Shepherd:0.2' 'sleep 20' Enter
 tmux send-keys -t 'Shepherd:0.2' 'python3 sensor_interface.py' Enter
 
 tmux attach-session -t '=Shepherd'
