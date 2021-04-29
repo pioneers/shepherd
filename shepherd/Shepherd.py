@@ -684,9 +684,9 @@ def to_end(args):
         ROBOT.stamp_time -= 10
     elif GAME_STATE == STATE.SANDSTORM:
         ROBOT.stamp_time -= 20
-    elif GAME_STATE == STATE.DEHYDRATION:
+    elif GAME_STATE == STATE.DEHYDRATION or GAME_STATE == STATE.FIRE:
         ROBOT.stamp_time -= 30
-    elif GAME_STATE == STATE.FIRE or GAME_STATE == STATE.HYPOTHERMIA:
+    elif GAME_STATE == STATE.HYPOTHERMIA:
         ROBOT.stamp_time -= 40
     elif GAME_STATE == STATE.FINAL:
         ROBOT.stamp_time -= 50
