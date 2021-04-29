@@ -23,13 +23,18 @@ whale scoreboard_server.py
 
 `whale` is short for `docker exec -it sheep run`.
 
+After you are done, be sure to stop the container to please Samuel.
+```
+docker stop sheep
+```
+
 ## Running Shepherd (without Docker)
 
 I will leave basic guidance in this section but since we are switching to Docker, it will be mediocre.
 
 ### Dependencies
 
-If you are on windows, you probably won't be able to install LCM so you should use the Docker instructions. If you are on Linux, run the `./installlcm` script to install it. If on Mac, set your Java version to 8 `export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)` and then run the `./install_lcm` script.
+If you are on windows, you probably won't be able to install LCM so you should use the Docker instructions. If you are on Linux, run the `./installlcm` script to install it. If on Mac, set your Java version to 8 `export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)` and then run the `./installlcm` script.
 
 For python dependencies, run `pip install -r requirements.txt`.
 
@@ -75,9 +80,13 @@ For competition, we have 5 different scripts to run. Matthew has created a tmux 
 
 ```
 docker restart sheep
-docker attach
+docker attach sheep
 cd outsideshep/shepherd
 ./shepherd_tmux.sh
+```
+After you are done, be sure to stop the container to please Samuel.
+```
+docker stop sheep
 ```
 
 One part of this that has not yet been tested is dev handler communication with Arduino devices. After that, Shepherd should be able to run straight out of the Docker container.
