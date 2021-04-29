@@ -23,23 +23,7 @@ After adding the line, close and reopen your terminal, or run `source ~/.bashrc`
 
 ## Running Shepherd
 
-Split your terminal window (or open two). In terminal 1, run
-```
-docker restart sheep
-whale Shepherd.py
-```
-In terminal 2, run
-```
-whale server.py
-```
-
-Now, you should be able to navigate to <http://localhost:5000/staff_gui.html> and see the staff gui running. If so, congrats! You have successfully set up and run Shepherd in a Docker container. 
-
-When you are done, run
-```
-docker stop sheep
-```
-If you do not do this step, the container will continue running 24/7, which is a little inefficient. 
+Refer to the main [instructions](../README.md#running-shepherd) to run Shepherd.
 
 ## Going inside the Docker container
 
