@@ -25,9 +25,17 @@ whale scoreboard_server.py
 
 ## Running Shepherd (without Docker)
 
-I will leave basic guidance in this section but since we are switching to Docker, it will be mediocre. 
+I will leave basic guidance in this section but since we are switching to Docker, it will be mediocre.
 
-Once you have all the dependencies (pip dependencies listed in requirements.txt and install lcm using the ./installcm script), you can run Shepherd using:
+### Dependencies
+
+If you are on windows, you probably won't be able to install LCM so you should use the Docker instructions. If you are on Linux, run the `./installlcm` script to install it. If on Mac, set your Java version to 8 `export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)` and then run the `./install_lcm` script.
+
+For python dependencies, run `pip install -r requirements.txt`.
+
+### Actually Running
+
+Once you have all the dependencies, you can run Shepherd using:
 ```
 python3 Shepherd.py
 ```
