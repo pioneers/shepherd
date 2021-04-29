@@ -5,12 +5,11 @@ import traceback
 import threading
 from datetime import datetime
 from Utils import SHEPHERD_HEADER
-from Alliance import *
-from LCM import *
+from Alliance import Alliance
+from LCM import lcm_send, lcm_start_read
 from Timer import Timer
 from Utils import *
 from Code import * 
-# TODO: import protos and change things like "auto" to Mode.AUTO
 from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State
@@ -154,6 +153,7 @@ def to_setup(args):
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
     ROBOT = Robot(name, num, custom_ip)
+    CLIENTS.reset()
     CLIENTS = RuntimeClientManager()
     connect()
 
@@ -191,7 +191,7 @@ def to_auto(args):
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = time.time()
-    STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
+    # STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
     lcm_send(LCM_TARGETS.SCOREBOARD,
              SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI,
@@ -199,9 +199,8 @@ def to_auto(args):
     send_score_to_ui()
     enable_robots(True)
     check_code()
+    BUTTONS.illuminate_all()
 
-    BUTTONS.illuminate_buttons()
-    BUTTONS.randomize_correct_button()
     print("ENTERING AUTO STATE")
 
 
@@ -241,6 +240,7 @@ def reset_state(args):
     TINDER = 0
     FIRE_LIT = False
     BUTTONS = Buttons()
+    send_round_info()
 
 
 def get_round(args):
@@ -257,11 +257,11 @@ def get_round(args):
         ROUND_NUMBER = round_num
         try:
             info = Sheet.get_round(match_num, round_num)
+            ROBOT.number = info["num"]
+            ROBOT.name = info["name"]
         except Exception as e:
             print("Exception while reading from sheet:",e)
             info = {"num":-1, "name":""}
-        ROBOT.number = info["num"]
-        ROBOT.name = info["name"]
 
     send_round_info()
     
@@ -284,7 +284,7 @@ def get_biome(args):
 def set_biome(args):
     biome = args["biome"]
     state_to_transition_function = {
-        STATE.CITY: to_city,
+        STATE.CITY: city_linebreak,
         STATE.SANDSTORM: to_desert,
         STATE.DEHYDRATION: to_dehydration,
         STATE.HYPOTHERMIA: to_hypothermia,
@@ -468,6 +468,7 @@ def check_code():
     Check the coding challenges and act appropriately
     '''
     ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
+    print(f"ROBOT.coding_challenge is {ROBOT.coding_challenge}")
 
 # ----------
 # AUTO STAGE
@@ -496,6 +497,11 @@ def to_city(args):
 # CITY STAGE
 # ----------
 
+def city_linebreak(args):
+    if not STOPLIGHT_TIMER.is_running():
+        STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
+    if GAME_STATE == STATE.AUTO:
+        to_city([])
 
 def stoplight_timer_end(args):
     # turn stoplight green
@@ -559,6 +565,7 @@ def to_dehydration(args):
     GAME_STATE = STATE.DEHYDRATION
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.DEHYDRATION})
+    BUTTONS.enter_mirage_wall(ROBOT.coding_challenge)
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
 
 # ----------
@@ -572,12 +579,23 @@ def dehydration_button_press(args):
     '''
     global GAME_STATE
     button_number = int(args["button"])
-    if BUTTONS.press_button_and_check(button_number, ROBOT):
+    if BUTTONS.press_button_and_check(button_number):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
         lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.FIRE})
+"""
+start
+go to mirage buttons (dehydration stage). 30 second timer starts.
+    - press and solve. also could light fire
+    - stick around and fail
+    - beeline past it
+        - at some point, the timer from above ends. you could be in 
+          hypothermia (past the hypothermia linebreak) at that time
+        - game state would get to fire at the end of the 30 second timer
 
+
+"""
 
 def dehydration_penalty_timer_start(args):
     '''
@@ -728,7 +746,6 @@ SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
-    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
     SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
     SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
@@ -736,7 +753,7 @@ SETUP_FUNCTIONS = {
 
 AUTO_FUNCTIONS = {
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.CITY_LINEBREAK: to_city, # line break sensor entering city
+    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor enters city and starts the stoplight timer
     SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
 }
 
@@ -744,6 +761,7 @@ AUTO_FUNCTIONS = {
 CITY_FUNCTIONS = {
     SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
     SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
+    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor starts the stoplight timer
     SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
     SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
     SHEPHERD_HEADER.STOPLIGHT_CROSS: stoplight_cross,
@@ -762,7 +780,11 @@ DEHYDRATION_FUNCTIONS = {
     SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
     SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
     SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: dehydration_penalty_timer_end,
-    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
+    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end,
+    # these three headers are copied from FIRE_FUNCTIONS
+    SHEPHERD_HEADER.SET_TINDER: set_tinder,
+    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
+    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line b
 }
 
 FIRE_FUNCTIONS = {
@@ -774,8 +796,10 @@ FIRE_FUNCTIONS = {
 }
 
 HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end, 
-    SHEPHERD_HEADER.FINAL_ENTRY: to_final # triggered by line break
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
+    SHEPHERD_HEADER.FINAL_ENTRY: to_final, # triggered by line break
+    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start, # stop robot for 10 seconds
+    # note that dehydration timer end is not here, because we don't want to move them back to fire.
 }
 
 FINAL_FUNCTIONS = {
@@ -803,7 +827,8 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.RESET_ROUND: reset_round
+    SHEPHERD_HEADER.RESET_ROUND: reset_round,
+    SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
 }
 
 

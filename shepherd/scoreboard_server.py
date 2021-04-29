@@ -8,11 +8,12 @@ from flask_socketio import SocketIO, emit, join_room, leave_room, send # pylint:
 from Utils import *
 from LCM import *
 
-HOST_URL = "127.0.0.1"
+HOST_URL = "0.0.0.0"
 PORT = 5500
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 
 @app.route('/')
@@ -25,7 +26,7 @@ def scoreboard():
 
 @socketio.event
 def connect():
-    print('established connection')
+    print('Established socketio connection')
 
 def receiver():
     events = gevent.queue.Queue()
@@ -48,5 +49,10 @@ def receiver():
                 socketio.emit('sandstorm', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
+if __name__ == "__main__":
+    print("Hello, world! baaa")
+    print(f"Running scoreboard server on port {PORT}. Go to http://localhost:{PORT}/scoreboard.html")
+
 socketio.start_background_task(receiver)
 socketio.run(app, host=HOST_URL, port=PORT)
+    

@@ -159,15 +159,11 @@ class UI_HEADER():
     These are headers used by Shepherd to send information to the Staff UI.
     """
     TEAMS_INFO = "teams_info"
-    # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip}
+    # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip, tinder, buttons}
     SCORES = "scores"
     # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
     ROBOT_CONNECTION = "robot_connection"  # TODO: ask Matt why this function is commented out
     # CONNECTIONS{team_num: int, connected: bool}
-    GAME_INFO = "game_info"
-    # GAME_INFO{tinder, buttons activated}
-    SENSORS_INFO = "sensors_info"
-    # SENSORS_INFO{tinder}
     STAGE = "stage"
     # STAGE{is_auto[boolean], start_time[datetime]}
     BIOME = "biome"
@@ -244,14 +240,14 @@ class TABLET_HEADER():
 class CONSTANTS():
     AUTO_TIME = 20  # 20
     TOTAL_TIME = 600 # 600
-    STOPLIGHT_TIME = 30  # 30
+    STOPLIGHT_TIME = 40  # 40
     SANDSTORM_COVER_TIME = 10 # 10
     DEHYRATION_TIME = 30 # 30
     ROBOT_DEHYDRATED_TIME = 10 # 10
     SPREADSHEET_ID = "1moB8OJC3E8OwnXrRJmO-m5qn_ivXuZzsFse6-LdJy4I"
     CSV_FILE_NAME = "Sheets/sc2021.csv"
     STUDENT_DECODE_TIME = 1
-    STOPLIGHT_PENALTY = 8
+    STOPLIGHT_PENALTY = 15
 
 # pylint: disable=invalid-name
 

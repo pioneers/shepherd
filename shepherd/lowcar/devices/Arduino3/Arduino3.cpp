@@ -4,16 +4,16 @@ const int Arduino3::NUM_LINEBREAKS = 2;
 const int Arduino3::NUM_BUTTONS = 1;
 const int Arduino3::NUM_LIGHT_PINS = 2;
 
-#define S0 2
-#define S1 3
-#define S2 4
-#define S3 5
+#define S0 5
+#define S1 6
+#define S2 7
+#define S3 8
 
 #define LINEBREAK_THRESHOLD 100
 
 const uint8_t Arduino3::pins[] = {
-    0, // city_linebreak
-    1, // traffic_linebreak
+    9, // city_linebreak
+    10, // traffic_linebreak
     4, // traffic_button
     2, // traffic_light on = 1, off = 0
     3, // traffic_light red = 0, green = 1
@@ -23,6 +23,9 @@ const uint8_t Arduino3::pins[] = {
 // Constructor is called once and immediately when the Arduino is plugged in
 Arduino3::Arduino3() : Device(DeviceType::ARDUINO3, 13)
 {
+    for(int i = 0; i < 2; i++) {
+    this->prev_red_frequencies[i] = 6000;
+    }
 }
 
 size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
@@ -31,12 +34,14 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
     if (param < Arduino3::NUM_LINEBREAKS)
     {
         // Reading the output frequency
-        // delay(1000);
         int redFrequency = pulseIn(Arduino3::pins[param], LOW, 50000);
-        //this->msngr->lowcar_printf("red freq is %d", redFrequency);
-        // Printing the RED (R) value
+        
+        // we should ignore red frequency == 0 because it is a bug
+        if (redFrequency == 0) {
+            redFrequency = this->prev_red_frequencies[param];
+        }
 
-        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency >= 0)
+        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
         {
             data_buf[0] = 0;
         }
@@ -44,10 +49,14 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
         {
             data_buf[0] = 1;
         }
+        this->prev_red_frequencies[param] = redFrequency;
+
+        return sizeof(uint8_t);
     }
     else if (param < Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS)
     {
         data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? 1 : 0;
+        return sizeof(uint8_t);
     }
     else
     {
@@ -65,13 +74,11 @@ size_t Arduino3::device_read(uint8_t param, uint8_t *data_buf)
         last_update_time[param] = curr;
     }
     */
-
-    return sizeof(uint8_t);
 }
 
 size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
 {
-    this->msngr->lowcar_printf("write called with %d", param);
+    // this->msngr->lowcar_printf("write called with %d", param);
     int red_pin = 2;
     int green_pin = 3;
     int min_index = Arduino3::NUM_LINEBREAKS + Arduino3::NUM_BUTTONS;
@@ -81,27 +88,28 @@ size_t Arduino3::device_write(uint8_t param, uint8_t *data_buf)
         this->msngr->lowcar_printf("Trying to write to something that is not the traffic light.");
         return 0;
     }
-    int value = data_buf[0];
+    int *int_buf = (int *) data_buf;
+    int value = int_buf[0];
     if (value == 0)
     {
         // off
         digitalWrite(red_pin, LOW);
         digitalWrite(green_pin, LOW);
-        return 8;
+        return 4;
     }
     else if (value == 1)
     {
         // red
         digitalWrite(green_pin, LOW);
         digitalWrite(red_pin, HIGH);
-        return 16;
+        return 4;
     }
     else if (value == 2)
     {
         // green
         digitalWrite(red_pin, LOW);
         digitalWrite(green_pin, HIGH);
-        return 16;
+        return 4;
     }
     else
     {

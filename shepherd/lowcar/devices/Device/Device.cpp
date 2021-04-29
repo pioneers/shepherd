@@ -63,8 +63,6 @@ void Device::loop() {
         }
     } else if (sts != Status::NO_DATA) {
         this->msngr->lowcar_printf("Error when reading message by lowcar device\n");
-        // TODO REMOVE TEH LINE BELOW
-        this->msngr->lowcar_printf("Status is %d\n", sts);
     }
 
     // If it's been too long since we received a PING, disable the device

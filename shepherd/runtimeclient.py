@@ -4,8 +4,8 @@ from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
-from Utils import *
-from LCM import *
+from Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from LCM import lcm_send, lcm_start_read
 from Robot import Robot
 import socket
 from typing import List
@@ -15,19 +15,16 @@ PORT_RASPI = 8101
 
 class RuntimeClient:
     """
-    This is a client that connects to the server running on a Raspberry Pi. 
+    This is a client that connects to the server running on a Raspberry Pi.
     One client is initialized per robot.
     """
-   
+
     def __init__(self, host_url, robot):
         self.host_url = host_url
         self.robot: Robot = robot
         self.is_alive = False
         self.client_exists = True
         self.connect_tcp()
-        # send 0 byte so that Runtime knows it's Shepherd
-        if self.is_alive:
-            self.sock.send(bytes([0]))
 
     def receive_challenge_data(self):
         """
@@ -111,6 +108,7 @@ class RuntimeClient:
         connected = True
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(2)
             self.sock.connect((self.host_url, PORT_RASPI))
             message = f"Successfully connected to Robot {self.robot}"
         except Exception as exc:
@@ -118,17 +116,22 @@ class RuntimeClient:
             message = f"Error connecting to Robot {self.robot}: {exc}"
         if not silent:
             print(message)
+
         self.is_alive = connected
         self.send_connection_status_to_ui()
         if connected:
             thr = threading.Thread(target=self.start_recv)
             thr.start()
+            # send 0 byte so that Runtime knows it's Shepherd
+            self.sock.send(bytes([0]))
+
         return connected
 
     def close_connection(self):
         """
         Closes the connection if not already closed.
         """
+        print(f"fileno in close connection is : {self.sock.fileno()}")
         if self.is_alive:
             self.is_alive = False
             self.sock.shutdown(socket.SHUT_RDWR) # sends a fin/eof to the peer regardless of how many processes have handles on this socket
@@ -150,16 +153,21 @@ class RuntimeClient:
         then tries to reconnect infinitely until either self.client_exists
         is False or the thread is closed in garbage collection.
         """
+        self.sock.settimeout(None)
         while self.client_exists:
             try:
                 received = self.sock.recv(1)
-            except ConnectionResetError as e:
-                print(f"Connection reset error while reading from socket: {e}")
+            except ConnectionResetError as ex:
+                print(f"Connection reset error while reading from socket: {ex}")
                 received = False
+            # except socket.timeout as ex:
+            #     print(f"Connection to {self.robot} closed in this thread.")
+            #     received = False
             print(f"Received message from Robot {self.robot}: ", received)
+            # received could be False or b'' which means EOF
             if not received:
                 # socket has been closed oops
-                print(f"Connection lost to Robot {self.robot}, trying again.")
+                print(f"Connection lost to Robot {self.robot}. Trying again? {self.client_exists}")
                 self.close_connection()
                 if self.client_exists:
                     print(f"Attempting to reconnect to robot {self.robot}")
@@ -187,6 +195,7 @@ class RuntimeClientManager:
         """
         print("client " + str(host_url) + " started")
         client = RuntimeClient(host_url, robot)
+        print(f"is client alive in __get_client? {client.is_alive}")
         if client.is_alive:
             self.clients.append(client)
 
@@ -198,14 +207,20 @@ class RuntimeClientManager:
             lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"connected": False})
 
     def get_clients(self, host_urls, robots: List[Robot]):
+        print(f"called get_clients on {host_urls}")
         for i in range(len(host_urls)):
             robot, host_url = robots[i], host_urls[i]
             robot_nums = [c.robot.number for c in self.clients]
+            print(f"Robot nums is {robot_nums}")
             if robot.number in robot_nums:
                 index = robot_nums.index(robot.number)
+                print(f"Setting client exists of client {self.clients[index]} to False")
                 self.clients[index].client_exists = False
+                print(f"Closing connection to robot {robot.number}")
                 self.clients[index].close_connection()
                 self.clients.pop(index)
+            else:
+                print(f"robot {robot.number} does not exist in robot_nums")
             thr = threading.Thread(target=self.__get_client, args=[host_url, robot])
             thr.start()
 
