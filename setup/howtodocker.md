@@ -23,7 +23,7 @@ After adding the line, close and reopen your terminal, or run `source ~/.bashrc`
 
 ## Running Shepherd
 
-Refer to the main [instructions](../README.md#running-shepherd) to run Shepherd.
+Refer to the main [instructions](../README.md#running-shepherd-with-docker) to run Shepherd.
 
 ## Going inside the Docker container
 
