@@ -67,7 +67,7 @@ python3 Sensors.py
 
 ## Architecture
 
-To read about Shepherd in detail, check out the [onboarding readme](https://github.com/pioneers/shepherd-onboarding#about-shepherd).
+To read about Shepherd in detail, check out the [onboarding readme](https://github.com/pioneers/shepherd-onboarding#about-shepherd). This is where you will find detailed information about what each component of Shepherd does.
 
 ## 2021 Instructions
 
