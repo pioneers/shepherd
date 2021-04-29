@@ -216,6 +216,8 @@ def reset_round(args=None):
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
     lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.RESET_TIMERS)
+    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
+    CLIENTS.send_game_state(State.HYPOTHERMIA_END)
     ROBOT.reset()
     TINDER = LAST_TINDER
     BUTTONS = LAST_BUTTONS
