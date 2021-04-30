@@ -649,10 +649,10 @@ def to_hypothermia(args):
     lcm_send(LCM_TARGETS.UI,
              UI_HEADER.BIOME, {"biome": STATE.HYPOTHERMIA})
 
-    if not (FIRE_LIT and TINDER > 0):
-        CLIENTS.send_game_state(State.HYPOTHERMIA_START)
-    elif FIRE_LIT and TINDER > 0:
+    if TINDER > 0:
         TINDER -= 1
+    else:
+        CLIENTS.send_game_state(State.HYPOTHERMIA_START)
 
 # ----------
 # HYPOTHERMIA STAGE
