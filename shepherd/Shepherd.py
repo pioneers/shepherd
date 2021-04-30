@@ -200,6 +200,8 @@ def to_auto(args):
     enable_robots(True)
     check_code()
     BUTTONS.illuminate_all()
+    if TINDER > 0:
+        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
     print("ENTERING AUTO STATE")
 
@@ -629,6 +631,7 @@ def set_tinder(args):
     global TINDER
     TINDER = args["tinder"]
     send_round_info()
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
 
 def fire_lever(args):
