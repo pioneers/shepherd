@@ -163,8 +163,8 @@ def to_setup(args):
     # so if there are other UIs open they get the update
     send_round_info()
 
-    # turn on lasers
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
+    # turn off lasers
+    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
 
     # LCM send to scoreboard about robot
 
