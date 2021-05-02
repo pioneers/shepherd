@@ -759,6 +759,7 @@ def check_linebreaks():
 ###########################################
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
+    SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
