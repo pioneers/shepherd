@@ -51,8 +51,8 @@
         log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
       }
       
-      function emit() {
-        socket.emit(...arguments);
+      function send() {
+        socket.emit("ui-to-server", ...arguments);
         let logstr = ""
         try {
             for(let a=0;a<arguments.length;a++)
@@ -75,15 +75,15 @@
         document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function(data) {
-        emit('join', 'ref_gui');
-        emit('ui-to-server-teams-info-request-no-args');
-        emit('ui-to-server-score-request');
-        emit('ui-to-server-get-biome');
+        socket.emit('join', 'ui');
+        send('get_round_info_no_args');
+        send('get_scores');
+        send('get_biome');
       });
 
 
-      socket.on('server-to-ui-scores', function(scores) {
-        logg('server-to-ui-scores' + scores);
+      socket.on('scores', function(scores) {
+        logg('scores' + scores);
         let parsed_data = JSON.parse(scores);
         start_time = parseInt(parsed_data.start_time);
         penalty_time = parseInt(parsed_data.penalty);
@@ -107,8 +107,8 @@
       }
       
       
-      socket.on('server-to-ui-teams-info', function (data) {
-        logg("server-to-ui-teams-info" + data);
+      socket.on('teams_info', function (data) {
+        logg("teams_info" + data);
         let parsed_data = JSON.parse(data);
         
         team_num = parsed_data.team_num;
@@ -118,8 +118,8 @@
         tinder = parseInt(parsed_data.tinder);
       });
 
-      socket.on('server-to-ui-biome', function (data) {
-        logg("server-to-ui-biome" + data);
+      socket.on('biome', function (data) {
+        logg("biome" + data);
         data = JSON.parse(data);
         const biome = data.biome;
         updateBiome(biome);
@@ -134,84 +134,84 @@
         let v = parseInt($("#penalty-adjustment").val());
         if(isNaN(v)) { alert("invalid input"); return; }
         if(v < 0) { alert("Penalty time should be a positive number"); return; }
-        emit('ui-to-server-scores', JSON.stringify({ "penalty": v }));
+        send('score_adjust', JSON.stringify({ "penalty": v }));
         $("#penalty-adjustment").val("");
       });
       
       $("#penalty-5").click(() => {
-        emit('ui-to-server-scores', JSON.stringify({ "penalty": penalty_time+5 }));
+        send('score_adjust', JSON.stringify({ "penalty": penalty_time+5 }));
       });
       
       $("#stamp-change").click(() => {
         let v = parseInt($("#stamp-adjustment").val());
         if(isNaN(v)) { alert("invalid input"); return; }
         if(v > 0) { alert("Stamp time should be a negative number"); return; }
-        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": v }));
+        send('score_adjust', JSON.stringify({ "stamp_time": v }));
         $("#stamp-adjustment").val("");
       });
       
       $("#stamp-3").click(() => {
-        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-3 }));
+        send('score_adjust', JSON.stringify({ "stamp_time": stamp_time-3 }));
       });
       
       $("#stamp-5").click(() => {
-        emit('ui-to-server-scores', JSON.stringify({ "stamp_time": stamp_time-5 }));
+        send('score_adjust', JSON.stringify({ "stamp_time": stamp_time-5 }));
       });
       
       $("#tinder-change").click(() => {
         let v = parseInt($("#tinder-adjustment").val());
         if(isNaN(v)) { alert("invalid input"); return; }
-        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": v }));
+        send('set_tinder', JSON.stringify({ "tinder": v }));
         $("#tinder-adjustment").val("");
       });
       
       $("#tinder-decrement").click(() => {
-        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder-1 }));
+        send('set_tinder', JSON.stringify({ "tinder": tinder-1 }));
       });
       
       $("#tinder-increment").click(() => {
-        emit('ui-to-server-set-tinder', JSON.stringify({ "tinder": tinder+1 }));
+        send('set_tinder', JSON.stringify({ "tinder": tinder+1 }));
       });
 
       
       $("#hit-wall").click(() => {
-        emit('ui-to-server-contact-wall');
+        send('contact_wall');
       });
       
       $("#shortcut").click(() => {
-        emit('ui-to-server-drawbridge-shortcut');
+        send('drawbridge_shortcut');
       });
 
       $("#stop-robot").click(function () {
-        emit('ui-to-server-robot-off', JSON.stringify({ "team_number": team_num }));
+        send('robot_off', JSON.stringify({ "team_number": team_num }));
       });
 
       $("#start-robot").click(function () {
-        emit('ui-to-server-robot-on', JSON.stringify({ "team_number": team_num }));
+        send('robot_on', JSON.stringify({ "team_number": team_num }));
       });
 
       $("#city").click(() => {
-        emit("ui-to-server-set-biome", JSON.stringify({"biome": "city"}));
+        send("set_biome", JSON.stringify({"biome": "city"}));
       });
 
       $("#desert").click(() => {
-        emit('ui-to-server-set-biome', JSON.stringify({"biome": "sandstorm"}))
+        send('set_biome', JSON.stringify({"biome": "sandstorm"}))
       });
 
       $("#dehydration").click(() => {
-        emit('ui-to-server-set-biome', JSON.stringify({"biome": "dehydration"}))
+        send('set_biome', JSON.stringify({"biome": "dehydration"}))
       });
 
       $("#hypothermia").click(() => {
-        emit('ui-to-server-set-biome', JSON.stringify({"biome": "hypothermia"}))
+        send('set_biome', JSON.stringify({"biome": "hypothermia"}))
       });
 
       $("#final").click(() => {
-        emit('ui-to-server-set-biome', JSON.stringify({"biome": "final"}))
+        send('set_biome', JSON.stringify({"biome": "final"}))
       });
 
       $("#end").click(() => {
-        emit('ui-to-server-set-biome', JSON.stringify({"biome": "end"}))
+        send('set_biome', JSON.stringify({"biome": "end"}))
       });
 
       

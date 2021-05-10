@@ -47,7 +47,7 @@ socket.on("reset_timers", () => {
 
 
 // SCORES{time, penalty, stamp_time, score, start_time}
-socket.on("score", (scores) => {
+socket.on("scores", (scores) => {
   console.log("receiving score");
   scores = JSON.parse(scores);
   console.log(`scores are ${JSON.stringify(scores)}`);

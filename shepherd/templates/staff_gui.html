@@ -75,8 +75,8 @@
         log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
       }
       
-      function emit() {
-        socket.emit(...arguments);
+      function send() {
+        socket.emit("ui-to-server", ...arguments);
         let logstr = ""
         try {
             for(let a=0;a<arguments.length;a++)
@@ -99,14 +99,14 @@
         document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function (data) {
-        emit('join', 'staff_gui');
-        emit('ui-to-server-teams-info-request-no-args');
-        emit('ui-to-server-get-biome');
-        emit('ui-to-server-request-connections');
+        socket.emit('join', 'ui');
+        send('get_round_info_no_args');
+        send('get_biome');
+        send('request_connections');
       });
 
-      socket.on('server-to-ui-teams-info', function (data) {
-        logg("server-to-ui-teams-info"+data);
+      socket.on('teams_info', function (data) {
+        logg("teams_info"+data);
         parsed_data = JSON.parse(data);
         match_num = parsed_data.match_num;
         round_num = parsed_data.round_num;
@@ -120,8 +120,8 @@
         setDefaultTeamsInfo()
       });
 
-      socket.on('server-to-ui-biome', function (data) {
-        logg("server-to-ui-biome" + data);
+      socket.on('biome', function (data) {
+        logg("biome" + data);
         data = JSON.parse(data);
         const biome = data.biome;
         updateBiome(biome);
@@ -155,8 +155,8 @@
         $("#heartbeat-message").text(message);
       }
       
-      socket.on('server-to-ui-robot-connection', function (data) {
-        logg("server-to-ui-robot-connection" + data);
+      socket.on('robot_connection', function (data) {
+        logg("robot_connection" + data);
         data = JSON.parse(data);
         const connected = data.connected;
         if (typeof data.team_num == 'undefined') {
@@ -169,7 +169,8 @@
         }
       });
       
-      socket.on('server-to-ui-linebreak-info', function(data) {
+      socket.on('linebreak_info', function(data) {
+        logg("linebreak_info" + data);
         $("#linebreaks-info").text("Not working: " + JSON.parse(data).text);
       })
 
@@ -182,18 +183,18 @@
         }
         $("#select-match-number").val(match_num);
         $("#select-round-number").val(round_num);
-        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+        send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       })
 
       $("#next-match").click(() => {
-        emit('ui-to-server-reset-match');
+        send('reset_match');
       })
 
       $("#select-round").click(() => {
         match_num = parseInt($("#select-match-number").val());
         round_num = parseInt($("#select-round-number").val());
         if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
-        emit('ui-to-server-teams-info-request', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+        send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
       });
 
       $("#create-match").click(() => {
@@ -217,50 +218,50 @@
         if (custom_ip !== "") {
           data["custom_ip"] = custom_ip;
         }
-        emit('ui-to-server-setup-match', JSON.stringify(data));
+        send('setup_match', JSON.stringify(data));
       });
 
 
       $("#submit-tinder").click(function () {
         let tinder = parseInt($("#tinder").val());
         if(isNaN(tinder)){ alert("invalid firewood"); return; }
-        emit('ui-to-server-game-info', JSON.stringify({ "tinder": tinder }));
+        send('set_game_info', JSON.stringify({ "tinder": tinder }));
       });
 
       $("#submit-buttons").click(function () {
         let buttons = parseInt($("#buttons").val());
         if(isNaN(buttons)){ alert("invalid buttons"); return; }
-        emit('ui-to-server-game-info', JSON.stringify({ "buttons": buttons }));
+        send('set_game_info', JSON.stringify({ "buttons": buttons }));
       });
 
       $("#round-start").click(function () {
-        emit('ui-to-server-start-next-stage');
+        send('start_next_stage');
       });
 
 
       $("#round-reset").click(function () {
-        emit('ui-to-server-reset-round');
+        send('reset_round');
       });
       
       $("#custom-ip-change").click(function () {
         let ip = $("#custom-ip-adjustment").val();
         if(ip == "") { alert("empty custom ip"); return; } 
-        emit('ui-to-server-custom-ip', JSON.stringify({ "custom_ip": ip }));
+        send('set_custom_ip', JSON.stringify({ "custom_ip": ip }));
         toggleHeartbeat(null, "awaiting connection");
       });
 
       $("#stop-robot").click(function () {
         if(robot_connected || confirm("Not connected to a robot. Try anyway?")) {
-          emit('ui-to-server-robot-off', JSON.stringify({ "team_number": team_num }));
+          send('robot_off', JSON.stringify({ "team_number": team_num }));
         }
       });
 
       $("#linebreaks-off").click(function () {
-        emit('ui-to-server-linebreaks-off');
+        send('linebreaks_off');
       });
 
       $("#linebreaks-on").click(function () {
-        emit('ui-to-server-linebreaks-on');
+        send('linebreaks_on');
       });
       
     });

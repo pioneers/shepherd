@@ -44,8 +44,8 @@
         log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
       }
       
-      function emit() {
-        socket.emit(...arguments);
+      function send() {
+        socket.emit("ui-to-server", ...arguments);
         let logstr = ""
         try {
             for(let a=0;a<arguments.length;a++)
@@ -68,13 +68,13 @@
         document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function(data) {
-        emit('join', 'score_adjustment');
-        emit('ui-to-server-teams-info-request-no-args');
-        emit('ui-to-server-score-request');
+        socket.emit('join', 'ui');
+        send('get_round_info_no_args');
+        send('get_scores');
       });
 
-      socket.on('server-to-ui-scores', function(scores) {
-        logg('server-to-ui-scores' + scores);
+      socket.on('scores', function(scores) {
+        logg('scores' + scores);
         let parsed_data = JSON.parse(scores);
         show_score(parseFloat(parsed_data.time * 1000), parsed_data.penalty, parsed_data.stamp_time);
       });
@@ -87,8 +87,8 @@
         );
       }
 
-      socket.on('server-to-ui-teams-info', function (data) {
-        logg("server-to-ui-teams-info"+data);
+      socket.on('teams_info', function (data) {
+        logg("teams_info"+data);
         parsed_data = JSON.parse(data);
         
         $("#team-number").text(parsed_data.team_num);
@@ -98,7 +98,7 @@
       $("#score-change").click(() => {
           let t = parseFloat($("#score-adjustment").val());
           if(isNaN(t)) { alert("invalid time"); return; }
-          emit("ui-to-server-scores", JSON.stringify({ "time": t }));
+          send("score_adjust", JSON.stringify({ "time": t }));
           $("#score-adjustment").val("");
       });
       
@@ -106,7 +106,7 @@
           let t = parseInt($("#penalty-adjustment").val());
           if(isNaN(t)) { alert("invalid time"); return; }
           if(t < 0) { alert("Penalty time should be a positive number"); return; }
-          emit("ui-to-server-scores", JSON.stringify({ "penalty": t }));
+          send("score_adjust", JSON.stringify({ "penalty": t }));
           $("#penalty-adjustment").val("");
       });
       
@@ -114,7 +114,7 @@
           let t = parseInt($("#stamp-adjustment").val());
           if(isNaN(t)) { alert("invalid time"); return; }
           if(t > 0) { alert("Stamp time should be a negative number"); return; }
-          emit("ui-to-server-scores", JSON.stringify({ "stamp_time": t }));
+          send("score_adjust", JSON.stringify({ "stamp_time": t }));
           $("#stamp-adjustment").val("");
       });
 
