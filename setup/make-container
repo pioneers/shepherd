@@ -2,12 +2,18 @@
 
 cd ..
 SHEP_REPO=$(pwd)
+DEVICE_FLAGS=""
+if [ "$1" = "tty" ]; then
+    # when we run the container with devices, the devices have to exist first which is a pain
+    # TODO: find a better way
+    DEVICE_FLAGS="--device=/dev/ttyACM0 --device=/dev/ttyACM1 --device=/dev/ttyACM2 --device=/dev/ttyACM3"
+fi
 
 if test -f "$SHEP_REPO/shepherd/Shepherd.py"; then
     # this if statement makes sure that docker will link the right directory
     # since the run script inside the docker container depends on it
     echo "making container"
-    docker run -it -v "$SHEP_REPO":/outsideshep -p=5000:5000 -p=5500:5500 -p=7000:7000 --device=/dev/ttyACM0 --device=/dev/ttyACM1 --device=/dev/ttyACM2 --device=/dev/ttyACM3 --name=sheep pierobotics/shepherd:latest
+    docker run -it -v "$SHEP_REPO":/outsideshep -p=5000:5000 -p=5500:5500 -p=7000:7000 $DEVICE_FLAGS --name=sheep pierobotics/shepherd:latest
     # a breakdown of what this means:
     # - docker run: this creates the container and runs it
     # - -it: this runs it interactively so you can see output
