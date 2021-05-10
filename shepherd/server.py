@@ -5,8 +5,8 @@ import queue
 import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
 from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
-from Utils import *
-from LCM import *
+from Utils import LCM_TARGETS, SHEPHERD_HEADER, UI_HEADER
+from LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000
@@ -40,10 +40,13 @@ def stage_control():
 def ref_gui():
     return render_template('ref_gui.html')
 
+@socketio.event
+def connect():
+    print('Established socketio connection')
 
 @socketio.on('join')
 def handle_join(client_name):
-    print('confirmed join: ' + client_name)
+    print(f'confirmed join: {client_name}')
 
 
 # Score Adjustment
@@ -171,6 +174,9 @@ def receiver():
                 socketio.emit('server-to-ui-linebreak-info', json.dumps(event[1], ensure_ascii=False))
         socketio.sleep(0.1)
 
+if __name__ == "__main__":
+    print("Hello, world!")
+    print(f"Running server on port {PORT}. Go to http://localhost:{PORT}/staff_gui.html.")
 
 socketio.start_background_task(receiver)
 socketio.run(app, host=HOST_URL, port=PORT)

@@ -13,6 +13,7 @@ import queue
 import shm_api
 import sys
 sys.path.insert(1, '../')
+from debouncer import Debouncer
 from LCM import (
     lcm_send,
     lcm_start_read
@@ -24,7 +25,6 @@ from Sensors import (
     HEADER_MAPPINGS,
     HEADER_COMMAND_MAPPINGS,
     Parameter,
-    previous_parameter_values,
     previous_debounced_value,
     LowcarMessage
 )
@@ -131,6 +131,7 @@ def thread_device_sentinel(params_to_read):
         None
     """
     print("started sentinel thread")
+    debouncer = Debouncer()
     while (True):
         # iterate through all devices
         for device in params_to_read:
@@ -144,9 +145,9 @@ def thread_device_sentinel(params_to_read):
             for param_name, value in param_values.items():
                 param = arduino.get_param(param_name)
                 # below logs are for testing buttons, slowly
-                #print(f"{param_name}: {value}")
-                #time.sleep(1)
-                value = debounce(value, param)
+                # print(f"{param_name}: {value}")
+                # time.sleep(.2)
+                value = debouncer.debounce(value, param)
                 if value is None:
                     continue # unable to debounce anything meaningful
 
@@ -157,29 +158,6 @@ def thread_device_sentinel(params_to_read):
                     lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
 
                 previous_debounced_value[param] = value
-
-def debounce(value: Union[int, float, bool], param: Parameter):
-    """
-    This method performs debouncing by TODO
-    updates state, be careful
-    If there is no debouncing, it returns the value.
-    """
-    if param.debounce_threshold is not None:
-        # Begin Debouncing
-        if param not in previous_parameter_values:
-            previous_parameter_values[param] = []
-        prev_values = previous_parameter_values[param]
-        prev_values.append(value)
-        if len(prev_values) > param.debounce_threshold:
-            prev_values.pop(0)
-
-        # ex: if 70% of samples greater than some value
-        for value in set(prev_values):
-            if len([v for v in prev_values if v == value]) / param.debounce_threshold > param.debounce_sensitivity:
-                return value
-        return None
-
-    return value
 
 def main():
     try:

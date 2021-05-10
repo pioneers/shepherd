@@ -148,11 +148,8 @@ function stageTimerStart(startTime) {
 }
 
 function runStageTimer(startTime) {
-  console.log("stage timer is ", stageTimer);
   if (stageTimer) {
     const currTime = new Date().getTime() / 1000;
-    console.log(currTime);
-    console.log(startTime);
     let time = (currTime - startTime);
     $('#stage-timer').html(secondsToTimeString(time));
     setTimeout(runStageTimer, 200, startTime);

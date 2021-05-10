@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cd ..
+SHEP_REPO=$(pwd)
+
+if test -f "$SHEP_REPO/shepherd/Shepherd.py"; then
+    # this if statement makes sure that docker will link the right directory
+    # since the run script inside the docker container depends on it
+    echo "making container"
+    docker run -it -v "$SHEP_REPO":/outsideshep -p=5000:5000 -p=5500:5500 -p=7000:7000 --device=/dev/ttyACM0 --device=/dev/ttyACM1 --device=/dev/ttyACM2 --device=/dev/ttyACM3 --name=sheep pierobotics/shepherd:latest
+    # a breakdown of what this means:
+    # - docker run: this creates the container and runs it
+    # - -it: this runs it interactively so you can see output
+    # - -v SHEP_REPO:/outsideshep: this links the shepherd repository on your computer, to a folder inside the container
+    # - -p=5000:5000 etc: this forwards the ports to the docker container
+    # - --device /dev/ttypAMC0: this forwards the serial port ttyACM0 to the docker container
+    # - --name=sheep: this names the container, otherwise would get a random name
+    # - pierobotics/shepherd:latest: name of the image that the container is being built from
+else
+    echo "could not find $SHEP_REPO/shepherd/Shepherd.py"
+    echo "Please try running this script again from within shepherd/setup/"
+fi
+
