@@ -56,8 +56,8 @@ def ui_to_server(header, args=None):
 def receiver():
     ui_events = gevent.queue.Queue()
     scoreboard_events = gevent.queue.Queue()
-    lcm_start_read(str.encode(LCM_TARGETS.UI), ui_events)
-    lcm_start_read(str.encode(LCM_TARGETS.SCOREBOARD), scoreboard_events)
+    lcm_start_read(LCM_TARGETS.UI, ui_events)
+    lcm_start_read(LCM_TARGETS.SCOREBOARD, scoreboard_events)
 
     while True:
         if not ui_events.empty():
