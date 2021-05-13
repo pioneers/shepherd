@@ -10,6 +10,7 @@ class TimerThread(threading.Thread):
     '''
     def __init__(self):
         super().__init__()
+        self.daemon = True # will stop abruptly when main thread dies
 
 
     def run(self):
