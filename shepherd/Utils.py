@@ -153,23 +153,6 @@ class RUNTIME_HEADER():
 
 # pylint: disable=invalid-name
 
-class SENSOR_HEADER():
-    """
-    Headers used for Shepherd to send messages to the Sensor Interface.
-    """
-    TURN_ON_LIGHT = "turn_on_light"
-    # {num: int}
-    TURN_OFF_LIGHT = "turn_off_light"
-    # {num: int}
-    SET_TRAFFIC_LIGHT = "set_traffic_light"
-    SET_ALL_SENSORS = "set_all_sensors"
-    TURN_ON_FIRE_LIGHT = "turn_on_fire_light"
-    TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
-    TURN_ON_LASERS = "turn_on_lasers"
-    TURN_OFF_LASERS = "turn_off_lasers"
-    TURN_OFF_TRAFFIC_LIGHT = "turn_off_traffic_light"
-
-# pylint: disable=invalid-name
 
 class UI_HEADER():
     """
@@ -189,7 +172,25 @@ class UI_HEADER():
     # ALL_INFO{}
     LINEBREAK_INFO = "linebreak_info"
 
+
+class SENSOR_HEADER():
+    """
+    Headers used for Shepherd to send messages to the Sensor Interface.
+    """
+    TURN_ON_LIGHT = "turn_on_light"
+    # {num: int}
+    TURN_OFF_LIGHT = "turn_off_light"
+    # {num: int}
+    SET_TRAFFIC_LIGHT = "set_traffic_light"
+    SET_ALL_SENSORS = "set_all_sensors"
+    TURN_ON_FIRE_LIGHT = "turn_on_fire_light"
+    TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
+    TURN_ON_LASERS = "turn_on_lasers"
+    TURN_OFF_LASERS = "turn_off_lasers"
+    TURN_OFF_TRAFFIC_LIGHT = "turn_off_traffic_light"
+
 # pylint: disable=invalid-name
+
 
 class SCOREBOARD_HEADER():
     """
