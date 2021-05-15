@@ -250,7 +250,6 @@ class ALLIANCE_COLOR():
 
 class LCM_TARGETS():
     SHEPHERD = "lcm_target_shepherd"
-    SCOREBOARD = "lcm_target_scoreboard"
     SENSORS = "lcm_target_sensors"
     UI = "lcm_target_ui"
     DAWN = "lcm_target_dawn"
