@@ -1,11 +1,9 @@
 import json
-import threading
-import time
 import queue
 import gevent  # pylint: disable=import-error
 from flask import Flask, render_template  # pylint: disable=import-error
 from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
-from Utils import LCM_TARGETS, SHEPHERD_HEADER, UI_HEADER
+from Utils import LCM_TARGETS
 from LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
@@ -43,7 +41,6 @@ def connect():
 @socketio.on('join')
 def handle_join(client_name):
     print(f'confirmed join: {client_name}')
-    join_room(client_name)
 
 @socketio.on('ui-to-server')
 def ui_to_server(header, args=None):
@@ -55,20 +52,11 @@ def ui_to_server(header, args=None):
 
 def receiver():
     ui_events = gevent.queue.Queue()
-    scoreboard_events = gevent.queue.Queue()
     lcm_start_read(LCM_TARGETS.UI, ui_events)
-    lcm_start_read(LCM_TARGETS.SCOREBOARD, scoreboard_events)
-
     while True:
-        if not ui_events.empty():
-            event = ui_events.get_nowait()
-            print("UI RECEIVED:", event)
-            socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False), to="ui")
-        if not scoreboard_events.empty():
-            event = scoreboard_events.get_nowait()
-            print("SCOREBOARD RECEIVED:", event)
-            socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False), to="scoreboard")
-        socketio.sleep(0.1)
+        event = ui_events.get(block=True)
+        print("RECEIVED:", event)
+        socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
 
 if __name__ == "__main__":
     print("Hello, world!")

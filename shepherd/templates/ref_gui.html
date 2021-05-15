@@ -75,7 +75,7 @@
         document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function(data) {
-        socket.emit('join', 'ui');
+        socket.emit('join', 'ref_gui');
         send('get_round_info_no_args');
         send('get_scores');
         send('get_biome');
@@ -118,10 +118,10 @@
         tinder = parseInt(parsed_data.tinder);
       });
 
-      socket.on('biome', function (data) {
-        logg("biome" + data);
+      socket.on('stage', function (data) {
+        logg("stage" + data);
         data = JSON.parse(data);
-        const biome = data.biome;
+        const biome = data.stage;
         updateBiome(biome);
       });
 

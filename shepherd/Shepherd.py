@@ -169,8 +169,7 @@ def to_setup(args):
     # LCM send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
 
     # turn stoplight red
@@ -192,10 +191,8 @@ def to_auto(args):
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = time.time()
     # STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.AUTO})
+             UI_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     send_score_to_ui()
     enable_robots(True)
     check_code()
@@ -217,8 +214,8 @@ def reset_round(args=None):
     Timer.reset_all()
     EVENTS = queue.Queue()
     lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.RESET_TIMERS)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.RESET_TIMERS)
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
     CLIENTS.send_game_state(State.HYPOTHERMIA_END)
     ROBOT.reset()
     TINDER = LAST_TINDER
@@ -280,10 +277,9 @@ def send_round_info(args = None):
     lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
     lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.TEAM, lcm_data)
 
 def get_biome(args):
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.BIOME, {"biome": GAME_STATE})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
 def set_biome(args):
     biome = args["biome"]
@@ -327,7 +323,6 @@ def score_adjust(args):
         ROBOT.penalty = penalty
     if stamp_time is not None:
         ROBOT.stamp_time = stamp_time
-    send_score_to_scoreboard()
     send_score_to_ui()
     flush_scores()
 
@@ -335,7 +330,6 @@ def send_score_to_ui(args = None):
     '''
     Send the current score to the UI.
     '''
-
     data = {
         "time": ROBOT.elapsed_time(),
         "penalty": ROBOT.penalty,
@@ -345,18 +339,6 @@ def send_score_to_ui(args = None):
     }
     lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
 
-def send_score_to_scoreboard(args=None):
-    """
-    Send the current score to the scoreboard.
-    """
-    data = {
-        "time": ROBOT.elapsed_time(),
-        "penalty": ROBOT.penalty,
-        "stamp_time": ROBOT.stamp_time,
-        "score": ROBOT.total_time(),
-        "start_time": ROBOT.start_time_millis()
-    }
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORES, data)
 
 def flush_scores():
     '''
@@ -439,7 +421,7 @@ def final_score(args):
     '''
     send shepherd the final score, send score to scoreboard
     '''
-    send_score_to_scoreboard()
+    send_score_to_ui()
 
 
 def set_game_info(args):
@@ -491,12 +473,8 @@ def to_city(args):
     GAME_TIMER.reset()
     GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
     GAME_STATE = STATE.CITY
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
              "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.CITY})
     print("ENTERING CITY STATE")
 
 # ----------
@@ -531,7 +509,6 @@ def stoplight_cross(args):
 def stoplight_penalty():
     # whatever the penalty is
     ROBOT.penalty += CONSTANTS.STOPLIGHT_PENALTY
-    send_score_to_scoreboard()
     send_score_to_ui()
 
 
@@ -548,11 +525,10 @@ def to_desert(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.SANDSTORM})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     if ROBOT.pass_coding_challenges(n=1, tier=2) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
-        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": True})
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": True})
 
 # ----------
 # SANDSTORM STAGE
@@ -560,7 +536,7 @@ def to_desert(args):
 
 
 def sandstorm_timer_end(args):
-    lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SANDSTORM, {"on": False})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
 
 
 def to_dehydration(args):
@@ -569,8 +545,7 @@ def to_dehydration(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.DEHYDRATION})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     BUTTONS.enter_mirage_wall(ROBOT.coding_challenge)
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
 
@@ -588,8 +563,7 @@ def dehydration_button_press(args):
     if BUTTONS.press_button_and_check(button_number):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
-        lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.FIRE})
+        lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 """
 start
 go to mirage buttons (dehydration stage). 30 second timer starts.
@@ -651,8 +625,7 @@ def to_hypothermia(args):
     '''
     global GAME_STATE, FIRE_LIT, TINDER
     GAME_STATE = STATE.HYPOTHERMIA
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.HYPOTHERMIA})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
     if TINDER > 0:
         TINDER -= 1
@@ -670,8 +643,7 @@ def to_final(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FINAL
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.FINAL})
+    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     CLIENTS.send_game_state(State.HYPOTHERMIA_END)
 
 # ----------
@@ -698,17 +670,12 @@ def to_end(args):
     elif GAME_STATE == STATE.FINAL:
         ROBOT.stamp_time -= 50
     GAME_STATE = STATE.END
-    lcm_send(LCM_TARGETS.UI,
-             UI_HEADER.BIOME, {"biome": STATE.END})
     disable_robots()
     CLIENTS.reset()
     GAME_TIMER.reset()
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
     send_score_to_ui()
-    lcm_send(LCM_TARGETS.SCOREBOARD,
-             SCOREBOARD_HEADER.STAGE, {"stage": GAME_STATE})
-    send_score_to_scoreboard()
     lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
     turn_off_all_lights()

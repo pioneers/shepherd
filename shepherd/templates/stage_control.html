@@ -106,7 +106,7 @@
       }
 
       socket.on('connect', function(data) {
-        socket.emit('join', 'ui');
+        socket.emit('join', 'stage_control');
       });
 
       $("#populate-match").click(function() {

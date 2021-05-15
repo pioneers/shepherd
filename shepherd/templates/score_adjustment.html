@@ -68,7 +68,7 @@
         document.getElementById("events-log").hidden = false;
 
       socket.on('connect', function(data) {
-        socket.emit('join', 'ui');
+        socket.emit('join', 'score_adjustment');
         send('get_round_info_no_args');
         send('get_scores');
       });

@@ -1,4 +1,4 @@
-var socket = io('/'); // io('http://127.0.0.1:5500')
+var socket = io('/');
 var stageTimer = true;
 var timerA = true;
 var globaltime = 0;
@@ -8,7 +8,7 @@ socket.on('connect', (data) => {
   socket.emit('join', 'scoreboard');
 });
 
-socket.on('team', (match_info) => {
+socket.on('teams_info', (match_info) => {
   console.log(`received team header with info ${match_info}`);
   match_info = JSON.parse(match_info)
   team_name = match_info.team_name
@@ -18,10 +18,12 @@ socket.on('team', (match_info) => {
   setImageVisible('.totalinfo', false);
 })
 
+/*
 socket.on('stage_timer_start', (secondsInStage) => {
   time = JSON.parse(secondsInStage).time
   stageTimerStart(time)
 })
+*/
 
 // STAGE{stage, start_time}
 socket.on('stage', (stage_details) => {
@@ -37,7 +39,9 @@ socket.on('stage', (stage_details) => {
     stageTimer = false;
   } else {
     setStageName(stage);
-    setStartTime(start_time);
+    if (start_time != null) {
+      setStartTime(start_time);
+    }
   }
 })
 
@@ -159,18 +163,10 @@ function runStageTimer(startTime) {
   }
 }
 
-function pad(number) {
-  return (number < 10 ? '0' : '') + number
-}
-
 function secondsToTimeString(seconds) {
-  if (seconds < 0) {
-    const time = Math.floor(-1 * seconds * 100) / 100;
-    return "-" + Math.floor(time / 60) + ":" + pad(Math.floor(time % 60));
-  } else {
-    const time = Math.floor(seconds * 100) / 100;
-    return Math.floor(time / 60) + ":" + pad(Math.floor(time % 60));
-  }
+  const time = Math.floor(Math.abs(seconds));
+  return (seconds < 0 ? "-": "") 
+    + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
 function setImageVisible(id, visible) {
@@ -178,6 +174,7 @@ function setImageVisible(id, visible) {
   $(id).css("visibility", (visible ? 'visible' : 'hidden'));
 }
 
+/*
 function progress(timeleft, timetotal, $element) {
   var progressBarWidth = timeleft * $element.width() / timetotal;
   if (timeleft == timetotal) {
@@ -251,13 +248,13 @@ function runTimer1() {
 }
 
 function timer1() {
-  /* how long the timer will run (seconds) */
+  // how long the timer will run (seconds) 
 
   var time = 30;
   var initialOffset = '440';
   var i = 1;
 
-  /* Need initial run as interval hasn't yet occured... */
+  // Need initial run as interval hasn't yet occured... 
   $('.circle_animation1').css('stroke-dashoffset', initialOffset - (1 * (initialOffset / time)));
 
   var interval = setInterval(function () {
@@ -273,6 +270,8 @@ function timer1() {
   }, 1000);
 
 }
+*/
+
 
 function setStartTime(start_time) {
   // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
