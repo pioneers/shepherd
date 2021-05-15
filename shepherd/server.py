@@ -51,12 +51,14 @@ def ui_to_server(header, args=None):
         
 
 def receiver():
-    ui_events = gevent.queue.Queue()
-    lcm_start_read(LCM_TARGETS.UI, ui_events)
+    events = gevent.queue.Queue()
+    lcm_start_read(LCM_TARGETS.UI, events)
     while True:
-        event = ui_events.get(block=True)
-        print("RECEIVED:", event)
-        socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
+        if not events.empty():
+            event = events.get()
+            print("RECEIVED:", event)
+            socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
+        socketio.sleep(0.1)
 
 if __name__ == "__main__":
     print("Hello, world!")
