@@ -1,192 +1,103 @@
-<html>
-
-<head>
-  <title>Score Adjustment</title>
-  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-  <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='jquery-1.12.3.min.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='tabletop.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='lcm_ws_bridge.js' )}}></script>
-
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-
-  <!-- Styles -->
-  <style>
-    /*Disables spinning on number forms*/
-
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    .bottom-padding {
-      margin-bottom: 15px;
-    }
-  </style>
-
-  <!-- Javascript -->
-  <script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-      var socket = io('/');
-
-      let counter = 1;
-      function logg(str) {
-        let log = document.getElementById("events-log");
-        let m = log.innerHTML.split("\n");
-        if(m.length >= 10) m.shift();
-        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
-      }
-      
-      function send() {
-        socket.emit("ui-to-server", ...arguments);
-        let logstr = ""
-        try {
-            for(let a=0;a<arguments.length;a++)
-               logstr += arguments[a];
-        } catch (err){
-            console.log(err);
-            logstr = "[logging error]";
-        }
-        logg(logstr);
-      }
-
-      $("#log-toggle").click(function(e) {
-        e.preventDefault();
-        let log = document.getElementById("events-log");
-        log.hidden = !log.hidden;
-        localStorage.setItem("log-toggle", !log.hidden);
-      });
-      
-      if(localStorage.getItem("log-toggle") === "true")
-        document.getElementById("events-log").hidden = false;
-
-      socket.on('connect', function(data) {
-        socket.emit('join', 'score_adjustment');
-        send('get_round_info_no_args');
-        send('get_scores');
-      });
-
-      socket.on('scores', function(scores) {
-        logg('scores' + scores);
-        let parsed_data = JSON.parse(scores);
-        show_score(parseFloat(parsed_data.time * 1000), parsed_data.penalty, parsed_data.stamp_time);
-      });
-      
-      function show_score(elapsed, penalty, stamp) {
-        let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
-                      (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
-        $("#team-score").html(
-        `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
-        );
-      }
-
-      socket.on('teams_info', function (data) {
-        logg("teams_info"+data);
-        parsed_data = JSON.parse(data);
-        
-        $("#team-number").text(parsed_data.team_num);
-        $("#team-name").text(parsed_data.team_name);
-      });
-
-      $("#score-change").click(() => {
-          let t = parseFloat($("#score-adjustment").val());
-          if(isNaN(t)) { alert("invalid time"); return; }
-          send("score_adjust", JSON.stringify({ "time": t }));
-          $("#score-adjustment").val("");
-      });
-      
-      $("#penalty-change").click(() => {
-          let t = parseInt($("#penalty-adjustment").val());
-          if(isNaN(t)) { alert("invalid time"); return; }
-          if(t < 0) { alert("Penalty time should be a positive number"); return; }
-          send("score_adjust", JSON.stringify({ "penalty": t }));
-          $("#penalty-adjustment").val("");
-      });
-      
-      $("#stamp-change").click(() => {
-          let t = parseInt($("#stamp-adjustment").val());
-          if(isNaN(t)) { alert("invalid time"); return; }
-          if(t > 0) { alert("Stamp time should be a negative number"); return; }
-          send("score_adjust", JSON.stringify({ "stamp_time": t }));
-          $("#stamp-adjustment").val("");
-      });
-
+{% extends 'base.html' %}
+{% block page_index %}1{% endblock %}
+{% block title %}Score Adjustment{% endblock %}
+{% block extra_css %}
+{% endblock %}
+{% block js_content %}
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    socket.on('connect', function(data) {
+      socket.emit('join', 'score_adjustment');
+      send('get_round_info_no_args');
+      send('get_scores');
     });
-  </script>
-</head>
 
-<body>
-  <nav class="navbar navbar-expand-sm navbar-light bg-light">
-  <a class="navbar-brand" href="#">Staff UI</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="../staff_gui.html">Match Creator</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
-      </li>
-    </ul>
+    socket.on('scores', function(scores) {
+      let parsed_data = JSON.parse(scores);
+      show_score(parseFloat(parsed_data.time * 1000), parsed_data.penalty, parsed_data.stamp_time);
+    });
+    
+    function show_score(elapsed, penalty, stamp) {
+      let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
+                    (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
+      $("#team-score").html(
+      `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
+      );
+    }
+
+    socket.on('teams_info', function (data) {
+      parsed_data = JSON.parse(data);
+      
+      $("#team-number").text(parsed_data.team_num);
+      $("#team-name").text(parsed_data.team_name);
+    });
+
+    $("#score-change").click(() => {
+        let t = parseFloat($("#score-adjustment").val());
+        if(isNaN(t)) { alert("invalid time"); return; }
+        send("score_adjust", JSON.stringify({ "time": t }));
+        $("#score-adjustment").val("");
+    });
+    
+    $("#penalty-change").click(() => {
+        let t = parseInt($("#penalty-adjustment").val());
+        if(isNaN(t)) { alert("invalid time"); return; }
+        if(t < 0) { alert("Penalty time should be a positive number"); return; }
+        send("score_adjust", JSON.stringify({ "penalty": t }));
+        $("#penalty-adjustment").val("");
+    });
+    
+    $("#stamp-change").click(() => {
+        let t = parseInt($("#stamp-adjustment").val());
+        if(isNaN(t)) { alert("invalid time"); return; }
+        if(t > 0) { alert("Stamp time should be a negative number"); return; }
+        send("score_adjust", JSON.stringify({ "stamp_time": t }));
+        $("#stamp-adjustment").val("");
+    });
+  }
+</script>
+{% endblock %}
+{% block html_content %}
+<div class="row container">
+  <h1>Score Adjustment</h1>
+</div>
+
+
+<div class="text-center">
+  <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
+  <h3> Team Score: <span id="team-score"></span></h3>
+</div>
+
+
+<div class="row bottom-padding">
+  <div>
+    <div class="input-group">
+      <h3>Base time (seconds):</h3>
+      <input type="number" class="form-control" id="score-adjustment">
+      <span class="input-group-btn"><button class="btn btn-success" type="button" id="score-change">Change</button></span>
+    </div>
   </div>
-  </nav>
-
-  <div class="container">
-    <div class="row container">
-      <h1>Score Adjustment</h1>
+</div>
+<div class="row bottom-padding">
+  <div>
+    <div class="input-group">
+      <h3>Penalty time (seconds):</h3>
+      <input type="number" class="form-control" id="penalty-adjustment">
+      <span class="input-group-btn"><button class="btn btn-success" type="button" id="penalty-change">Change</button></span>
     </div>
-
-
-    <div class="text-center">
-      <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
-      <h3> Team Score: <span id="team-score"></span></h3>
-    </div>
-
-
-    <div class="row bottom-padding">
-      <div>
-        <div class="input-group">
-          <h3>Base time (seconds):</h3>
-          <input type="number" class="form-control" id="score-adjustment">
-          <span class="input-group-btn"><button class="btn btn-success" type="button" id="score-change">Change</button></span>
-        </div>
-      </div>
-    </div>
-    <div class="row bottom-padding">
-      <div>
-        <div class="input-group">
-          <h3>Penalty time (seconds):</h3>
-          <input type="number" class="form-control" id="penalty-adjustment">
-          <span class="input-group-btn"><button class="btn btn-success" type="button" id="penalty-change">Change</button></span>
-        </div>
-      </div>
-    </div>
-    <div class="row bottom-padding">
-      <div>
-        <div class="input-group">
-          <h3>Stamp time (seconds):</h3>
-          <input type="number" class="form-control" id="stamp-adjustment">
-          <span class="input-group-btn"><button class="btn btn-success" type="button" id="stamp-change">Change</button></span>
-        </div>
-      </div>
-    </div>
-
-    <a href="" id="log-toggle">Toggle log</a>
-    <pre id="events-log" hidden></pre>
   </div>
+</div>
+<div class="row bottom-padding">
+  <div>
+    <div class="input-group">
+      <h3>Stamp time (seconds):</h3>
+      <input type="number" class="form-control" id="stamp-adjustment">
+      <span class="input-group-btn"><button class="btn btn-success" type="button" id="stamp-change">Change</button></span>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
-</body>
-
-</html>

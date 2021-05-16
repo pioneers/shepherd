@@ -1,397 +1,306 @@
-<html>
-<!--I like cheese-->
-<head>
-  <title>Staff UI</title>
-  <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
-  <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
-  <!-- <script type="text/javascript" src={{url_for( 'static' , filename='tabletop.js' )}}></script> -->
-  <!-- <script type="text/javascript" src={{url_for( 'static' , filename='lcm_ws_bridge.js' )}}></script> -->
+{% extends 'base.html' %}
+{% block page_index %}0{% endblock %}
+{% block title %}Staff UI{% endblock %}
+{% block extra_css %}
+<style>
+  .bottom-padding {
+    margin-bottom: 25px;
+  }
 
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-  <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"> -->
+  .form-inline {
+    flex-flow: row;
+  }
 
-  <!-- Styles -->
-  <style>
-    /*Disables spinning on number forms*/
+  .spaced {
+    margin:5px;
+  }
 
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+  #heartbeat-light {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: lightgrey;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
+  }
+  .led-green {
+    background-color: #ABFF00 !important;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px !important;
+  }
+  .led-red {
+    background-color: #F00 !important;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px !important;
+  }
+</style>
+{% endblock %}
+{% block js_content %}
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    var robot_connected = false;
+    var match_num = "";
+    var round_num = "";
+    var team_num = "";
+    var team_name = "";
+    var tinder = "";
+    var buttons = "";
+    var custom_ip = "";
 
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    .bottom-padding {
-      margin-bottom: 25px;
-    }
-
-    .form-inline {
-      flex-flow: row;
-    }
-
-    .spaced {
-      margin:5px;
-    }
-
-    #heartbeat-light {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: lightgrey;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
-    }
-    .led-green {
-      background-color: #ABFF00 !important;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px !important;
-    }
-    .led-red {
-      background-color: #F00 !important;
-      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px !important;
-    }
-  </style>
-  <script>
-    $(document).ready(function () {
-
-      var socket = io('/');
-      var robot_connected = false;
-      var match_num = "";
-      var round_num = "";
-      var team_num = "";
-      var team_name = "";
-      var tinder = "";
-      var buttons = "";
-      var custom_ip = "";
-
-      let counter = 1;
-      function logg(str) {
-        let log = document.getElementById("events-log");
-        let m = log.innerHTML.split("\n");
-        if(m.length >= 10) m.shift();
-        log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
-      }
-      
-      function send() {
-        socket.emit("ui-to-server", ...arguments);
-        let logstr = ""
-        try {
-            for(let a=0;a<arguments.length;a++)
-               logstr += arguments[a];
-        } catch (err){
-            console.log(err);
-            logstr = "[logging error]";
-        }
-        logg(logstr);
-      }
-      
-      $("#log-toggle").click(function(e) {
-        e.preventDefault();
-        let log = document.getElementById("events-log");
-        log.hidden = !log.hidden;
-        localStorage.setItem("log-toggle", !log.hidden);
-      });
-      
-      if(localStorage.getItem("log-toggle") === "true")
-        document.getElementById("events-log").hidden = false;
-
-      socket.on('connect', function (data) {
-        socket.emit('join', 'staff_gui');
-        send('get_round_info_no_args');
-        send('get_biome');
-        send('request_connections');
-      });
-
-      socket.on('teams_info', function (data) {
-        logg("teams_info"+data);
-        parsed_data = JSON.parse(data);
-        match_num = parsed_data.match_num;
-        round_num = parsed_data.round_num;
-        team_num  = parsed_data.team_num;
-        team_name = parsed_data.team_name;
-        tinder    = parsed_data.tinder;
-        buttons   = parsed_data.buttons;
-        if ($("#custom-ip-adjustment").val() === "") {
-          custom_ip = parsed_data.custom_ip;
-        }
-        setDefaultTeamsInfo()
-      });
-
-      socket.on('stage', function (data) {
-        logg("stage" + data);
-        data = JSON.parse(data);
-        const biome = data.stage;
-        updateBiome(biome);
-      });
-
-      function updateBiome(biome) {
-        console.log(`updating biome to ${biome}`)
-        $("#biome").text(biome);
-      }
-      
-      function setDefaultTeamsInfo() {
-        $("#select-match-number").val(match_num);
-        $("#select-round-number").val(round_num);
-        $("#team-number").val(team_num);
-        $("#team-name").val(team_name);
-        $("#tinder").val(tinder);
-        $("#buttons").val(buttons);
-        $("#custom-ip-adjustment").val(custom_ip);
-      }
-
-      function toggleHeartbeat(connected, message) {
-        robot_connected = connected;
-        const hbl = $("#heartbeat-light");
-        if (connected == null) {
-          hbl.toggleClass("led-green", false);
-          hbl.toggleClass("led-red",  false);
-        } else {
-          hbl.toggleClass("led-green", connected);
-          hbl.toggleClass("led-red",  !connected);
-        }
-        $("#heartbeat-message").text(message);
-      }
-      
-      socket.on('robot_connection', function (data) {
-        logg("robot_connection" + data);
-        data = JSON.parse(data);
-        const connected = data.connected;
-        if (typeof data.team_num == 'undefined') {
-          toggleHeartbeat(connected, "Not connected to any robot");
-        } else if (data.team_num == team_num || true) {
-          // the || true is a hotfix because sometimes people want to connect to the robot before submitting the match info
-          // and we only have one robot anyway
-          // in years with multiple robots, remove the || true
-          toggleHeartbeat(connected, `Robot #: ${data.team_num} IP: ${data.custom_ip}`);
-        }
-      });
-      
-      socket.on('linebreak_info', function(data) {
-        logg("linebreak_info" + data);
-        $("#linebreaks-info").text("Not working: " + JSON.parse(data).text);
-      })
-
-      $("#next-round").click(() => {
-        if(round_num >= 3){
-            round_num = 1;
-            match_num++;
-        } else {
-            round_num++;
-        }
-        $("#select-match-number").val(match_num);
-        $("#select-round-number").val(round_num);
-        send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
-      })
-
-      $("#next-match").click(() => {
-        send('reset_match');
-      })
-
-      $("#select-round").click(() => {
-        match_num = parseInt($("#select-match-number").val());
-        round_num = parseInt($("#select-round-number").val());
-        if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
-        send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
-      });
-
-      $("#create-match").click(() => {
-        match_num = parseInt($("#select-match-number").val());
-        round_num = parseInt($("#select-round-number").val());
-        team_num = parseInt($("#team-number").val());
-        team_name = $("#team-name").val();
-        custom_ip = $("#custom-ip-adjustment").val();
-
-        if(isNaN(match_num)) { alert("invalid match number"); return; }
-        if(isNaN(round_num)) { alert("invalid round number"); return; }
-        if(isNaN(team_num)) { alert("invalid team number"); return; }
-        if(team_name === "") { alert("empty team name"); return; } 
-        toggleHeartbeat(null, "awaiting connection");
-        let data = {
-            "match_num": match_num,
-            "round_num": round_num,
-            "team_num": team_num,
-            "team_name": team_name,
-        };
-        if (custom_ip !== "") {
-          data["custom_ip"] = custom_ip;
-        }
-        send('setup_match', JSON.stringify(data));
-      });
-
-
-      $("#submit-tinder").click(function () {
-        let tinder = parseInt($("#tinder").val());
-        if(isNaN(tinder)){ alert("invalid firewood"); return; }
-        send('set_game_info', JSON.stringify({ "tinder": tinder }));
-      });
-
-      $("#submit-buttons").click(function () {
-        let buttons = parseInt($("#buttons").val());
-        if(isNaN(buttons)){ alert("invalid buttons"); return; }
-        send('set_game_info', JSON.stringify({ "buttons": buttons }));
-      });
-
-      $("#round-start").click(function () {
-        send('start_next_stage');
-      });
-
-
-      $("#round-reset").click(function () {
-        send('reset_round');
-      });
-      
-      $("#custom-ip-change").click(function () {
-        let ip = $("#custom-ip-adjustment").val();
-        if(ip == "") { alert("empty custom ip"); return; } 
-        send('set_custom_ip', JSON.stringify({ "custom_ip": ip }));
-        toggleHeartbeat(null, "awaiting connection");
-      });
-
-      $("#stop-robot").click(function () {
-        if(robot_connected || confirm("Not connected to a robot. Try anyway?")) {
-          send('robot_off', JSON.stringify({ "team_number": team_num }));
-        }
-      });
-
-      $("#linebreaks-off").click(function () {
-        send('linebreaks_off');
-      });
-
-      $("#linebreaks-on").click(function () {
-        send('linebreaks_on');
-      });
-      
+    socket.on('connect', function (data) {
+      socket.emit('join', 'staff_gui');
+      send('get_round_info_no_args');
+      send('get_biome');
+      send('request_connections');
     });
-  </script>
-</head>
 
-<body>
+    socket.on('teams_info', function (data) {
+      parsed_data = JSON.parse(data);
+      match_num = parsed_data.match_num;
+      round_num = parsed_data.round_num;
+      team_num  = parsed_data.team_num;
+      team_name = parsed_data.team_name;
+      tinder    = parsed_data.tinder;
+      buttons   = parsed_data.buttons;
+      if ($("#custom-ip-adjustment").val() === "") {
+        custom_ip = parsed_data.custom_ip;
+      }
+      setDefaultTeamsInfo()
+    });
 
-  <nav class="navbar navbar-expand-sm navbar-light bg-light">
-    <a class="navbar-brand" href="#">Staff UI</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav">
-        <li class="nav-item active">
-          <a class="nav-link" href="../staff_gui.html">Match Creator<span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
+    socket.on('stage', function (data) {
+      data = JSON.parse(data);
+      const biome = data.stage;
+      updateBiome(biome);
+    });
 
-  <div class="container" style="max-width:1405px">
-
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <!--<h3>Match #:</h3><h3 id="match-number"></h3> -->
-        <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
-        <h3>Match/Round:</h3>
-        <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Autopopulate Next Round</button>
-        <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Reset Firewood/Buttons</button>
-        <div class="form-group">
-          <input type="number" class="form-control spaced" id="select-match-number" style="width: 81px;" placeholder="Match #">
-        </div>
-        <div class="form-group">
-          <input type="number" class="form-control spaced" id="select-round-number" style="width: 81px;" placeholder="Round #">
-        </div>
-        <button type="button" class="btn btn-success spaced" id="select-round"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Populate</button>
-      </div>
-    </div>
+    function updateBiome(biome) {
+      console.log(`updating biome to ${biome}`)
+      $("#biome").text(biome);
+    }
     
+    function setDefaultTeamsInfo() {
+      $("#select-match-number").val(match_num);
+      $("#select-round-number").val(round_num);
+      $("#team-number").val(team_num);
+      $("#team-name").val(team_name);
+      $("#tinder").val(tinder);
+      $("#buttons").val(buttons);
+      $("#custom-ip-adjustment").val(custom_ip);
+    }
+
+    function toggleHeartbeat(connected, message) {
+      robot_connected = connected;
+      const hbl = $("#heartbeat-light");
+      if (connected == null) {
+        hbl.toggleClass("led-green", false);
+        hbl.toggleClass("led-red",  false);
+      } else {
+        hbl.toggleClass("led-green", connected);
+        hbl.toggleClass("led-red",  !connected);
+      }
+      $("#heartbeat-message").text(message);
+    }
     
-    <div class="row bottom-padding">
-      <div>
-        <div class="input-group">
-          <h3>Custom IP: </h3>
-          <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
-          </span>
-          <span class="input-group-btn">
-            <button class="btn btn-danger" type="button" id="stop-robot" style="margin-left:5px;margin-right:5px;">Stop Robot</button>
-          </span>
-          <span class="spaced">Heartbeat:</span> 
-          <div class="form-group spaced" id="heartbeat-light"></div>
-          <span class="spaced" id="heartbeat-message"></span>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-          <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
-          <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
-          <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
-          <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
-      </div>
-    </div>
-
-
-    <div class="row bottom-padding">
-        <div class="input-group">
-          <h3>Team #:</h3>
-          <input type="number" class="form-control" id="team-number">
-        </div>
-    </div>
-    <div class="row bottom-padding">
-        <div class="input-group">
-          <h3>Team Name:</h3>
-          <input type="text" class="form-control" id="team-name">
-        </div>
-    </div>
-    <div class="row bottom-padding">
-        <h3>Biome:</h3>
-        <h3 id="biome"> None </h3>
-    </div>
+    socket.on('robot_connection', function (data) {
+      data = JSON.parse(data);
+      const connected = data.connected;
+      if (typeof data.team_num == 'undefined') {
+        toggleHeartbeat(connected, "Not connected to any robot");
+      } else if (data.team_num == team_num || true) {
+        // the || true is a hotfix because sometimes people want to connect to the robot before submitting the match info
+        // and we only have one robot anyway
+        // in years with multiple robots, remove the || true
+        toggleHeartbeat(connected, `Robot #: ${data.team_num} IP: ${data.custom_ip}`);
+      }
+    });
     
+    socket.on('linebreak_info', function(data) {
+      $("#linebreaks-info").text("Not working: " + JSON.parse(data).text);
+    })
+
+    $("#next-round").click(() => {
+      if(round_num >= 3){
+          round_num = 1;
+          match_num++;
+      } else {
+          round_num++;
+      }
+      $("#select-match-number").val(match_num);
+      $("#select-round-number").val(round_num);
+      send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+    })
+
+    $("#next-match").click(() => {
+      send('reset_match');
+    })
+
+    $("#select-round").click(() => {
+      match_num = parseInt($("#select-match-number").val());
+      round_num = parseInt($("#select-round-number").val());
+      if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
+      send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+    });
+
+    $("#create-match").click(() => {
+      match_num = parseInt($("#select-match-number").val());
+      round_num = parseInt($("#select-round-number").val());
+      team_num = parseInt($("#team-number").val());
+      team_name = $("#team-name").val();
+      custom_ip = $("#custom-ip-adjustment").val();
+
+      if(isNaN(match_num)) { alert("invalid match number"); return; }
+      if(isNaN(round_num)) { alert("invalid round number"); return; }
+      if(isNaN(team_num)) { alert("invalid team number"); return; }
+      if(team_name === "") { alert("empty team name"); return; } 
+      toggleHeartbeat(null, "awaiting connection");
+      let data = {
+          "match_num": match_num,
+          "round_num": round_num,
+          "team_num": team_num,
+          "team_name": team_name,
+      };
+      if (custom_ip !== "") {
+        data["custom_ip"] = custom_ip;
+      }
+      send('setup_match', JSON.stringify(data));
+    });
 
 
+    $("#submit-tinder").click(function () {
+      let tinder = parseInt($("#tinder").val());
+      if(isNaN(tinder)){ alert("invalid firewood"); return; }
+      send('set_game_info', JSON.stringify({ "tinder": tinder }));
+    });
 
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <button type="button" class="btn btn-success spaced" id="create-match"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Create Round</button>
-        <button type="button" class="btn btn-success spaced" id="round-start"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Start Round</button>
-        <button type="button" class="btn btn-danger spaced" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
-            aria-hidden="true"></span>Reset Round</button>
-      </div>
+    $("#submit-buttons").click(function () {
+      let buttons = parseInt($("#buttons").val());
+      if(isNaN(buttons)){ alert("invalid buttons"); return; }
+      send('set_game_info', JSON.stringify({ "buttons": buttons }));
+    });
+
+    $("#round-start").click(function () {
+      send('start_next_stage');
+    });
+
+
+    $("#round-reset").click(function () {
+      send('reset_round');
+    });
+    
+    $("#custom-ip-change").click(function () {
+      let ip = $("#custom-ip-adjustment").val();
+      if(ip == "") { alert("empty custom ip"); return; } 
+      send('set_custom_ip', JSON.stringify({ "custom_ip": ip }));
+      toggleHeartbeat(null, "awaiting connection");
+    });
+
+    $("#stop-robot").click(function () {
+      if(robot_connected || confirm("Not connected to a robot. Try anyway?")) {
+        send('robot_off', JSON.stringify({ "team_number": team_num }));
+      }
+    });
+
+    $("#linebreaks-off").click(function () {
+      send('linebreaks_off');
+    });
+
+    $("#linebreaks-on").click(function () {
+      send('linebreaks_on');
+    });
+  }
+</script>
+{% endblock %}
+{% block html_content %}
+<div class="row">
+  <div class="btn-group bottom-padding" role="group" aria-label="...">
+    <!--<h3>Match #:</h3><h3 id="match-number"></h3> -->
+    <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
+    <h3>Match/Round:</h3>
+    <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Autopopulate Next Round</button>
+    <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Reset Firewood/Buttons</button>
+    <div class="form-group">
+      <input type="number" class="form-control spaced" id="select-match-number" style="width: 81px;" placeholder="Match #">
     </div>
-
-    <div class="row">
-      <div class="btn-group bottom-padding" role="group" aria-label="...">
-        <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Linebreaks Off</button>
-        <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
-            aria-hidden="true"></span>Linebreaks On</button>
-          <h3 id="linebreaks-info">N/A</h3>
-      </div>
+    <div class="form-group">
+      <input type="number" class="form-control spaced" id="select-round-number" style="width: 81px;" placeholder="Round #">
     </div>
-    
-    
-    <a href="" id="log-toggle">Toggle log</a>
-    <pre id="events-log" hidden></pre>
-    
+    <button type="button" class="btn btn-success spaced" id="select-round"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Populate</button>
   </div>
-</body>
+</div>
 
 
-</html>
+<div class="row bottom-padding">
+  <div>
+    <div class="input-group">
+      <h3>Custom IP: </h3>
+      <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
+      <span class="input-group-btn">
+        <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
+      </span>
+      <span class="input-group-btn">
+        <button class="btn btn-danger" type="button" id="stop-robot" style="margin-left:5px;margin-right:5px;">Stop Robot</button>
+      </span>
+      <span class="spaced">Heartbeat:</span> 
+      <div class="form-group spaced" id="heartbeat-light"></div>
+      <span class="spaced" id="heartbeat-message"></span>
+    </div>
+  </div>
+</div>
 
-</html>
+
+<div class="row">
+  <div class="btn-group bottom-padding" role="group" aria-label="...">
+      <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
+      <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
+      <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
+      <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
+  </div>
+</div>
+
+
+<div class="row bottom-padding">
+    <div class="input-group">
+      <h3>Team #:</h3>
+      <input type="number" class="form-control" id="team-number">
+    </div>
+</div>
+<div class="row bottom-padding">
+    <div class="input-group">
+      <h3>Team Name:</h3>
+      <input type="text" class="form-control" id="team-name">
+    </div>
+</div>
+<div class="row bottom-padding">
+    <h3>Biome:</h3>
+    <h3 id="biome"> None </h3>
+</div>
+
+
+
+
+<div class="row">
+  <div class="btn-group bottom-padding" role="group" aria-label="...">
+    <button type="button" class="btn btn-success spaced" id="create-match"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Create Round</button>
+    <button type="button" class="btn btn-success spaced" id="round-start"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Start Round</button>
+    <button type="button" class="btn btn-danger spaced" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
+        aria-hidden="true"></span>Reset Round</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="btn-group bottom-padding" role="group" aria-label="...">
+    <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Linebreaks Off</button>
+    <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Linebreaks On</button>
+      <h3 id="linebreaks-info">N/A</h3>
+  </div>
+</div>
+{% endblock %}
+
