@@ -9,7 +9,9 @@ from LCM import lcm_send, lcm_start_read
 HOST_URL = "0.0.0.0"
 PORT = 5000
 
-app = Flask(__name__)
+app = Flask(__name__, 
+    template_folder='../templates', 
+    static_folder='../static')
 app.config['SECRET_KEY'] = 'omegalul!'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
