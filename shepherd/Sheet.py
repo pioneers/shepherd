@@ -56,6 +56,9 @@ def get_round(match_number, round_number):
 
 
 def write_scores(match_number, round_number, score):
+    """
+    TODO: evergreen
+    """
     try:
         write_online_scores(match_number, round_number, score)
     except httplib2.ServerNotFoundError:
