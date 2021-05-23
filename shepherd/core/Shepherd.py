@@ -13,7 +13,7 @@ from shepherd.game.Code import *
 from shepherd.protos.run_mode_pb2 import Mode
 from shepherd.core.runtimeclient import RuntimeClientManager
 from shepherd.protos.game_state_pb2 import State
-import shepherd.core.Sheet
+import shepherd.core.Sheet as Sheet
 from shepherd.game.Robot import Robot
 from shepherd.game.Buttons import Buttons
 from shepherd.game.challenge_results import CHALLENGE_RESULTS

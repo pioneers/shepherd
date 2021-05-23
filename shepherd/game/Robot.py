@@ -1,7 +1,7 @@
 from datetime import datetime
 import random
 import math
-from shpherd.core.Utils import *
+from shepherd.core.Utils import *
 from shepherd.game.Code import *
 
 class Robot:
