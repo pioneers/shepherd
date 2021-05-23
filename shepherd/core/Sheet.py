@@ -11,12 +11,12 @@ from oauth2client import client  # pylint: disable=import-error
 from oauth2client import tools  # pylint: disable=import-error
 from oauth2client.file import Storage  # pylint: disable=import-error
 
-from Utils import *
+from shepherd.core.Utils import *
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
-CLIENT_SECRET_FILE = 'Sheets/client_secret.json'
+CLIENT_SECRET_FILE = '../Sheets/client_secret.json'
 APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
 

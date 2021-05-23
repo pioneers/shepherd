@@ -3,8 +3,8 @@ import queue
 import hashlib
 from flask import Flask, render_template, request  # pylint: disable=import-error
 from flask_socketio import SocketIO  # pylint: disable=import-errors
-from Utils import LCM_TARGETS
-from LCM import lcm_send, lcm_start_read
+from shepherd.core.Utils import LCM_TARGETS
+from shepherd.core.LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000

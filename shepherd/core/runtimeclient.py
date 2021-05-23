@@ -1,12 +1,12 @@
 import time
 import threading
-from protos import text_pb2
-from protos import run_mode_pb2
-from protos import start_pos_pb2
-from protos import game_state_pb2
-from Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
-from LCM import lcm_send, lcm_start_read
-from Robot import Robot
+from shepherd.protos import text_pb2
+from shepherd.protos import run_mode_pb2
+from shepherd.protos import start_pos_pb2
+from shepherd.protos import game_state_pb2
+from shepherd.core.Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from shepherd.core.LCM import lcm_send, lcm_start_read
+from shepherd.game.Robot import Robot
 import socket
 from typing import List
 

@@ -4,21 +4,19 @@ import time
 import traceback
 import threading
 from datetime import datetime
-from Utils import SHEPHERD_HEADER
-from Alliance import Alliance
-from LCM import lcm_send, lcm_start_read
-from Timer import Timer
-from Utils import *
-from Code import * 
-from protos.run_mode_pb2 import Mode
-from runtimeclient import RuntimeClientManager
-from protos.game_state_pb2 import State
-import Sheet
-import bot
-import audio
-from Robot import Robot
-from Buttons import Buttons
-from challenge_results import CHALLENGE_RESULTS
+from shepherd.core.Utils import SHEPHERD_HEADER
+from shepherd.core.LCM import lcm_send, lcm_start_read
+from shepherd.core.Timer import Timer
+from shepherd.core.Utils import *
+from shepherd.game.Alliance import Alliance
+from shepherd.game.Code import * 
+from shepherd.protos.run_mode_pb2 import Mode
+from shepherd.core.runtimeclient import RuntimeClientManager
+from shepherd.protos.game_state_pb2 import State
+import shepherd.core.Sheet
+from shepherd.game.Robot import Robot
+from shepherd.game.Buttons import Buttons
+from shepherd.game.challenge_results import CHALLENGE_RESULTS
 
 # pylint: disable=global-statement
 
