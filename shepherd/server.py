@@ -1,8 +1,8 @@
 import json
 import queue
-import gevent  # pylint: disable=import-error
-from flask import Flask, render_template  # pylint: disable=import-error
-from flask_socketio import SocketIO, emit, join_room, leave_room, send  # pylint: disable=import-errors
+import hashlib
+from flask import Flask, render_template, request  # pylint: disable=import-error
+from flask_socketio import SocketIO  # pylint: disable=import-errors
 from Utils import LCM_TARGETS
 from LCM import lcm_send, lcm_start_read
 
@@ -19,6 +19,14 @@ socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 def hello_world():
     return 'Hello, World!'
 
+def password(p):
+    if p is None:
+        return False
+    m = hashlib.sha256()
+    m.update((p + "cheese").encode("utf-8"))
+    return m.hexdigest() == \
+        "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
+
 @app.route('/<path:subpath>')
 def give_page(subpath):
     if subpath[-1] == "/":
@@ -30,7 +38,10 @@ def give_page(subpath):
         "ref_gui.html",
         "scoreboard.html"
     ]:
-        return render_template(subpath)
+        if password(request.cookies.get('password')):
+            return render_template(subpath)
+        else:
+            return render_template("password.html")
     else:
         return "oops page not found"
 
@@ -43,7 +54,9 @@ def handle_join(client_name):
     print(f'confirmed join: {client_name}')
 
 @socketio.on('ui-to-server')
-def ui_to_server(header, args=None):
+def ui_to_server(p, header, args=None):
+    if not password(p):
+        return
     if args is None:
         lcm_send(LCM_TARGETS.SHEPHERD, header)
     else:
@@ -51,7 +64,7 @@ def ui_to_server(header, args=None):
         
 
 def receiver():
-    events = gevent.queue.Queue()
+    events = queue.Queue()
     lcm_start_read(LCM_TARGETS.UI, events)
     while True:
         if not events.empty():

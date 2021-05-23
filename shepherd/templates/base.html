@@ -1,7 +1,9 @@
+<!DOCTYPE html>
 <html>
-<!--I like cheese-->
 <head>
   <title>{% block title %}{% endblock %}</title>
+
+  <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')}}">
   <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
   <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
@@ -60,13 +62,26 @@
         $("#cheese-inner-nav-bar").children()[page_index].classList.add("active");
       }
 
+      // gets a cookie. Pretty much only used for password
+      // use localStorage rather than cookies for other cases
+      function getCookie(cname) {
+        cname += "="
+        let ca = decodeURIComponent(document.cookie).split(';');
+        let co = ca.filter(c => c.indexOf(cname) >= 0);
+        if (co.length > 0)
+          return co[0].substring(co[0].indexOf(cname) + cname.length)
+        else
+          return ""
+      }
+
       //socket: websocket to server.py, gets messages to/from shepherd
       // loggs both incoming and outgoing messages
 
       var socket = io('/');
+      var pass = getCookie("password");
       socket.onAny((h, m) => logg("← " + h + " " + m))
       function send() {
-        socket.emit("ui-to-server", ...arguments);
+        socket.emit("ui-to-server", pass, ...arguments);
         let logstr = ""
         try {
             for(let a=0;a<arguments.length;a++)
@@ -122,4 +137,3 @@
 
 </html>
 
-</html>

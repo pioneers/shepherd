@@ -4,21 +4,14 @@ import socket
 import threading
 import selectors
 
+
+
+"""
+when using LCM, please do:
+from LCM import lcm_send, lcm_start_read
+"""
+
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
-
-
-"""
-Message format between client and server is:
-4 byte int, little endian: len1
-4 byte int, little endian: len2
-len1 bytes, utf-8 string
-len2 bytes, utf-8 string
-
-Normally first and second string represent a target+message.
-(target, "") from client to server means subscribe to target
-"""
-
-
 CLIENT_THREAD = None
 
 def lcm_start_read(receive_channel, queue, put_json=False):
@@ -86,6 +79,10 @@ class ClientThread(threading.Thread):
 
 """
 Utility methods - apply to both the client and server
+
+Message format between client and server is (len1, len2, str1, str2). 
+Normally first and second string represent (target, message). 
+(target, "") from client to server means subscribe to target
 """
 
 
