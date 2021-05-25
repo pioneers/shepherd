@@ -226,6 +226,22 @@ class TABLET_HEADER():
 # pylint: disable=invalid-name
 
 
+"""
+A dictionary of pages -> whether page is password protected
+password.html should not be included in this list, since 
+server.py will just route to that automatically
+add additional pages here
+"""
+UI_PAGES = {
+    "scoreboard.html": False,
+    "score_adjustment.html": True,
+    "staff_gui.html": True,
+    "stage_control.html": True,
+    "ref_gui.html": True
+}
+
+
+
 class CONSTANTS():
     AUTO_TIME = 20  # 20
     TOTAL_TIME = 600 # 600

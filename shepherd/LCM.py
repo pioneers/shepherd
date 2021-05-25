@@ -1,14 +1,13 @@
 import threading
 import json
 import socket
-import threading
 import selectors
 
 
 
 """
-when using LCM, please do:
-from LCM import lcm_send, lcm_start_read
+when using YDL, please do:
+from YDL import ydl_send, ydl_start_read
 """
 
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
@@ -19,7 +18,7 @@ def lcm_start_read(receive_channel, queue, put_json=False):
     Takes in receiving channel name (string), queue (Python queue object).
     Takes whether to add received items to queue as JSON or Python dict.
     Creates thread that receives any message to receiving channel and adds
-    it to queue as tuple (header, dict). Multiple calls to lcm_start_read
+    it to queue as tuple (header, dict). Multiple calls to ydl_start_read
     with the same target will replace the old queue.
     header: string
     dict: Python dictionary
@@ -51,17 +50,17 @@ class ClientThread(threading.Thread):
         super().__init__()
         self.daemon = True #will be shut down abruptly when main thread dies
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.selobj = SelObject()
+        self.selobj = ReadObject()
         self.open_targets = {}
         self.conn.connect(SERVER_ADDR)
-    
+
     def run(self):
         while True:
             data = self.conn.recv(1024)
             if len(data) == 0:
                 break
             else:
-                self.selobj.inb += data;
+                self.selobj.inb += data
                 for target, message in self.selobj:
                     self.forward_message(target, message)
         self.conn.close()
@@ -87,18 +86,18 @@ Normally first and second string represent (target, message).
 
 
 def send_message(conn, target, msg):
-    conn.sendall(len(target).to_bytes(4, "little"))
-    conn.sendall(len(msg).to_bytes(4, "little"))
-    conn.sendall(target.encode("utf-8"))
-    conn.sendall(msg.encode("utf-8"))
+    conn.sendall(len(target).to_bytes(4, "little")
+               + len(msg).to_bytes(4, "little")
+               + target.encode("utf-8")
+               + msg.encode("utf-8"))
 
-class SelObject:
+class ReadObject:
     def __init__(self):
         self.inb = b''
 
     def __iter__(self):
         return self
-    
+
     def __next__(self):
         if len(self.inb) < 8:
             raise StopIteration
@@ -113,14 +112,14 @@ class SelObject:
 
 
 """
-Server methods; apply to the LCM backend
+Server methods; apply to the YDL backend
 """
 
 def accept(sel, all_connections, sock):
     conn, addr = sock.accept()  # Should be ready
     print('accepted connection from', addr)
     conn.setblocking(False)
-    sel.register(conn, selectors.EVENT_READ, SelObject())
+    sel.register(conn, selectors.EVENT_READ, ReadObject())
     all_connections.append(conn)
 
 def read(sel, all_connections, subscriptions, conn, obj):
@@ -136,6 +135,7 @@ def read(sel, all_connections, subscriptions, conn, obj):
     else:
         obj.inb += data
         for target_channel, message in obj:
+            print("got: ", (target_channel, message))
             subscriptions.setdefault(target_channel, [])
             if len(message) == 0:
                 subscriptions[target_channel].append(conn)
@@ -155,12 +155,12 @@ def start_backend():
     sel.register(sock, selectors.EVENT_READ, None)
     while True:
         events = sel.select(timeout=None)
-        for key, mask in events:
+        for key, _mask in events:
             if key.data is None:
                 accept(sel, all_connections, key.fileobj)
             else:
                 read(sel, all_connections, subscriptions, key.fileobj, key.data)
 
 if __name__ == "__main__":
-    print("Starting LCM server at address:", SERVER_ADDR)
+    print("Starting YDL server at address:", SERVER_ADDR)
     start_backend()

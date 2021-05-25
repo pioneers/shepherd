@@ -1,9 +1,9 @@
 import json
 import queue
 import hashlib
-from flask import Flask, render_template, request  # pylint: disable=import-error
-from flask_socketio import SocketIO  # pylint: disable=import-errors
-from Utils import LCM_TARGETS
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO
+from Utils import LCM_TARGETS, UI_PAGES
 from LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
@@ -19,6 +19,11 @@ socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 def hello_world():
     return 'Hello, World!'
 
+
+"""
+checks to make sure p is the correct password
+if you want to change the password, just change the hash
+"""
 def password(p):
     if p is None:
         return False
@@ -27,23 +32,19 @@ def password(p):
     return m.hexdigest() == \
         "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
+"""
+routing for all ui pages. Gives "page not found" if
+the page isn't in UI_PAGES, or prompts for password 
+if the page is password protected
+"""
 @app.route('/<path:subpath>')
 def give_page(subpath):
     if subpath[-1] == "/":
-        subpath = subpath[:-1] 
-    if subpath in [
-        "score_adjustment.html",
-        "staff_gui.html",
-        "stage_control.html",
-        "ref_gui.html",
-        "scoreboard.html"
-    ]:
-        if password(request.cookies.get('password')):
-            return render_template(subpath)
-        else:
-            return render_template("password.html")
-    else:
-        return "oops page not found"
+        subpath = subpath[:-1]
+    if subpath in UI_PAGES:
+        passed = (not UI_PAGES[subpath]) or password(request.cookies.get('password'))
+        return render_template(subpath if passed else "password.html")
+    return "oops page not found"
 
 @socketio.event
 def connect():
@@ -61,13 +62,13 @@ def ui_to_server(p, header, args=None):
         lcm_send(LCM_TARGETS.SHEPHERD, header)
     else:
         lcm_send(LCM_TARGETS.SHEPHERD, header, json.loads(args))
-        
+
 
 def receiver():
     events = queue.Queue()
     lcm_start_read(LCM_TARGETS.UI, events)
     while True:
-        if not events.empty():
+        while not events.empty():
             event = events.get()
             print("RECEIVED:", event)
             socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
