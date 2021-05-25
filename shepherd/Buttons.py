@@ -1,6 +1,6 @@
 import random
-from Utils import SENSOR_HEADER, LCM_TARGETS
-from LCM import lcm_send
+from Utils import SENSOR_HEADER, YDL_TARGETS
+from YDL import ydl_send
 
 
 class Buttons:
@@ -14,7 +14,7 @@ class Buttons:
 
     def illuminate_all(self):
         for i in range(self.NUM_BUTTONS):
-            lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
+            ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
                 "id": i})
 
     def enter_mirage_wall(self, challenges):
@@ -39,10 +39,10 @@ class Buttons:
             self.NUM_BUTTONS)]
         for i in range(self.NUM_BUTTONS):
             if self.buttons_illuminated[i]:
-                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
+                ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT, {
                          "id": i})
             else:
-                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
+                ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
                          "id": i})
 
     def press_button_and_check(self, button_id):
@@ -54,7 +54,7 @@ class Buttons:
         """
         if self.is_correct_button(button_id):
             for i in range(self.NUM_BUTTONS):
-                lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
+                ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {
                          "id": i})
             self.illuminated = 0
             self.buttons_illuminated = [False] * self.NUM_BUTTONS
@@ -62,7 +62,7 @@ class Buttons:
         if self.buttons_illuminated[button_id]:
             self.illuminated -= 1
             self.buttons_illuminated[button_id] = False
-            lcm_send(LCM_TARGETS.SENSORS,
+            ydl_send(YDL_TARGETS.SENSORS,
                      SENSOR_HEADER.TURN_OFF_LIGHT, {"id": button_id})
         return False
 

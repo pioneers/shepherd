@@ -1,7 +1,7 @@
 import time
 import threading
-import LCM
-from Utils import LCM_TARGETS
+import YDL
+from Utils import YDL_TARGETS
 
 class TimerThread(threading.Thread):
     '''
@@ -39,7 +39,6 @@ class Timer:
         Checks to see if any of the timers has run out, and does the timer's callback if so (may run multiple callbacks). 
         Returns the time remaining until the next timer (could be negative if timers expire at the same time). 
         This assumes that a timer will never have its end_time spontanously decrease, and that all timers last at least MIN_TIMER_TIME
-        TODO: Add how to send message via LCM in the case of match timer
         """
         cls.queueLock.acquire()
         current_time = time.time()
@@ -97,7 +96,7 @@ class Timer:
         if not self.active: return #if timer was just reset
         self.active = False #in case callback restarts the timer, do this first
         if self.timer_type is not None and self.timer_type["NEEDS_FUNCTION"]:
-            LCM.lcm_send(LCM_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
+            YDL.ydl_send(YDL_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
 
 
     def reset(self):

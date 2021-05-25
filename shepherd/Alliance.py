@@ -1,7 +1,7 @@
 import math
 from Utils import *
 from Timer import *
-from LCM import *
+from YDL import *
 
 class Alliance:
     """This is the Alliance class, which holds the state values used to track
@@ -38,14 +38,14 @@ class Alliance:
             Amount can be negative or positive.
         """
         self.score += amount
-        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
+        ydl_send(YDL_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
                  {"alliance" : self.name, "score" : math.floor(self.score)})
 
     def reset(self):
         self.score = 0
         self.team_1_connection = False
         self.team_2_connection = False
-        lcm_send(LCM_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
+        ydl_send(YDL_TARGETS.SCOREBOARD, SCOREBOARD_HEADER.SCORE,
                  {"alliance" : self.name, "score" : math.floor(self.score)})
         #TODO: Send info to sensors about reset
         #TODO: Send info to UI about reset

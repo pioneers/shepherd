@@ -1,7 +1,7 @@
-#LCM -> TURN_ON_LIGHT, {"id": 4}
-#LCM -> SET_TRAFFIC_LIGHT, {"id": ???, color : "green"}
+#YDL -> TURN_ON_LIGHT, {"id": 4}
+#YDL -> SET_TRAFFIC_LIGHT, {"id": ???, color : "green"}
 
-# START_BUTTON_PRESSED {} -> LCM
+# START_BUTTON_PRESSED {} -> YDL
 
 # figure out three things: 1) which device talking to, 2) which param of device to modify 3) value
 
@@ -14,7 +14,7 @@
 # device 8, parameter 1, value 1.0
 
 """
-LCM Messages to Sensors.py should follow this format:
+YDL Messages to Sensors.py should follow this format:
 
 [HEADER, {args}]
 
@@ -28,7 +28,7 @@ Details for each header will live in Utils.py
 from __future__ import annotations
 from Utils import SENSOR_HEADER, SHEPHERD_HEADER
 import queue
-from LCM import *
+from YDL import *
 import time
 
 ################################################
@@ -116,18 +116,18 @@ class Parameter:
         - this should be unique
         - this can be optional
     example: name light, identifier: 1 means light 1.
-             this corresponds to the "id" in the LCM header args: { id : 1, variables : values}
+             this corresponds to the "id" in the YDL header args: { id : 1, variables : values}
     - a parent device (arduino) that owns this sensor
     TODO: talk about debounce_threshold and debounce_sensitivity
     """
-    def __init__(self, name: str, should_poll: bool, identifier=None, debounce_threshold=None, debounce_sensitivity=0.7,lcm_header=None):
+    def __init__(self, name: str, should_poll: bool, identifier=None, debounce_threshold=None, debounce_sensitivity=0.7,ydl_header=None):
         self.name = name
         self.should_poll = should_poll
         self.identifier = identifier
         self.__device = None
         self.debounce_threshold = debounce_threshold
         self.debounce_sensitivity = debounce_sensitivity
-        self.lcm_header = lcm_header
+        self.ydl_header = ydl_header
 
     @property
     def device(self):
@@ -149,7 +149,7 @@ class Parameter:
     def is_state_change_significant(self, value, previous_value: float):
         raise Exception("override this function you sad little sheep")
     
-    def lcm_message_from_state_change(self, value: float):
+    def ydl_message_from_state_change(self, value: float):
         # feel free to add previous_value as a param if needed
         raise Exception("override this function you sad little sheep")
 
@@ -165,9 +165,9 @@ def parameter_from_header(header):
     for p in sensor_pool:
         if p.identifier is None or args.get("id", None) == p.identifier:
             return p
-    raise Exception(f'no device found associated with LCM header {header}')
+    raise Exception(f'no device found associated with YDL header {header}')
 
-def translate_lcm_message(header):
+def translate_ydl_message(header):
     """
     This method will decode three import pieces of information:
     1) the arduino and device to talk to
@@ -202,7 +202,7 @@ class DehydrationButton(Parameter):
     def is_state_change_significant(self, value: bool, previous_value: bool):
         return value == True and previous_value == False
 
-    def lcm_message_from_state_change(self, value: float):
+    def ydl_message_from_state_change(self, value: float):
         # fire lever, traffic button
         args = {
             "button": self.identifier
@@ -214,7 +214,7 @@ class GenericButton(Parameter):
     def is_state_change_significant(self, value: bool, previous_value: bool):
         return value == True and previous_value == False
 
-    def lcm_message_from_state_change(self, value: float):
+    def ydl_message_from_state_change(self, value: float):
         # fire lever, traffic button, linebreak sensors
         args = {}
         return args
@@ -242,21 +242,21 @@ linebreak_debounce_threshold = 10 # samples
 
 # how fast are we polling? 100 Hz
 
-city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
-traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, lcm_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
-desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, lcm_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, lcm_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, lcm_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, lcm_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
+traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
+desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, ydl_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, ydl_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, ydl_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, ydl_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
 
-fire_lever = GenericButton(name="fire_lever", should_poll=True, lcm_header=SHEPHERD_HEADER.FIRE_LEVER)
+fire_lever = GenericButton(name="fire_lever", should_poll=True, ydl_header=SHEPHERD_HEADER.FIRE_LEVER)
 
-traffic_button = GenericButton(name="traffic_button", should_poll=True, lcm_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
+traffic_button = GenericButton(name="traffic_button", should_poll=True, ydl_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
 traffic_light = TrafficLight(name="traffic_light", should_poll=False)
 
 num_dehydration_buttons = 7
 
-dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, lcm_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
+dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
 fire_light = Light(name="fire_light", should_poll=False)
 

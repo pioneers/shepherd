@@ -13,7 +13,7 @@ from YDL import ydl_send, ydl_start_read
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
 CLIENT_THREAD = None
 
-def lcm_start_read(receive_channel, queue, put_json=False):
+def ydl_start_read(receive_channel, queue, put_json=False):
     '''
     Takes in receiving channel name (string), queue (Python queue object).
     Takes whether to add received items to queue as JSON or Python dict.
@@ -28,7 +28,7 @@ def lcm_start_read(receive_channel, queue, put_json=False):
         send_message(CLIENT_THREAD.conn, receive_channel, "")
     CLIENT_THREAD.open_targets[receive_channel] = (queue, put_json)
 
-def lcm_send(target_channel, header, dic=None):
+def ydl_send(target_channel, header, dic=None):
     '''
     Send header and dictionary to target channel (string)
     '''

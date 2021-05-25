@@ -264,12 +264,12 @@ class ALLIANCE_COLOR():
 # pylint: disable=invalid-name
 
 
-class LCM_TARGETS():
-    SHEPHERD = "lcm_target_shepherd"
-    SENSORS = "lcm_target_sensors"
-    UI = "lcm_target_ui"
-    DAWN = "lcm_target_dawn"
-    RUNTIME = "lcm_target_runtime"
+class YDL_TARGETS():
+    SHEPHERD = "ydl_target_shepherd"
+    SENSORS = "ydl_target_sensors"
+    UI = "ydl_target_ui"
+    DAWN = "ydl_target_dawn"
+    RUNTIME = "ydl_target_runtime"
     TABLET = "tablet"
 
 # pylint: disable=invalid-name

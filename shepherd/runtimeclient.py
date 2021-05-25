@@ -4,8 +4,8 @@ from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
-from Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
-from LCM import lcm_send, lcm_start_read
+from Utils import YDL_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from YDL import ydl_send, ydl_start_read
 from Robot import Robot
 import socket
 from typing import List
@@ -144,7 +144,7 @@ class RuntimeClient:
             "connected": self.is_alive,
             "custom_ip": self.robot.custom_ip
         }
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, data)
+        ydl_send(YDL_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, data)
 
     def start_recv(self):
         """
@@ -204,7 +204,7 @@ class RuntimeClientManager:
             for client in self.clients:
                 client.send_connection_status_to_ui()
         else:
-            lcm_send(LCM_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"connected": False})
+            ydl_send(YDL_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, {"connected": False})
 
     def get_clients(self, host_urls, robots: List[Robot]):
         print(f"called get_clients on {host_urls}")

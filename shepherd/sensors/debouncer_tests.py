@@ -9,7 +9,7 @@ class TestDebouncer(unittest.TestCase):
 
     def test_noise(self):
         linebreak_debounce_threshold = 10
-        city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, lcm_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
+        city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
         d = Debouncer()
         for i in range(10):
             d.debounce(0, city_linebreak)

@@ -1,9 +1,9 @@
 """
-A process that is the interface between LCM and shared memory.
-It parses device commands from LCM and writes it to shared memory.
-It reads device data from shared memory and publishes it to LCM if necessary.
+A process that is the interface between YDL and shared memory.
+It parses device commands from YDL and writes it to shared memory.
+It reads device data from shared memory and publishes it to YDL if necessary.
 - Ex: Provide the device uid and param index of a button
--     This will write to LCM if the button has been pressed.
+-     This will write to YDL if the button has been pressed.
 """
 import threading
 import time
@@ -14,14 +14,14 @@ import shm_api
 import sys
 sys.path.insert(1, '../')
 from debouncer import Debouncer
-from LCM import (
-    lcm_send,
-    lcm_start_read
+from YDL import (
+    ydl_send,
+    ydl_start_read
 )
 from typing import List, Union
 from Sensors import (
     arduinos,
-    translate_lcm_message,
+    translate_ydl_message,
     HEADER_MAPPINGS,
     HEADER_COMMAND_MAPPINGS,
     Parameter,
@@ -29,12 +29,12 @@ from Sensors import (
     LowcarMessage
 )
 from Utils import (
-    LCM_TARGETS,
+    YDL_TARGETS,
 )
-#LCM -> TURN_ON_LIGHT, {light: 8}
-#LCM -> SET_TRAFFIC_LIGHT, {color: "green"}
+#YDL -> TURN_ON_LIGHT, {light: 8}
+#YDL -> SET_TRAFFIC_LIGHT, {color: "green"}
 
-# START_BUTTON_PRESSED {} -> LCM
+# START_BUTTON_PRESSED {} -> YDL
 
 # figure out three things: 1) which device talking to, 2) which param of device to modify 3) value
 
@@ -98,11 +98,11 @@ def read_device_data(dev_id, param_names):
 def thread_device_commander():
     """
     Thread function
-    Reads commands from LCM and writes it to shared memory.
+    Reads commands from YDL and writes it to shared memory.
     """
     print("started commander thread")
     events = queue.Queue()
-    lcm_start_read(LCM_TARGETS.SENSORS, events)
+    ydl_start_read(YDL_TARGETS.SENSORS, events)
     while True:
         time.sleep(0.1)
         payload = events.get(True)
@@ -110,7 +110,7 @@ def thread_device_commander():
         if payload[0] in HEADER_MAPPINGS:
             # TODO: remove this, after dealing with all exceptions properly
             try:
-                lowcar_message = translate_lcm_message(payload)
+                lowcar_message = translate_ydl_message(payload)
                 place_device_command(lowcar_message)
             except Exception as e:
                 print(f"Exception occured while translating {payload} to a LowcarMessage or placing command: {e}.")
@@ -120,7 +120,7 @@ def thread_device_commander():
 def thread_device_sentinel(params_to_read):
     """
     Thread function
-    Polls shared memory for specified parameters. If they change, write to LCM.
+    Polls shared memory for specified parameters. If they change, write to YDL.
     Ex: Button is pressed
     Arguments:
         A dictionary containing which parameters to watch out for:
@@ -153,9 +153,9 @@ def thread_device_sentinel(params_to_read):
 
                 if (param in previous_debounced_value and
                      param.is_state_change_significant(value, previous_debounced_value[param])):
-                    args = param.lcm_message_from_state_change(value)
-                    print(f"Sending LCM message with header {param.lcm_header} and args {args}")
-                    lcm_send(LCM_TARGETS.SHEPHERD, param.lcm_header, args)
+                    args = param.ydl_message_from_state_change(value)
+                    print(f"Sending YDL message with header {param.ydl_header} and args {args}")
+                    ydl_send(YDL_TARGETS.SHEPHERD, param.ydl_header, args)
 
                 previous_debounced_value[param] = value
 

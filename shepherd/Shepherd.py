@@ -6,7 +6,7 @@ import threading
 from datetime import datetime
 from Utils import SHEPHERD_HEADER
 from Alliance import Alliance
-from LCM import lcm_send, lcm_start_read
+from YDL import ydl_send, ydl_start_read
 from Timer import Timer
 from Utils import *
 from Code import * 
@@ -84,7 +84,7 @@ def start():
     global EVENTS
     global LINEBREAK_HEADERS
     EVENTS = queue.Queue()
-    lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
+    ydl_start_read(YDL_TARGETS.SHEPHERD, EVENTS)
     while True:
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         time.sleep(0.1)
@@ -164,16 +164,16 @@ def to_setup(args):
     send_round_info()
 
     # turn on lasers
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
 
-    # LCM send to scoreboard about robot
+    # YDL send to scoreboard about robot
 
     GAME_STATE = STATE.SETUP
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
 
     # turn stoplight red
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "red"})
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "red"})
 
 
 def to_auto(args):
@@ -191,14 +191,14 @@ def to_auto(args):
     GAME_STATE = STATE.AUTO
     ROBOT.start_time = time.time()
     # STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
-    lcm_send(LCM_TARGETS.UI,
+    ydl_send(YDL_TARGETS.UI,
              UI_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     send_score_to_ui()
     enable_robots(True)
     check_code()
     BUTTONS.illuminate_all()
     if TINDER > 0:
-        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
+        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
     print("ENTERING AUTO STATE")
 
@@ -213,9 +213,9 @@ def reset_round(args=None):
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     EVENTS = queue.Queue()
-    lcm_start_read(LCM_TARGETS.SHEPHERD, EVENTS)
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.RESET_TIMERS)
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
+    ydl_start_read(YDL_TARGETS.SHEPHERD, EVENTS)
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.RESET_TIMERS)
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
     CLIENTS.send_game_state(State.HYPOTHERMIA_END)
     ROBOT.reset()
     TINDER = LAST_TINDER
@@ -228,8 +228,8 @@ def reset_round(args=None):
 
     turn_off_all_lights()
 
-    lcm_send(LCM_TARGETS.TABLET, TABLET_HEADER.RESET)
-    lcm_send(LCM_TARGETS.DAWN, DAWN_HEADER.RESET)
+    ydl_send(YDL_TARGETS.TABLET, TABLET_HEADER.RESET)
+    ydl_send(YDL_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
 
 
@@ -274,12 +274,12 @@ def send_round_info(args = None):
     global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
     team_num = ROBOT.number
     team_name = ROBOT.name
-    lcm_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
+    ydl_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
                 "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.TEAMS_INFO, lcm_data)
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.TEAMS_INFO, ydl_data)
 
 def get_biome(args):
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
 def set_biome(args):
     biome = args["biome"]
@@ -337,7 +337,7 @@ def send_score_to_ui(args = None):
         "score": ROBOT.total_time(),
         "start_time": ROBOT.start_time_millis()
     }
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SCORES, data)
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.SCORES, data)
 
 
 def flush_scores():
@@ -473,7 +473,7 @@ def to_city(args):
     GAME_TIMER.reset()
     GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
     GAME_STATE = STATE.CITY
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {
              "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
     print("ENTERING CITY STATE")
 
@@ -490,7 +490,7 @@ def city_linebreak(args):
 def stoplight_timer_end(args):
     # turn stoplight green
     STOPLIGHT_TIMER.reset()
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "green"})
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "green"})
 
 
 def stoplight_button_press(args):
@@ -525,10 +525,10 @@ def to_desert(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.SANDSTORM
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     if ROBOT.pass_coding_challenges(n=1, tier=2) == 0:
         SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": True})
+        ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": True})
 
 # ----------
 # SANDSTORM STAGE
@@ -536,7 +536,7 @@ def to_desert(args):
 
 
 def sandstorm_timer_end(args):
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
 
 
 def to_dehydration(args):
@@ -545,7 +545,7 @@ def to_dehydration(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.DEHYDRATION
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     BUTTONS.enter_mirage_wall(ROBOT.coding_challenge)
     DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
 
@@ -563,7 +563,7 @@ def dehydration_button_press(args):
     if BUTTONS.press_button_and_check(button_number):
         DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
         GAME_STATE = STATE.FIRE
-        lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+        ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 """
 start
 go to mirage buttons (dehydration stage). 30 second timer starts.
@@ -607,7 +607,7 @@ def set_tinder(args):
     global TINDER
     TINDER = args["tinder"]
     send_round_info()
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
 
 def fire_lever(args):
@@ -617,7 +617,7 @@ def fire_lever(args):
     global FIRE_LIT
     FIRE_LIT = True # this just means the lever was flipped.
     if TINDER > 0:
-        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
+        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
 
 def to_hypothermia(args):
     '''
@@ -625,7 +625,7 @@ def to_hypothermia(args):
     '''
     global GAME_STATE, FIRE_LIT, TINDER
     GAME_STATE = STATE.HYPOTHERMIA
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
     if TINDER > 0:
         TINDER -= 1
@@ -643,7 +643,7 @@ def to_final(args):
     '''
     global GAME_STATE
     GAME_STATE = STATE.FINAL
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     CLIENTS.send_game_state(State.HYPOTHERMIA_END)
 
 # ----------
@@ -676,7 +676,7 @@ def to_end(args):
     ROBOT.end_time = time.time()
     GAME_STATE = STATE.END
     send_score_to_ui()
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
     turn_off_all_lights()
 
@@ -686,19 +686,19 @@ def to_end(args):
         print(f"Unable to push scores to spreadsheet: {e}")
 
 def turn_off_all_lights():
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_FIRE_LIGHT)
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_FIRE_LIGHT)
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
     for i in range(Buttons.NUM_BUTTONS):
-        lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
+        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
 
 def linebreaks_on(args):
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
 
 def linebreaks_off(args):
     global CHECKING_LINEBREAKS, LINEBREAK_HEADERS
     LINEBREAK_HEADERS = [False] * 6
-    lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
+    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
     CHECKING_LINEBREAKS = True
     timer = threading.Timer(2.0, check_linebreaks)
     timer.start()
@@ -717,7 +717,7 @@ def check_linebreaks():
         ret += "hypothermia "
     if not LINEBREAK_HEADERS[5]:
         ret += "final "
-    lcm_send(LCM_TARGETS.UI, UI_HEADER.LINEBREAK_INFO, {"text": ret})
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.LINEBREAK_INFO, {"text": ret})
 
 
 # TODO: someone would have to read headers to figure out which linebreaks were not working

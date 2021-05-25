@@ -3,8 +3,8 @@ import queue
 import hashlib
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from Utils import LCM_TARGETS, UI_PAGES
-from LCM import lcm_send, lcm_start_read
+from Utils import YDL_TARGETS, UI_PAGES
+from YDL import ydl_send, ydl_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000
@@ -59,14 +59,14 @@ def ui_to_server(p, header, args=None):
     if not password(p):
         return
     if args is None:
-        lcm_send(LCM_TARGETS.SHEPHERD, header)
+        ydl_send(YDL_TARGETS.SHEPHERD, header)
     else:
-        lcm_send(LCM_TARGETS.SHEPHERD, header, json.loads(args))
+        ydl_send(YDL_TARGETS.SHEPHERD, header, json.loads(args))
 
 
 def receiver():
     events = queue.Queue()
-    lcm_start_read(LCM_TARGETS.UI, events)
+    ydl_start_read(YDL_TARGETS.UI, events)
     while True:
         while not events.empty():
             event = events.get()
