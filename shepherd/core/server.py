@@ -21,6 +21,10 @@ socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 def hello_world():
     return 'Hello, World!'
 
+"""
+checks to make sure p is the correct password
+if you want to change the password, just change the hash
+"""
 def password(p):
     if p is None:
         return False
@@ -29,23 +33,26 @@ def password(p):
     return m.hexdigest() == \
         "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
+"""
+A dictionary of pages -> whether page is password protected
+add pages here
+"""
+PAGES = {
+    "scoreboard.html": False,
+    "score_adjustment.html": True,
+    "staff_gui.html": True,
+    "stage_control.html": True,
+    "ref_gui.html": True
+}
+
 @app.route('/<path:subpath>')
 def give_page(subpath):
     if subpath[-1] == "/":
-        subpath = subpath[:-1] 
-    if subpath in [
-        "score_adjustment.html",
-        "staff_gui.html",
-        "stage_control.html",
-        "ref_gui.html",
-        "scoreboard.html"
-    ]:
-        if password(request.cookies.get('password')):
-            return render_template(subpath)
-        else:
-            return render_template("password.html")
-    else:
-        return "oops page not found"
+        subpath = subpath[:-1]
+    if subpath in PAGES:
+        passed = PAGES[subpath] or password(request.cookies.get('password'))
+        return render_template(subpath if passed else "password.html")
+    return "oops page not found"
 
 @socketio.event
 def connect():
@@ -63,7 +70,7 @@ def ui_to_server(p, header, args=None):
         lcm_send(LCM_TARGETS.SHEPHERD, header)
     else:
         lcm_send(LCM_TARGETS.SHEPHERD, header, json.loads(args))
-        
+
 
 def receiver():
     events = queue.Queue()

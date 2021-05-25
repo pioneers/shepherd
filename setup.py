@@ -5,6 +5,6 @@ setup(name='shepherd',
       install_requires=[
         'Flask',
         'Flask-SocketIO',
-        'google-api-python-client',
+        'google-api-python-client'
       ])
 
