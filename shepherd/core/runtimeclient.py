@@ -1,5 +1,7 @@
 import time
 import threading
+import socket
+from typing import List
 from shepherd.protos import text_pb2
 from shepherd.protos import run_mode_pb2
 from shepherd.protos import start_pos_pb2
@@ -7,8 +9,6 @@ from shepherd.protos import game_state_pb2
 from shepherd.core.Utils import LCM_TARGETS, PROTOBUF_TYPES, UI_HEADER
 from shepherd.core.LCM import lcm_send, lcm_start_read
 from shepherd.game.Robot import Robot
-import socket
-from typing import List
 
 PORT_RASPI = 8101
 
@@ -28,7 +28,7 @@ class RuntimeClient:
 
     def receive_challenge_data(self):
         """
-        Receive the results of the coding challenges, immediately after send_challenge_data is called.
+        Receive the results of coding challenges, immediately after send_challenge_data is called.
         """
         print("incoming challenge data")
         msg_type = int.from_bytes(self.sock.recv(1), "little")
@@ -61,7 +61,8 @@ class RuntimeClient:
 
     def send_start_pos(self, pos):
         """
-        Send the start position of the robot to Runtime (left or right). This will not be used for 2021.
+        Send the start position of the robot to Runtime (left or right). 
+        This will not be used for 2021.
         """
         proto_type = bytearray([PROTOBUF_TYPES.START_POS])
         self.sock.send(proto_type)
@@ -73,7 +74,8 @@ class RuntimeClient:
 
     def send_challenge_data(self, data):
         """
-        Tells Runtime to execute the coding challenges in {data}, an array of strings with the names of the coding challenges.
+        Tells Runtime to execute the coding challenges in {data}, 
+        an array of strings with the names of the coding challenges.
         """
         proto_type = bytearray([PROTOBUF_TYPES.CHALLENGE_DATA])
         self.sock.send(proto_type)

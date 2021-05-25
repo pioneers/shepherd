@@ -1,7 +1,7 @@
 import time
 import threading
-import LCM
-from Utils import LCM_TARGETS
+from shepherd.core.LCM import lcm_send
+from shepherd.core.Utils import LCM_TARGETS
 
 class TimerThread(threading.Thread):
     '''
@@ -97,7 +97,7 @@ class Timer:
         if not self.active: return #if timer was just reset
         self.active = False #in case callback restarts the timer, do this first
         if self.timer_type is not None and self.timer_type["NEEDS_FUNCTION"]:
-            LCM.lcm_send(LCM_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
+            lcm_send(LCM_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
 
 
     def reset(self):

@@ -1,16 +1,16 @@
 import json
 import queue
 import hashlib
-from flask import Flask, render_template, request  # pylint: disable=import-error
-from flask_socketio import SocketIO  # pylint: disable=import-errors
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO
 from shepherd.core.Utils import LCM_TARGETS
 from shepherd.core.LCM import lcm_send, lcm_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000
 
-app = Flask(__name__, 
-    template_folder='../templates', 
+app = Flask(__name__,
+    template_folder='../templates',
     static_folder='../static')
 app.config['SECRET_KEY'] = 'omegalul!'
 app.config['TEMPLATES_AUTO_RELOAD'] = True

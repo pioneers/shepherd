@@ -2,8 +2,8 @@
 import time
 import random
 import queue
-from LCM import *
-from Utils import *
+from shepherd.core.LCM import lcm_send, lcm_start_read
+from shepherd.core.Utils import *
 def start():
     for i in range(7):
         lcm_send(LCM_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})

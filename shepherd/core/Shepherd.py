@@ -8,12 +8,12 @@ from shepherd.core.Utils import SHEPHERD_HEADER
 from shepherd.core.LCM import lcm_send, lcm_start_read
 from shepherd.core.Timer import Timer
 from shepherd.core.Utils import *
-from shepherd.game.Alliance import Alliance
-from shepherd.game.Code import * 
-from shepherd.protos.run_mode_pb2 import Mode
-from shepherd.core.runtimeclient import RuntimeClientManager
-from shepherd.protos.game_state_pb2 import State
 import shepherd.core.Sheet as Sheet
+from shepherd.protos.run_mode_pb2 import Mode
+from shepherd.protos.game_state_pb2 import State
+from shepherd.core.runtimeclient import RuntimeClientManager
+from shepherd.game.Alliance import Alliance
+from shepherd.game.Code import *
 from shepherd.game.Robot import Robot
 from shepherd.game.Buttons import Buttons
 from shepherd.game.challenge_results import CHALLENGE_RESULTS

@@ -1,6 +1,6 @@
-import LCM
-from Utils import *
 import time
+import shepherd.core.LCM as LCM
+from shepherd.core.Utils import *
 
 # Arduino 1 Write Tests
 """

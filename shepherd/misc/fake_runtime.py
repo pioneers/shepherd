@@ -1,8 +1,8 @@
 import socket
-from protos import run_mode_pb2
-from protos import text_pb2
-from protos import start_pos_pb2
-from Utils import *
+from shepherd.protos import run_mode_pb2
+from shepherd.protos import text_pb2
+from shepherd.protos import start_pos_pb2
+from shepherd.core.Utils import *
 
 
 class TestSocket:
@@ -46,12 +46,12 @@ class TestSocket:
         return connection
 
 
-socket = TestSocket()
-socket.connection.send(b'\x02')
+sock = TestSocket()
+sock.connection.send(b'\x02')
 text = text_pb2.Text()
 text.payload.append("wieofw")
 bytearr = bytearray(text.SerializeToString())
 # hardcoded in, really should be len(bytearr), truncated to 2 bits
-socket.connection.send(b'\x00\x08')
-socket.connection.send(bytearr)
-socket.receive()
+sock.connection.send(b'\x00\x08')
+sock.connection.send(bytearr)
+sock.receive()
