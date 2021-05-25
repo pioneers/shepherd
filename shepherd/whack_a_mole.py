@@ -1,9 +1,8 @@
-#!/usr/bin/python
 import time
 import random
 import queue
-from YDL import *
-from Utils import *
+from YDL import ydl_send, ydl_start_read
+from Utils import YDL_TARGETS, SENSOR_HEADER, SHEPHERD_HEADER
 def start():
     for i in range(7):
         ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})

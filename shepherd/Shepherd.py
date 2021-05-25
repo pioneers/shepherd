@@ -9,7 +9,7 @@ from Alliance import Alliance
 from YDL import ydl_send, ydl_start_read
 from Timer import Timer
 from Utils import *
-from Code import * 
+from Code import *
 from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State

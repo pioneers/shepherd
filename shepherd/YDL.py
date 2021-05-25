@@ -2,7 +2,7 @@ import threading
 import json
 import socket
 import selectors
-
+import time
 
 
 """
@@ -52,7 +52,12 @@ class ClientThread(threading.Thread):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.selobj = ReadObject()
         self.open_targets = {}
-        self.conn.connect(SERVER_ADDR)
+        while True:
+            try:
+                self.conn.connect(SERVER_ADDR)
+                return
+            except ConnectionRefusedError:
+                time.sleep(0.1)
 
     def run(self):
         while True:
@@ -118,7 +123,7 @@ Server methods; apply to the YDL backend
 def accept(sel, all_connections, sock):
     conn, addr = sock.accept()  # Should be ready
     print('accepted connection from', addr)
-    conn.setblocking(False)
+    # conn.setblocking(False) - we actually want blocking writes
     sel.register(conn, selectors.EVENT_READ, ReadObject())
     all_connections.append(conn)
 
@@ -135,7 +140,6 @@ def read(sel, all_connections, subscriptions, conn, obj):
     else:
         obj.inb += data
         for target_channel, message in obj:
-            print("got: ", (target_channel, message))
             subscriptions.setdefault(target_channel, [])
             if len(message) == 0:
                 subscriptions[target_channel].append(conn)
