@@ -5,10 +5,11 @@ import selectors
 import time
 
 
-"""
+'''
 when using YDL, please do:
 from YDL import ydl_send, ydl_start_read
-"""
+since only those two methods are meant for public consumption
+'''
 
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
 CLIENT_THREAD = None
@@ -26,6 +27,7 @@ def ydl_start_read(receive_channel, queue, put_json=False):
     start_client_thread_if_not_alive()
     if receive_channel not in CLIENT_THREAD.open_targets:
         send_message(CLIENT_THREAD.conn, receive_channel, "")
+        # sending an empty string is a special message that means "subscribe to channel"
     CLIENT_THREAD.open_targets[receive_channel] = (queue, put_json)
 
 def ydl_send(target_channel, header, dic=None):
@@ -39,13 +41,24 @@ def ydl_send(target_channel, header, dic=None):
     json_str = json.dumps(dic)
     send_message(CLIENT_THREAD.conn, target_channel, json_str)
 
+
+
 def start_client_thread_if_not_alive():
+    '''
+    (internal use only) 
+    '''
     global CLIENT_THREAD
     if CLIENT_THREAD is None:
         CLIENT_THREAD = ClientThread()
         CLIENT_THREAD.start()
 
 class ClientThread(threading.Thread):
+    '''
+    (internal use only)
+    A thread for sending YDL messages to the YDL server
+    Has one connection that it keeps open; the thread
+    will die when the connection closes
+    '''
     def __init__(self):
         super().__init__()
         self.daemon = True #will be shut down abruptly when main thread dies
@@ -79,24 +92,27 @@ class ClientThread(threading.Thread):
             header = dic.pop('header')
             queue.put((header, dic))
 
-
-
-"""
-Utility methods - apply to both the client and server
-
-Message format between client and server is (len1, len2, str1, str2). 
-Normally first and second string represent (target, message). 
-(target, "") from client to server means subscribe to target
-"""
-
-
 def send_message(conn, target, msg):
+    '''
+    (internal use only)
+    Sends a message meant for the given target across conn
+    The message format is (len1, len2, str1, str2)
+    Note: all 4 components have to be in one conn.sendall call,
+    otherwise bad things happen when multiple threads send messages
+    at the same time
+    '''
     conn.sendall(len(target).to_bytes(4, "little")
                + len(msg).to_bytes(4, "little")
                + target.encode("utf-8")
                + msg.encode("utf-8"))
 
 class ReadObject:
+    '''
+    (internal use only)
+    An iterable object for receiving messages
+    Append incoming message bytes to self.inb, 
+    and then you can loop through the object to get the messages
+    '''
     def __init__(self):
         self.inb = b''
 
@@ -115,25 +131,29 @@ class ReadObject:
         self.inb = self.inb[len1 + len2 + 8:]
         return (target_channel, message)
 
-
-"""
-Server methods; apply to the YDL backend
-"""
-
-def accept(sel, all_connections, sock):
+def accept(sel, sock):
+    '''
+    (server method - internal use only)
+    When sock has a connection ready to accept,
+    accept the connection and register it in sel
+    Note that we want the new connections to be blocking,
+    since dealing with non-blocking writes is a pain
+    '''
     conn, addr = sock.accept()  # Should be ready
     print('accepted connection from', addr)
-    # conn.setblocking(False) - we actually want blocking writes
     sel.register(conn, selectors.EVENT_READ, ReadObject())
-    all_connections.append(conn)
 
-def read(sel, all_connections, subscriptions, conn, obj):
+def read(sel, subscriptions, conn, obj):
+    '''
+    (server method - internal use only)
+    When conn has bytes ready to read, read those bytes and
+    forward messages to the correct subscribers
+    '''
     data = conn.recv(1024)  # Should be ready
     if len(data) == 0:
         print('closing connection from socket')
         sel.unregister(conn)
         conn.close()
-        all_connections.remove(conn)
         for lst in subscriptions.values():
             while conn in lst:
                 lst.remove(conn)
@@ -142,14 +162,20 @@ def read(sel, all_connections, subscriptions, conn, obj):
         for target_channel, message in obj:
             subscriptions.setdefault(target_channel, [])
             if len(message) == 0:
+                # an empty string is a special message that means "subscribe to channel"
                 subscriptions[target_channel].append(conn)
             else:
+                # forward message to correct subscribers
                 for c in subscriptions[target_channel]:
                     send_message(c, target_channel, message)
 
 def start_backend():
-    all_connections = []
-    subscriptions = {}
+    '''
+    (server method - internal use only)
+    Starts the YDL server that processes will use
+    to communicate with each other
+    '''
+    subscriptions = {} # a mapping of target names -> list of socket objects
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind(SERVER_ADDR)
@@ -161,9 +187,9 @@ def start_backend():
         events = sel.select(timeout=None)
         for key, _mask in events:
             if key.data is None:
-                accept(sel, all_connections, key.fileobj)
+                accept(sel, key.fileobj)
             else:
-                read(sel, all_connections, subscriptions, key.fileobj, key.data)
+                read(sel, subscriptions, key.fileobj, key.data)
 
 if __name__ == "__main__":
     print("Starting YDL server at address:", SERVER_ADDR)
