@@ -713,7 +713,9 @@ COMMANDS = {'WAIT': wait_function,
             'PASS': pass_function,
             'FAIL': fail_function,
             'ASSERT': assert_function,
-            '##': lambda line: None}
+            '##': lambda line: None,
+            'SLEEP': sleep_function
+            }
 
 if __name__ == '__main__':
     """
