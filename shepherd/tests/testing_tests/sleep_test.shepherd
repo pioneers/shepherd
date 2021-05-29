@@ -1,0 +1,25 @@
+## small wait test
+RUN import time
+RUN start = time.time()
+SLEEP .1
+RUN end = time.time()
+RUN delta = end - start
+RUN epsilon = abs(delta - .1)
+PRINTP epsilon
+FAIL epsilon > .001
+## large wait test
+RUN start = time.time()
+SLEEP 10
+RUN end = time.time()
+RUN delta = end - start
+RUN epsilon = abs(delta - 10)
+PRINTP epsilon
+FAIL epsilon > .02
+## very large wait test
+RUN start = time.time()
+SLEEP 100
+RUN end = time.time()
+RUN delta = end - start
+RUN epsilon = abs(delta - 100)
+PRINTP epsilon
+ASSERT epsilon < .15

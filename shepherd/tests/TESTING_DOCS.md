@@ -62,9 +62,9 @@ Usage: `PRINTP <python expression>`
 
 The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any LCM messages received
 while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep
-time may be a decimal, and is in terms of seconds.
+time may be a decimal, and is in terms of seconds. SLEEP may take a python expression as an argument, so long as it evaluates to a float.
 
-Usage: `SLEEP <time>`
+Usage: `SLEEP <time / python expression>`
 
 ### IF
 
