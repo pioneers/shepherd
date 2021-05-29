@@ -341,9 +341,10 @@ def fail_function(expression):
     Enforces syntax and will print out the result as well as exit the script
     interpretter if the test is failed.
     """
+    global LINE
     expression = remove_outer_spaces(expression)
     if expression == '' or evaluate_python(expression):
-        print("TEST FAILED")
+        print(f"TEST FAILED on line {LINE}")
         sys.exit(-1)
 
 
@@ -353,6 +354,7 @@ def assert_function(expression):
     Enforces syntax and will print out the result of the assertion as well as
     exit the script interpretter.
     """
+    global LINE
     expression = remove_outer_spaces(expression)
     if expression == '':
         raise Exception(
@@ -361,7 +363,7 @@ def assert_function(expression):
         print("TEST PASSED")
         sys.exit(0)
     else:
-        print("TEST FAILED")
+        print(f"TEST FAILED on line {LINE}")
         sys.exit(-1)
 
 def sleep_function(expression):
