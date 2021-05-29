@@ -58,6 +58,14 @@ The PRINTP statement is used to create dynamic messages, and will evaluate a pyt
 
 Usage: `PRINTP <python expression>`
 
+### SLEEP
+
+The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any LCM messages received
+while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep
+time may be a decimal, and is in terms of seconds.
+
+Usage: `SLEEP <time>`
+
 ### IF
 
 The IF statement accepts a python conditional expression, which it evaluates. All normal python rules apply. The code following the IF statement will be executed only if the expression evaluates to True in python. The IF statement must be closed using and END statement.
