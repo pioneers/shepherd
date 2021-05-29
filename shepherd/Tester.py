@@ -364,6 +364,20 @@ def assert_function(expression):
         print("TEST FAILED")
         sys.exit(-1)
 
+def sleep_function(expression):
+    """
+    The function that parses SLEEP statements.
+    Enforces syntax, and pauses the .shepherd interpreter for the specified
+    number of seconds.
+    """
+    expression = remove_outer_spaces(expression)
+    if expression == '':
+        raise Exception('expected a time afer after SLEEP')
+    try:
+        ammount = float(expression)
+    except ValueError as e:
+        raise Exception(f'expected a time afer after SLEEP, but got {expression}')
+    time.Sleep(ammount)
 
 def read_function(line):
     """
