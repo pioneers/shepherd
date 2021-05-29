@@ -344,7 +344,7 @@ def fail_function(expression):
     global LINE
     expression = remove_outer_spaces(expression)
     if expression == '' or evaluate_python(expression):
-        print(f"TEST FAILED on line {LINE}")
+        print(f"TEST FAILED on line {LINE + 1}")
         sys.exit(-1)
 
 
@@ -363,7 +363,7 @@ def assert_function(expression):
         print("TEST PASSED")
         sys.exit(0)
     else:
-        print(f"TEST FAILED on line {LINE}")
+        print(f"TEST FAILED on line {LINE + 1}")
         sys.exit(-1)
 
 def sleep_function(expression):
