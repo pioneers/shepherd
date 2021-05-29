@@ -374,10 +374,10 @@ def sleep_function(expression):
     if expression == '':
         raise Exception('expected a time afer after SLEEP')
     try:
-        ammount = float(expression)
+        amount = float(expression)
     except ValueError as e:
         raise Exception(f'expected a time afer after SLEEP, but got {expression}')
-    time.Sleep(ammount)
+    time.Sleep(amount)
 
 def read_function(line):
     """
