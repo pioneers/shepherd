@@ -1,6 +1,6 @@
 """
 This file runs the tests in the tests folder and exits with code 0 on success.
-This will be used from Travis.
+This will be used by Travis.
 """
 import os
 from os import DirEntry
@@ -15,7 +15,7 @@ instruction_file = "instructions.shepherd"
 def run_test(name, path, verbose=False):
     '''
     Reads the instructions file and runs each test in the order specified by the instructions.
-    Waits until the first process fails or until all processes succesfully exit.
+    Waits until the first process fails or until all TEST processes succesfully exit.
 
     There is a 0.1 second delay between each process to ensure that the order is maintained.
     If you are encountering an infinite loop, try changing this delay
@@ -26,6 +26,7 @@ def run_test(name, path, verbose=False):
     the begining of all your TEST files for additional delay.
     '''
     global SUCCESS
+    print(f"[STARTING] {name}")
     instructions = open(os.path.join(
         path, 'instructions.shepherd'), "r")
     files = list(map(lambda s: s.strip().split(" "), instructions))
@@ -55,10 +56,10 @@ def run_test(name, path, verbose=False):
             elif poll != 0:
                 passed = False
     if passed:
-        print(f"PASSED {name}")
+        print(f"[PASSED] {name}")
     else:
         print(f'one or more processes errored when running {name}')
-        print(f"FAILED {name}")
+        print(f"[FAILED] {name}")
         SUCCESS = False
     print("---------------\n")
     for process in real_processes:
@@ -125,14 +126,16 @@ def start():
         queued_tests = tests
 
     # and now run them
+    print(f"Running {len(queued_tests)} out of {len(tests)} possible tests")
+    print("---------------\n")
     for test in queued_tests:
         run_test(test, os.path.join('./tests', test), verbose=True)
 
     if SUCCESS:
-        print("PASSED ALL TESTS")
+        print("[PASSED ALL TESTS]")
         sys.exit(0)
     else:
-        print("DID NOT PASS ALL TESTS")
+        print("[DID NOT PASS ALL TESTS]")
         sys.exit(-1)
 
 if __name__ == '__main__':

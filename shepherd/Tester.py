@@ -646,7 +646,7 @@ def main():
             line = line[0:-1]
         FILE.append(line)
     file.close()
-    print('Starting test: {}'.format(sys.argv[1]))
+    print('Starting TEST file: {}'.format(sys.argv[1]))
     return 0
 
 
