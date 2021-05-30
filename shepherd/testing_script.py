@@ -23,18 +23,27 @@ def run_test(name, path, verbose=False):
     global SUCCESS
     instructions = open(os.path.join(
         path, 'instructions.shepherd'), "r")
-    files = list(map(lambda s: s.strip(), instructions))
-    processes = []
-    for file in files:
-        processes.append(Popen(
-            ['python3', 'Tester.py', os.path.join(name, file)],
-            stdout=sys.stdout if verbose else PIPE))
-        time.sleep(0.1)
+    files = list(map(lambda s: s.strip().split(" "), instructions))
+    test_processes = []
+    real_processes = []
+    for type, file in files:
+        if type == "REAL":
+            args = ['python3', file]
+        elif type == "TEST":
+            args = ['python3', 'Tester.py', os.path.join(name, file)]
+        else:
+            raise Exception(f"did not recognize test type {type}")
+        if type == "REAL":
+            real_processes.append(Popen(args, stdout=sys.stdout if verbose else PIPE))
+            time.sleep(5)
+        elif type == "TEST":
+            test_processes.append(Popen(args, stdout=sys.stdout if verbose else PIPE))
+            time.sleep(0.1)
     passed = True
     done = False
     while not done:
         done = True
-        for process in processes:
+        for process in test_processes:
             poll = process.poll()
             if poll is None:
                 done = False
@@ -47,6 +56,8 @@ def run_test(name, path, verbose=False):
         print(f"FAILED {name}")
         SUCCESS = False
     print("---------------\n")
+    for process in real_processes:
+        process.kill()
 
 
 # run the specified tests if specified or run all tests

@@ -1,2 +1,2 @@
-example.shepherd
-example_client.shepherd
+TEST example.shepherd
+TEST example_client.shepherd

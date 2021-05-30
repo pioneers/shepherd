@@ -1,2 +1,2 @@
-REAL Shepherd
-TEST staff_ui
+REAL Shepherd.py
+TEST staff_ui.shepherd

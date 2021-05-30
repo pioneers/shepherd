@@ -1,4 +1,5 @@
-if_test.shepherd
-while_test.shepherd
-wait_stress_test_client.shepherd
-wait_stress_test_server.shepherd
+TEST if_test.shepherd
+TEST while_test.shepherd
+TEST wait_stress_test_client.shepherd
+TEST wait_stress_test_server.shepherd
+TEST sleep_test.shepherd
