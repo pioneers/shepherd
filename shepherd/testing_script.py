@@ -10,6 +10,7 @@ import time
 # pylint: disable = global-statement
 SUCCESS = True
 
+instruction_file = "instructions.shepherd"
 
 def run_test(name, path, verbose=False):
     '''
@@ -19,6 +20,10 @@ def run_test(name, path, verbose=False):
     There is a 0.1 second delay between each process to ensure that the order is maintained.
     If you are encountering an infinite loop, try changing this delay
     as well as ensuring that your instructions are in a valid order.
+
+    A 5 second delay is added after any REAL file is run, to ensure startup. If
+    this still results in an infinite loop, consider adding a SLEEP statement to
+    the begining of all your TEST files for additional delay.
     '''
     global SUCCESS
     instructions = open(os.path.join(
@@ -59,19 +64,76 @@ def run_test(name, path, verbose=False):
     for process in real_processes:
         process.kill()
 
+def start():
+    """
+    Process argv and run as many applicable tests. This could be all tests,
+    a group of tests, or a specific test.
 
-# run the specified tests if specified or run all tests
-if len(sys.argv) >= 2:
-    for test in sys.argv[1:]:
+    If -h or -help is present in the list of args, run no tests and instead
+    print out a list of all possible tests.
+    """
+    # collect all valid tests and test groups
+    tentative_test_groups = [f.name for f in filter(lambda f: f.is_dir(), os.scandir('./tests'))]
+    test_groups = {}
+    tests = []
+    for test_group in tentative_test_groups:
+        tentative_tests = [f for f in filter(lambda f: f.is_dir(), os.scandir(os.path.join('./tests', test_group)))]
+        local_tests = []
+        for test in tentative_tests:
+            if os.path.exists(os.path.join(test, instruction_file)):
+                test = os.path.join(test_group, test.name)
+                local_tests += [test]
+                tests += [test]
+        if local_tests:
+            test_groups[test_group] = local_tests
+
+    queued_tests = []
+    # queue the specified tests:
+    if len(sys.argv) >= 2:
+        # check for help flag
+        if "-h" in sys.argv[1:] or "-help" in sys.argv[1:]:
+            print("testing_script.py takes any number of the following arguments:")
+            print("  to run test groups:")
+            for test_group in test_groups.keys():
+                print(f"    {test_group}")
+            print("  to run individual tests:")
+            for test in tests:
+                print(f"    {test}")
+            print("  to bring up the help menue:")
+            print("    -help")
+            print("    -h")
+            sys.exit(-1)
+        else:
+            for test in sys.argv[1:]:
+                # check if the specified test was a test group
+                if test in list(test_groups.keys()):
+                    for t in test_groups:
+                        #no duplicates
+                        if not t in queued_tests:
+                            queued_tests += [t]
+                # check if the specified test was a single test
+                elif test in tests:
+                    #no duplicates
+                    if not test in queued_tests:
+                        queued_tests += [test]
+                # an invalid test was passed in
+                else:
+                    print(f"Invalid test: {test}. Use -help to see a list of tests.")
+                    sys.exit(-1)
+    # otherwise, queue all tests
+    else:
+        queued_tests = tests
+
+    # and now run them
+    for test in queued_tests:
         run_test(test, os.path.join('./tests', test), verbose=True)
-else:
-    f: DirEntry
-    for f in filter(lambda f: f.is_dir(), os.scandir('./tests')):
-        run_test(f.name, f.path, verbose=True)
 
-if SUCCESS:
-    print("PASSED ALL TESTS")
-    sys.exit(0)
-else:
-    print("DID NOT PASS ALL TESTS")
-    sys.exit(-1)
+    if SUCCESS:
+        print("PASSED ALL TESTS")
+        sys.exit(0)
+    else:
+        print("DID NOT PASS ALL TESTS")
+        sys.exit(-1)
+
+if __name__ == '__main__':
+    start()
