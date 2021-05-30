@@ -35,7 +35,7 @@ def get_attr_from_name(source, name):
 def parse_header(header):
     """
     A helper function that translates the headers in format
-    <LCM_targer>.<header> to the string representation stored in Utils.py.
+    <LCM_target>.<header> to the string representation stored in Utils.py.
     Enforces the syntax for referencing the header, as well as the existance of
     the header in Utils.py.
     """
@@ -369,7 +369,7 @@ def assert_function(expression):
 def sleep_function(expression):
     """
     The function that parses SLEEP statements.
-    Enforces syntax, and pauses the .shepherd interpreter for the specified
+    Enforces syntax and pauses the .shepherd interpreter for the specified
     number of seconds.
     """
     expression = remove_outer_spaces(expression)
@@ -380,6 +380,18 @@ def sleep_function(expression):
     except ValueError as e:
         raise Exception(f'expected a time afer after SLEEP, but got {expression}')
     time.sleep(amount)
+
+def discard_function(expression):
+    """
+    The function that parses DISCARD statements.
+    Enforces syntax and clears the LCM / YDL queue so that no outstanding requests
+    are processed.
+    """
+    global EVENTS
+    if expression != '':
+        raise Exception('expected nothing after DISCARD statement')
+    with EVENTS.mutex:
+        EVENTS.queue.clear()
 
 def read_function(line):
     """
@@ -716,7 +728,8 @@ COMMANDS = {'WAIT': wait_function,
             'FAIL': fail_function,
             'ASSERT': assert_function,
             '##': lambda line: None,
-            'SLEEP': sleep_function
+            'SLEEP': sleep_function,
+            'DISCARD': discard_function
             }
 
 if __name__ == '__main__':

@@ -1,0 +1,2 @@
+TEST discard_server.shepherd
+TEST discard_client.shepherd

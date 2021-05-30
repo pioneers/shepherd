@@ -94,6 +94,7 @@ def start():
         # check for help flag
         if "-h" in sys.argv[1:] or "-help" in sys.argv[1:]:
             print("testing_script.py takes any number of the following arguments:")
+            print("leave args empty to run all tests.")
             print("  to run test groups:")
             for test_group in test_groups.keys():
                 print(f"    {test_group}")

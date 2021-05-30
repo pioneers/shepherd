@@ -66,6 +66,14 @@ time may be a decimal, and is in terms of seconds. SLEEP may take a python expre
 
 Usage: `SLEEP <time / python expression>`
 
+### DISCARD
+
+The DISCARD statement clears the LCM / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not
+be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is
+the desired functionality.
+
+Usage: `DISCARD`
+
 ### IF
 
 The IF statement accepts a python conditional expression, which it evaluates. All normal python rules apply. The code following the IF statement will be executed only if the expression evaluates to True in python. The IF statement must be closed using and END statement.
