@@ -108,7 +108,7 @@ def start():
             for test in sys.argv[1:]:
                 # check if the specified test was a test group
                 if test in list(test_groups.keys()):
-                    for t in test_groups:
+                    for t in test_groups[test]:
                         #no duplicates
                         if not t in queued_tests:
                             queued_tests += [t]
