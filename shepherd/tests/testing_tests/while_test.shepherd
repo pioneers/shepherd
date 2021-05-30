@@ -1,26 +1,26 @@
 RUN counter = 0
 WHILE counter < 10
-PRINT counter
-IF counter > 5
-PRINT counter higher
-END
-RUN counter += 1
+  PRINT counter
+    IF counter > 5
+    PRINT counter higher
+    END
+  RUN counter += 1
 END
 ASSERT counter == 10
 RUN i = 0
 WHILE i < 3
-RUN j = 0
-WHILE j < 3
-IF i == 1 and j == 1
-PRINT special 1
-END
-IF i != 1 or j != 1
-PRINT 0
-END
-RUN j += 1
-END
-ASSERT J == 3
-RUN i += 1
+  RUN j = 0
+  WHILE j < 3
+    IF i == 1 and j == 1
+      PRINT special 1
+    END
+    IF i != 1 or j != 1
+      PRINT 0
+    END
+    RUN j += 1
+  END
+  ASSERT J == 3
+  RUN i += 1
 END
 ASSERT I == 3
 PASS
