@@ -4,6 +4,7 @@ import os
 import queue
 import time
 from typing import Any
+from keyword import iskeyword
 from Utils import *
 from LCM import *
 
@@ -68,7 +69,7 @@ def parse_header(header):
 def execute_python(script):
     """
     A helper function that executes a python expression in the context of the
-    local scipt enviroment.
+    local scipt environment.
     """
     global LOCALVARS
     exec(script, LOCALVARS)
@@ -76,7 +77,7 @@ def execute_python(script):
 
 def evaluate_python(token):
     """
-    A helper function that evaluates a token against the local scipt enviroment.
+    A helper function that evaluates a token against the local scipt environment.
     """
     global LOCALVARS
     return eval(token, LOCALVARS)
@@ -470,8 +471,27 @@ def with_function_wait(expression, data):
     """
     Takes in a WITH statement found in a WAIT statement, and the data that was
     present in the header that triggered the processing of this WAIT statement,
-    and modifies the local script enviroment accordingly.
+    and modifies the local script environment accordingly.
     Also handles syntax checking of the WITH statement.
+    """
+    parts = parse_with_function_wait(expression)
+    ex = None
+    try:
+        global LOCALVARS
+        LOCALVARS[parts[0]] = data[parts[1]]
+    except ValueError:
+        ex = Exception("{} is undefined".format(parts[0]))
+    except Exception:
+        ex = Exception("malformed WITH statement: {}".format(expression))
+    finally:
+        if ex:
+            raise ex
+
+def parse_with_function_wait(expression):
+    """
+    Helper function used in a few places to parse and syntax check a WITH
+    statement in a WAIT statement.
+    Returns a tuple of form (var_name, data_key)
     """
     parts = expression.split('=')
     if len(parts) != 2:
@@ -481,18 +501,32 @@ def with_function_wait(expression, data):
     if parts[1][0] != "'" or parts[1][-1] != "'":
         raise Exception(
             "expected second argument of WITH statement: {} to be wrapped in '.".format(expression))
-    ex = None
-    try:
-        global LOCALVARS
-        LOCALVARS[parts[0]] = data[parts[1][1:-1]]
-    except ValueError:
-        ex = Exception("{} is undefined".format(parts[0]))
-    except Exception:
-        ex = Exception("malformed WITH statement: {}".format(expression))
-    finally:
-        if ex:
-            raise ex
+    return (parts[0], parts[1][1:-1])
 
+def with_infer_function(withs, data):
+    """
+    Called when a WITH statement found in a WAIT statement that uses an INFER is
+    encountered, and takes in all WITH statements as well as the recieved data.
+    Modifies the local script environment to store any unused data keys (not
+    found in other WAIT statements) in variables of the exact same name.
+    Ensures that valid python variable naming conventions are used.
+    """
+
+    def is_valid_variable_name(name):
+        """
+        Quick helper function to check if variable names are valid.
+        """
+        if name[0] == '_':
+            return False
+        return name.isidentifier() and not iskeyword(name)
+
+    global LOCALVARS
+    with_keys = [parse_with_function_wait(w)[1] for w in withs if not 'INFER' in w]
+    for var in data.keys():
+        if not var in with_keys:
+            if not is_valid_variable_name(var):
+                raise Exception(f"{var} is not a valid python variable name, and therefore cannot be used in INFER. Use WITH <valid_name> = '{var}' to specify a valid name.")
+            LOCALVARS[var] = data[var]
 
 def with_function_emit(expression, data):
     """
@@ -550,15 +584,22 @@ def check_received_headers():
 def execute_header(header, data):
     """
     Takes in a header data structure and the data from the LCM call and will
-    modify the local enviroment accordingly.
+    modify the local environment accordingly.
     Processes all SET and WITH statements in the header individually, and with
     no guarantee on order.
         In this implementation, all WITH statements are processed first, from
         left to right, and then all SET statements, from left to right.
     """
     global LOCALVARS
+    inferred = False
     for with_statement in header['header']['with_statements']:
-        with_function_wait(with_statement, data)
+        if with_statement == 'INFER':
+            if inferred:
+                continue
+            with_infer_function(header['header']['with_statements'], data)
+            inferred = True
+        else:
+            with_function_wait(with_statement, data)
     for set_statement in header['header']['set_statements']:
         local_arg = remove_outer_spaces(set_statement.split('=')[0])
         python_expression = remove_outer_spaces(set_statement.split('=')[1])
@@ -611,32 +652,23 @@ def start():
     if TARGET == 'unassigned':
         raise Exception("READ needs to be called before the first WAIT.")
 
-    # def run():
-    #     i = 0
-    #     while True:
-    #         time.sleep(.5)
-    #         print(f"running! {i}")
-    #         i += 1
-
-    # test_thread = threading.Thread(target=run)
-    # test_thread.start()
-
     while True:
         time.sleep(0.1)
         payload = EVENTS.get(True)
-        accept_header(payload)
+        # a quick try block to ensure that errors in WAIT statements get line #
+        ex = None
+        try:
+            accept_header(payload)
+# pylint: disable=broad-except
+        except Exception as exx:
+            ex = Exception(
+                'an error occured on line {}:\n{}'.format(LINE + 1, exx))
+        finally:
+            if ex:
+                raise ex
         if(check_received_headers()):
             CURRENT_HEADERS = []
             run_until_wait()
-
-
-# class worker(Thread):
-#     def run(self):
-#         for i in range(0, 11):
-#             print(x)
-#             time.sleep(1)
-# worker().start()
-
 
 def main():
     """
@@ -684,8 +716,8 @@ all headers have been resolved, and execution should continue.
 WAITING = False
 """
 A dictionary that is populated by the script's execution. This is used as an
-enviroment for python execution in RUN and in the WAIT, SET, and PRINTP
-statements. Unlike normal python enviroments, there are no further frames opened
+environment for python execution in RUN and in the WAIT, SET, and PRINTP
+statements. Unlike normal python environments, there are no further frames opened
 for code blocks, and this is a facsimile of dynamic typing.
 """
 LOCALVARS = {}

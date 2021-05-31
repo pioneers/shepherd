@@ -60,17 +60,13 @@ Usage: `PRINTP <python expression>`
 
 ### SLEEP
 
-The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any LCM messages received
-while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep
-time may be a decimal, and is in terms of seconds. SLEEP may take a python expression as an argument, so long as it evaluates to a float.
+The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any LCM messages received while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep time may be a decimal, and is in terms of seconds. SLEEP may take a python expression as an argument, so long as it evaluates to a float.
 
 Usage: `SLEEP <time / python expression>`
 
 ### DISCARD
 
-The DISCARD statement clears the LCM / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not
-be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is
-the desired functionality.
+The DISCARD statement clears the LCM / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is the desired functionality.
 
 Usage: `DISCARD`
 
@@ -133,6 +129,8 @@ The WAIT statement is used to pause code execution until a specific LCM message 
 - A LCM target must follow the header, separated by the keyword FROM. This is the LCM channel that the WAIT statement will listen to for the specified header.
 
 - WITH can then be specified, to store arguments from the header into the namespace. This must follow the target specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
+
+- WITH INFER is a special kind of WITH statement which instructs the testing script to place all of the data found in the LCM message into the namespace with the variable name inferred as the name of the key in the data dictionary from the header. Any key in the data dictionary that is used in another WITH statement will not be inferred, and therefore will not be copied into the namespace a second time. The WITH INFER statement does not need to go in any particular place and will look both ahead and behind when calculating what statements to infer. This means it can go anywhere a normal WITH statement can go. It is important to note that any header keys that are inferred that are not valid python variable names, or that begin with an underscore will cause an error. Therefore you must explicitly name and store any such key values in their own WITH statements in order to give them valid names and cause WITH INFER to skip over them.
 
 - SET can then be specified, which will execute a line of python code when the header is received. The SET statement looks something like this, `SET test = True`.
 
