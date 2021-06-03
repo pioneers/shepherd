@@ -14,8 +14,6 @@ from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
 from protos.game_state_pb2 import State
 import Sheet
-import bot
-import audio
 from Robot import Robot
 from Buttons import Buttons
 from challenge_results import CHALLENGE_RESULTS

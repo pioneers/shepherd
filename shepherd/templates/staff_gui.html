@@ -38,6 +38,12 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
+    $("#instructions-toggle").click(function(e) {
+        e.preventDefault();
+        let el = document.getElementById("instructions-text");
+        el.hidden = !el.hidden;
+    });
+      
     var robot_connected = false;
     var match_num = "";
     var round_num = "";
@@ -212,78 +218,147 @@
 </script>
 {% endblock %}
 {% block html_content %}
+
+<a href="" id="instructions-toggle" onclick=>Toggle instructions</a>
+<div id="instructions-text" class="bottom-padding" style="white-space: pre-wrap;" hidden>
+1) Fill in the current match # and round #, then click "populate". This should fill in most of the information needed to create the round (you might need to wait for a few seconds). Alternatively, you can click "autopopulate next round" to increment the round # by 1 and populate.
+
+2) Check the robot IPs, then click "connect" on all of them. Wait for the corresponding heatbeats to all turn green.
+
+3) Correct any incorrect team info, then click "create round". This will move Shepherd into the setup state. If you need to correct any info while in setup, click "create round" again to save it.
+
+4) Click "start round" to begin the game. If something goes wrong, click "reset round" to move Shepherd back into the setup state.
+</div>
+
 <div class="row">
-  <div class="btn-group bottom-padding" role="group" aria-label="...">
-    <!--<h3>Match #:</h3><h3 id="match-number"></h3> -->
-    <!--<h3>Round #:</h3><h3 id="round-number"></h3> -->
+    <div class="col">
+  <div class="input-group bottom-padding">
     <h3>Match/Round:</h3>
-    <button type="button" class="btn btn-success spaced" id="next-round"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Autopopulate Next Round</button>
-    <button type="button" class="btn btn-success spaced" id="next-match"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Reset Firewood/Buttons</button>
-    <div class="form-group">
-      <input type="number" class="form-control spaced" id="select-match-number" style="width: 81px;" placeholder="Match #">
-    </div>
-    <div class="form-group">
-      <input type="number" class="form-control spaced" id="select-round-number" style="width: 81px;" placeholder="Round #">
-    </div>
-    <button type="button" class="btn btn-success spaced" id="select-round"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Populate</button>
+    <input type="number" class="form-control" id="select-match-number" placeholder="Match #">
+    <input type="number" class="form-control" id="select-round-number" placeholder="Round #">
+    <button type="button" class="btn btn-success" id="select-round">Populate</button>
+    <button type="button" class="btn btn-success" id="next-round">Autopopulate Next Round</button>
   </div>
-</div>
-
-
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Custom IP: </h3>
-      <input type="text" class="form-control" placeholder="0.0.0.0" style="width:200px" id="custom-ip-adjustment">
-      <span class="input-group-btn">
-        <button class="btn btn-success" type="button" id="custom-ip-change">Connect</button>
-      </span>
-      <span class="input-group-btn">
-        <button class="btn btn-danger" type="button" id="stop-robot" style="margin-left:5px;margin-right:5px;">Stop Robot</button>
-      </span>
-      <span class="spaced">Heartbeat:</span> 
-      <div class="form-group spaced" id="heartbeat-light"></div>
-      <span class="spaced" id="heartbeat-message"></span>
     </div>
-  </div>
 </div>
-
 
 <div class="row">
-  <div class="btn-group bottom-padding" role="group" aria-label="...">
-      <input type="number" class="form-control spaced" id="tinder" style="width: 81px;" placeholder="Firewood">
-      <button type="button" class="btn btn-success spaced" id="submit-tinder">Submit Firewood</button>
-      <input type="number" class="form-control spaced" id="buttons" style="width: 81px;" placeholder="Buttons">
-      <button type="button" class="btn btn-success spaced" id="submit-buttons">Submit Buttons</button>
-  </div>
-</div>
-
-
-<div class="row bottom-padding">
-    <div class="input-group">
-      <h3>Team #:</h3>
-      <input type="number" class="form-control" id="team-number">
+    <div class="col" style="border:1px solid black; background: #F0F0FF">
+        <h3>Blue Team 1</h3>
+        <div class="input-group">
+            Team #: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            Team Name: <input type="text" class="form-control">
+        </div>
+        <div class="input-group">
+            Generic Items: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            IP:
+            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <button class="btn btn-success" type="button">Connect</button> 
+        </div>
+        <div class="input-group">
+            <span class="spaced">Heartbeat:</span> 
+            <div class="form-group spaced" id="heartbeat-light"></div>
+            <span class="spaced" id="heartbeat-message"></span>
+        </div>
+    </div>
+    <div class="col" style="border:1px solid black; background: #F0F0FF">
+        <h3>Blue Team 2</h3>
+        <div class="input-group">
+            Team #: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            Team Name: <input type="text" class="form-control">
+        </div>
+        <div class="input-group">
+            Generic Items: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            IP:
+            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <button class="btn btn-success" type="button">Connect</button> 
+        </div>
+        <div class="input-group">
+            <span class="spaced">Heartbeat:</span> 
+            <div class="form-group spaced" id="heartbeat-light"></div>
+            <span class="spaced" id="heartbeat-message"></span>
+        </div>
     </div>
 </div>
-<div class="row bottom-padding">
-    <div class="input-group">
-      <h3>Team Name:</h3>
-      <input type="text" class="form-control" id="team-name">
-    </div>
-</div>
-<div class="row bottom-padding">
-    <h3>Biome:</h3>
-    <h3 id="biome"> None </h3>
-</div>
-
-
-
-
 <div class="row">
-  <div class="btn-group bottom-padding" role="group" aria-label="...">
+    <div class="col" style="border:1px solid black; background: #FFFFF0">
+        <h3>Gold Team 1</h3>
+        <div class="input-group">
+            Team #: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            Team Name: <input type="text" class="form-control">
+        </div>
+        <div class="input-group">
+            Generic Items: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            IP:
+            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <button class="btn btn-success" type="button">Connect</button> 
+        </div>
+        <div class="input-group">
+            <span class="spaced">Heartbeat:</span> 
+            <div class="form-group spaced" id="heartbeat-light"></div>
+            <span class="spaced" id="heartbeat-message"></span>
+        </div>
+    </div>
+    <div class="col" style="border:1px solid black; background: #FFFFF0">
+        <h3>Gold Team 2</h3>
+        <div class="input-group">
+            Team #: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            Team Name: <input type="text" class="form-control">
+        </div>
+        <div class="input-group">
+            Generic Items: <input type="number" class="form-control">
+        </div>
+        <div class="input-group">
+            IP:
+            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <button class="btn btn-success" type="button">Connect</button> 
+        </div>
+        <div class="input-group">
+            <span class="spaced">Heartbeat:</span> 
+            <div class="form-group spaced" id="heartbeat-light"></div>
+            <span class="spaced" id="heartbeat-message"></span>
+        </div>
+    </div>
+</div>
+
+<div class="row bottom-padding">
+    <div class="col" style="border:1px solid black">
+        <h3>Meta</h3>
+        <div class="input-group">
+            <span>Biome: <span id="biome">None</span></span>
+        </div>
+        <div class="btn-group bottom-padding" role="group" aria-label="...">
+    <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Linebreaks Off</button>
+    <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Linebreaks On</button>
+      <span id="linebreaks-info">N/A</span>
+  </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+<div class="row bottom-padding">
+  <div class="btn-group" role="group" aria-label="...">
     <button type="button" class="btn btn-success spaced" id="create-match"><span class="glyphicon glyphicon-play"
         aria-hidden="true"></span>Create Round</button>
     <button type="button" class="btn btn-success spaced" id="round-start"><span class="glyphicon glyphicon-play"
@@ -293,14 +368,6 @@
   </div>
 </div>
 
-<div class="row">
-  <div class="btn-group bottom-padding" role="group" aria-label="...">
-    <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Linebreaks Off</button>
-    <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Linebreaks On</button>
-      <h3 id="linebreaks-info">N/A</h3>
-  </div>
-</div>
+
 {% endblock %}
 
