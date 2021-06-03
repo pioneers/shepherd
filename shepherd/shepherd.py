@@ -20,8 +20,6 @@ from challenge_results import CHALLENGE_RESULTS
 
 CLIENTS = RuntimeClientManager()
 
-__version__ = (1, 0, 0)
-
 ###########################################
 # Evergreen Variables
 ###########################################
@@ -88,29 +86,10 @@ def start():
         LAST_HEADER = payload
         print(payload)
 
-        # check if linebreak
-        if payload[0] == SHEPHERD_HEADER.CITY_LINEBREAK:
-            LINEBREAK_HEADERS[0] = True
-        elif payload[0] == SHEPHERD_HEADER.STOPLIGHT_CROSS:
-            LINEBREAK_HEADERS[1] = True
-        elif payload[0] == SHEPHERD_HEADER.DESERT_ENTRY:
-            LINEBREAK_HEADERS[2] = True
-        elif payload[0] == SHEPHERD_HEADER.DEHYDRATION_ENTRY:
-            LINEBREAK_HEADERS[3] = True
-        elif payload[0] == SHEPHERD_HEADER.HYPOTHERMIA_ENTRY:
-            LINEBREAK_HEADERS[4] = True
-        elif payload[0] == SHEPHERD_HEADER.FINAL_ENTRY:
-            LINEBREAK_HEADERS[5] = True
-
         funcmappings = {
             STATE.SETUP: (SETUP_FUNCTIONS, "Setup"),
             STATE.AUTO: (AUTO_FUNCTIONS, "Auto"),
-            STATE.CITY: (CITY_FUNCTIONS, "City"),
-            STATE.SANDSTORM: (SANDSTORM_FUNCTIONS, "Sandstorm"),
-            STATE.DEHYDRATION: (DEHYDRATION_FUNCTIONS, "Dehydration"),
-            STATE.FIRE: (FIRE_FUNCTIONS, "Fire"),
-            STATE.HYPOTHERMIA: (HYPOTHERMIA_FUNCTIONS, "Hypothermia"),
-            STATE.FINAL: (FINAL_FUNCTIONS, "Final"),
+            STATE.TELEOP: (TELEOP_FUNCTIONS, "Teleop"),
             STATE.END: (END_FUNCTIONS, "End"),
         }
 
@@ -340,8 +319,10 @@ def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
-    Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
-    return -1
+    try:
+        Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
+    except Exception as e:
+        print(f"Unable to push scores to spreadsheet: {e}")
 
 
 def enable_robots(autonomous):
@@ -360,29 +341,10 @@ def disable_robots():
 
 #pylint: disable=redefined-builtin
 
+def log(msg):
+    print("haha log")
+    print(msg)
 
-def log(Exception):
-    global LAST_HEADER
-    # if Shepherd.MATCH_NUMBER <= 0:
-    #     return
-    now = datetime.now()
-    filename = str(now.month) + "-" + str(now.day) + "-" + str(now.year) +\
-        "-match-" + str(MATCH_NUMBER) + ".txt"
-    print("a normally fatal exception occured, but Shepherd will continue to run")
-    print("all known details are logged to logs/"+filename)
-    file = open("logs/"+filename, "a+")
-    file.write("\n========================================\n")
-    file.write("a normally fatal exception occured.\n")
-    file.write("all relevant data may be found below.\n")
-    file.write("match: " + str(MATCH_NUMBER)+"\n")
-    file.write("game state: " + str(GAME_STATE)+"\n")
-    file.write("robot: " + str(ROBOT)+"\n")
-    file.write("game timer running?: " + str(GAME_TIMER.is_running())+"\n")
-    file.write("the last received header was:" + str(LAST_HEADER)+"\n")
-    file.write("a stacktrace of the error may be found below\n")
-    file.write(str(Exception))
-    file.write(str(traceback.format_exc()))
-    file.close()
 
 ###########################################
 # Game Specific Methods
@@ -413,13 +375,6 @@ def send_robot_mode(team_number, mode):
         log(exc)
 
 
-def final_score(args):
-    '''
-    send shepherd the final score, send score to scoreboard
-    '''
-    send_score_to_ui()
-
-
 def set_game_info(args):
     '''
     Set tinder/buttons from UI. If tinder/buttons are not passed in, they are ignored.
@@ -443,277 +398,27 @@ def set_game_info(args):
 # Spring 2020 Game
 ###########################################
 
-# ----------
-# SETUP STAGE
-# ----------
-
-def check_code():
-    '''
-    Check the coding challenges and act appropriately
-    '''
-    ROBOT.coding_challenge = CHALLENGE_RESULTS[ROBOT.number]
-    print(f"ROBOT.coding_challenge is {ROBOT.coding_challenge}")
-
-# ----------
-# AUTO STAGE
-# ----------
 
 
-def to_city(args):
-    '''
-    Go to the city stage
-    '''
-    global GAME_STATE
-    enable_robots(autonomous=False)
-    curr_time = time.time() - ROBOT.start_time
-    GAME_TIMER.reset()
-    GAME_TIMER.start_timer(CONSTANTS.TOTAL_TIME - curr_time)
-    GAME_STATE = STATE.CITY
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {
-             "stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    print("ENTERING CITY STATE")
 
-# ----------
-# CITY STAGE
-# ----------
-
-def city_linebreak(args):
-    if not STOPLIGHT_TIMER.is_running():
-        STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
-    if GAME_STATE == STATE.AUTO:
-        to_city([])
-
-def stoplight_timer_end(args):
-    # turn stoplight green
-    STOPLIGHT_TIMER.reset()
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "green"})
-
-
-def stoplight_button_press(args):
-    '''
-    Triggered by a press of the stoplight button
-    '''
-    if ROBOT.pass_coding_challenges(n=1, tier=2):
-        stoplight_timer_end([])
-    
-def stoplight_cross(args):
-    # stoplight is not green
-    if STOPLIGHT_TIMER.is_running():
-        stoplight_penalty()
-
-
-def stoplight_penalty():
-    # whatever the penalty is
-    ROBOT.penalty += CONSTANTS.STOPLIGHT_PENALTY
-    send_score_to_ui()
-
-
-def contact_wall(args):
-    '''
-    Triggered when the robot hits the wall
-    '''
-    CLIENTS.send_game_state(State.POISON_IVY)
-
-
-def to_desert(args):
-    '''
-    Go to the sandstorm stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.SANDSTORM
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-    if ROBOT.pass_coding_challenges(n=1, tier=2) == 0:
-        SANDSTORM_TIMER.start_timer(CONSTANTS.SANDSTORM_COVER_TIME)
-        ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": True})
-
-# ----------
-# SANDSTORM STAGE
-# ----------
-
-
-def sandstorm_timer_end(args):
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
-
-
-def to_dehydration(args):
-    '''
-    Go to the dehydration stage
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.DEHYDRATION
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-    BUTTONS.enter_mirage_wall(ROBOT.coding_challenge)
-    DEHYDRATION_TIMER.start_timer(CONSTANTS.DEHYRATION_TIME)
-
-# ----------
-# DEHYDRATION STAGE
-# ----------
-
-
-def dehydration_button_press(args):
-    '''
-    Triggered when dehydration button is pressed
-    '''
-    global GAME_STATE
-    button_number = int(args["button"])
-    if BUTTONS.press_button_and_check(button_number):
-        DEHYDRATION_TIMER.reset()  # stop dehydration timer so it doesn't run out
-        GAME_STATE = STATE.FIRE
-        ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-"""
-start
-go to mirage buttons (dehydration stage). 30 second timer starts.
-    - press and solve. also could light fire
-    - stick around and fail
-    - beeline past it
-        - at some point, the timer from above ends. you could be in 
-          hypothermia (past the hypothermia linebreak) at that time
-        - game state would get to fire at the end of the 30 second timer
-
-
-"""
-
-def dehydration_penalty_timer_start(args):
-    '''
-    Triggered when robot gets dehydrated ("water getting" timer runs out). Starts the penalty timer and forcibly stops the robot.
-    '''
-    ROBOT_DEHYDRATED_TIMER.start_timer(CONSTANTS.ROBOT_DEHYDRATED_TIME)
-    CLIENTS.send_game_state(State.DEHYDRATION)
-
-
-def dehydration_penalty_timer_end(args):
-    '''
-    Triggered when robot dehydration ends.
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.FIRE
-
-
-# ----------
-# FIRE STAGE
-# ----------
-
-def set_tinder(args):
-    '''
-    This method sets the total amount of tinder
-    1 tinder = fire is lit for one round.
-    2 tinder = fire is lit for two rounds.
-    3 tinder = fire is lit for three rounds.
-    '''
-    global TINDER
-    TINDER = args["tinder"]
-    send_round_info()
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
-
-
-def fire_lever(args):
-    '''
-    Toggle the fire.
-    '''
-    global FIRE_LIT
-    FIRE_LIT = True # this just means the lever was flipped.
-    if TINDER > 0:
-        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
-
-def to_hypothermia(args):
-    '''
-    Go to the hypothermia zone in the forest biome.
-    '''
-    global GAME_STATE, FIRE_LIT, TINDER
-    GAME_STATE = STATE.HYPOTHERMIA
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-
-    if TINDER > 0:
-        TINDER -= 1
-    else:
-        CLIENTS.send_game_state(State.HYPOTHERMIA_START)
-
-# ----------
-# HYPOTHERMIA STAGE
-# ----------
-
-
-def to_final(args):
-    '''
-    Go to the airport stage.
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.FINAL
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-    CLIENTS.send_game_state(State.HYPOTHERMIA_END)
-
-# ----------
-# AIRPORT STAGE
-# ----------
 
 
 def to_end(args):
     '''
     Go to the end state.
     '''
-    global GAME_STATE, LAST_TINDER, LAST_BUTTONS, LAST_FIRE_LIT
-    LAST_TINDER = TINDER
-    LAST_BUTTONS = BUTTONS.copy()
-    LAST_FIRE_LIT = FIRE_LIT
-    if GAME_STATE == STATE.CITY:
-        ROBOT.stamp_time -= 10
-    elif GAME_STATE == STATE.SANDSTORM:
-        ROBOT.stamp_time -= 20
-    elif GAME_STATE == STATE.DEHYDRATION or GAME_STATE == STATE.FIRE:
-        ROBOT.stamp_time -= 30
-    elif GAME_STATE == STATE.HYPOTHERMIA:
-        ROBOT.stamp_time -= 40
-    elif GAME_STATE == STATE.FINAL:
-        ROBOT.stamp_time -= 50
+    global GAME_STATE
     GAME_STATE = STATE.END
     disable_robots()
     CLIENTS.reset()
     GAME_TIMER.reset()
-    ROBOT.end_time = time.time()
+    # ROBOT.end_time = time.time() #TODO: keep?
     GAME_STATE = STATE.END
     send_score_to_ui()
     ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
 
-    turn_off_all_lights()
+    flush_scores()
 
-    try:
-        flush_scores()
-    except Exception as e:
-        print(f"Unable to push scores to spreadsheet: {e}")
-
-def turn_off_all_lights():
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT)
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_FIRE_LIGHT)
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS, {})
-    for i in range(Buttons.NUM_BUTTONS):
-        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LIGHT, {"id": i})
-
-def linebreaks_on(args):
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS)
-
-def linebreaks_off(args):
-    global CHECKING_LINEBREAKS, LINEBREAK_HEADERS
-    LINEBREAK_HEADERS = [False] * 6
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_LASERS)
-    CHECKING_LINEBREAKS = True
-    timer = threading.Timer(2.0, check_linebreaks)
-    timer.start()
-
-def check_linebreaks():
-    ret = ""
-    if not LINEBREAK_HEADERS[0]:
-        ret += "city "
-    if not LINEBREAK_HEADERS[1]:
-        ret += "stoplight "
-    if not LINEBREAK_HEADERS[2]:
-        ret += "desert "
-    if not LINEBREAK_HEADERS[3]:
-        ret += "dehydration "
-    if not LINEBREAK_HEADERS[4]:
-        ret += "hypothermia "
-    if not LINEBREAK_HEADERS[5]:
-        ret += "final "
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.LINEBREAK_INFO, {"text": ret})
 
 
 # TODO: someone would have to read headers to figure out which linebreaks were not working
@@ -724,68 +429,18 @@ def check_linebreaks():
 ###########################################
 SETUP_FUNCTIONS = {
     SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-    SHEPHERD_HEADER.GET_ROUND_INFO: get_round,
     SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
-    SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
-    SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
+    SHEPHERD_HEADER.GET_MATCH_INFO: to_setup
 }
 
 AUTO_FUNCTIONS = {
-    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor enters city and starts the stoplight timer
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_city # 20 seconds
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_teleop
 }
 
-# This represents City and Forest, since we don't need to detect Forest explicitly
-CITY_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.STOPLIGHT_TIMER_END: stoplight_timer_end,
-    SHEPHERD_HEADER.CITY_LINEBREAK: city_linebreak, # line break sensor starts the stoplight timer
-    SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS: stoplight_button_press, # momentary switch
-    SHEPHERD_HEADER.STOPLIGHT_PENALTY: stoplight_penalty,
-    SHEPHERD_HEADER.STOPLIGHT_CROSS: stoplight_cross,
-    SHEPHERD_HEADER.CONTACT_WALL: contact_wall,
-    SHEPHERD_HEADER.DESERT_ENTRY: to_desert # triggered by line break sensor
-}
-
-SANDSTORM_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.DEHYDRATION_ENTRY: to_dehydration, # triggered by line break sensor
-    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
-}
-
-DEHYDRATION_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS: dehydration_button_press,
-    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start,
-    SHEPHERD_HEADER.ROBOT_DEHYDRATED_TIMER_END: dehydration_penalty_timer_end,
-    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end,
-    # these three headers are copied from FIRE_FUNCTIONS
-    SHEPHERD_HEADER.SET_TINDER: set_tinder,
-    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line b
-}
-
-FIRE_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.SET_TINDER: set_tinder,
-    SHEPHERD_HEADER.FIRE_LEVER: fire_lever, # triggered by sensor
-    SHEPHERD_HEADER.HYPOTHERMIA_ENTRY: to_hypothermia, # triggered by line break
-    SHEPHERD_HEADER.SANDSTORM_TIMER_END: sandstorm_timer_end
-}
-
-HYPOTHERMIA_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.FINAL_ENTRY: to_final, # triggered by line break
-    SHEPHERD_HEADER.DEHYDRATION_TIMER_END: dehydration_penalty_timer_start, # stop robot for 10 seconds
-    # note that dehydration timer end is not here, because we don't want to move them back to fire.
-}
-
-FINAL_FUNCTIONS = {
-    SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-    SHEPHERD_HEADER.CITY_LINEBREAK: to_end # triggered by line break
+TELEOP_FUNCTIONS = {
+    SHEPHERD_HEADER.STAGE_TIMER_END: to_end
 }
 
 END_FUNCTIONS = {
@@ -795,36 +450,18 @@ END_FUNCTIONS = {
     SHEPHERD_HEADER.SET_GAME_INFO: set_game_info,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
     SHEPHERD_HEADER.RESET_MATCH: reset_state,
-    SHEPHERD_HEADER.LINEBREAKS_ON: linebreaks_on,
-    SHEPHERD_HEADER.LINEBREAKS_OFF: linebreaks_off
 }
 
 EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_ON: enable_robot,
-    SHEPHERD_HEADER.GET_BIOME: get_biome,
-    SHEPHERD_HEADER.SET_BIOME: set_biome,
-    SHEPHERD_HEADER.GET_ROUND_INFO_NO_ARGS: send_round_info,
+    SHEPHERD_HEADER.GET_MATCH_INFO_NO_ARGS: send_round_info,
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.REQUEST_CONNECTIONS: send_connection_status_to_ui,
     SHEPHERD_HEADER.SCORE_ADJUST: score_adjust,
-    SHEPHERD_HEADER.RESET_ROUND: reset_round,
     SHEPHERD_HEADER.SET_CUSTOM_IP: set_custom_ip,
 }
 
 
-def main():
-    """Main function"""
-    parser = argparse.ArgumentParser(description='PiE field control')
-    parser.add_argument('--version', help='Prints out the Shepherd version number.',
-                        action='store_true')
-    flags = parser.parse_args()
-
-    if flags.version:
-        print('.'.join(map(str, __version__)))
-    else:
-        start()
-
-
 if __name__ == '__main__':
-    main()
+    start()
