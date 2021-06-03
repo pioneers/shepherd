@@ -26,7 +26,7 @@ args: {
 Details for each header will live in Utils.py
 """
 from __future__ import annotations
-from Utils import SENSOR_HEADER, SHEPHERD_HEADER
+from utils import SENSOR_HEADER, SHEPHERD_HEADER
 import queue
 import time
 

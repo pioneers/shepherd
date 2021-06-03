@@ -1,7 +1,7 @@
 import subprocess
 import doctest
 import os
-from Utils import *
+from utils import *
 import importlib
 import re
 

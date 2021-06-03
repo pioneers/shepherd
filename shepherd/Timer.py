@@ -1,7 +1,7 @@
 import time
 import threading
-import YDL
-from Utils import YDL_TARGETS
+import ydl
+from utils import YDL_TARGETS
 
 class TimerThread(threading.Thread):
     '''

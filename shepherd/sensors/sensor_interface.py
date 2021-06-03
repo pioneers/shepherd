@@ -14,12 +14,12 @@ import shm_api
 import sys
 sys.path.insert(1, '../')
 from debouncer import Debouncer
-from YDL import (
+from ydl import (
     ydl_send,
     ydl_start_read
 )
 from typing import List, Union
-from Sensors import (
+from sensors import (
     arduinos,
     translate_ydl_message,
     HEADER_MAPPINGS,
@@ -28,7 +28,7 @@ from Sensors import (
     previous_debounced_value,
     LowcarMessage
 )
-from Utils import (
+from utils import (
     YDL_TARGETS,
 )
 #YDL -> TURN_ON_LIGHT, {light: 8}

@@ -1,7 +1,7 @@
 import math
 from utils import *
-from Timer import *
-from YDL import *
+from timer import *
+from ydl import *
 
 class Alliance:
     """This is the Alliance class, which holds the state values used to track

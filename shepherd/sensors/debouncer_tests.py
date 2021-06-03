@@ -1,9 +1,9 @@
 import unittest
 import sys
 sys.path.insert(1, '../')
-from Sensors import GenericButton
+from sensors import GenericButton
 from debouncer import Debouncer
-from Utils import SHEPHERD_HEADER
+from utils import SHEPHERD_HEADER
 
 class TestDebouncer(unittest.TestCase):
 
