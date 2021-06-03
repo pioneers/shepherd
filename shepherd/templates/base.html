@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{% block title %}{% endblock %}</title>
-
   <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')}}">
   <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
@@ -31,8 +29,6 @@
       margin-bottom: 15px;
     }
   </style>
-  {% block extra_css %}
-  {% endblock %}
   <script>
     $(document).ready(function () {
 
@@ -56,9 +52,11 @@
       if(localStorage.getItem("log-toggle") === "true")
         document.getElementById("events-log").hidden = false;
 
-      var page_index = parseInt($("#navbar-page-index").text())
-      if(!isNaN(page_index)){
-        $("#cheese-inner-nav-bar").children()[page_index].classList.add("active");
+      //In the navbar, adds an "active" tag to current page
+      for(let a of $(".nav-link")) {
+        if(a.pathname.replace(/\/+$/, '') == location.pathname.replace(/\/+$/, '')) {
+            a.parentElement.classList.add("active");
+        }
       }
 
       // gets a cookie. Pretty much only used for password
@@ -95,12 +93,11 @@
       main_js_content(socket, send);
     });
   </script>
-  {% block js_content %}
+  {% block head_content %}
   {% endblock %}
 </head>
 
 <body>
-  <div id="navbar-page-index" hidden>{% block page_index %}{% endblock %}</div>
   <nav class="navbar navbar-expand-sm navbar-light bg-light">
     <a class="navbar-brand" href="#">Staff UI</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -113,10 +110,13 @@
           <a class="nav-link" href="../staff_gui.html">Match Creator<span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
+          <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="../ref_gui.html">Ref GUI</a>
+          <a class="nav-link" href="../match_recovery.html">Match Recovery</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
         </li>
       </ul>
     </div>

@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
-{% block page_index %}2{% endblock %}
-{% block title %}Ref GUI{% endblock %}
-{% block extra_css %}
-{% endblock %}
-{% block js_content %}
+{% block head_content %}
+<title>Ref GUI</title>
 <script>
   // this function is called when the page is loaded, from base.html
   // socket: the main socketio websocket
@@ -158,46 +155,18 @@
 
 
 <div class="text-center">
-  <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
-  <h3> Team Score: <span id="team-score"></span></h3>
-  <h3> Firewood: <span id="tinder"></span></h3>
+  <h3 id="teams-info"> (#__)____ + (#__)____ vs (#__)____ + (#__)____</h3>
 </div>
 
 
 <div class="row bottom-padding">
-  <div>
+  <div class="col">
     <div class="input-group">
-      <h3>Penalty:</h3>
-      <input type="number" class="form-control" id="penalty-adjustment">
       <span class="input-group-btn">
-        <button class="btn btn-success" type="button" id="penalty-change">Change</button>
-        <button class="btn btn-info" type="button" id="penalty-5">+5 Penalty</button>
-      </span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Stamp:</h3>
-      <input type="number" class="form-control" id="stamp-adjustment">
-      <span class="input-group-btn">
-        <button class="btn btn-success" type="button" id="stamp-change">Change</button>
-        <button class="btn btn-info" type="button" id="stamp-3">Add 3 stamp</button>
-        <button class="btn btn-info" type="button" id="stamp-5">Add 5 stamp</button>
-      </span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Firewood:</h3>
-      <input type="number" class="form-control" id="tinder-adjustment">
-      <span class="input-group-btn">
-        <button class="btn btn-success" type="button" id="tinder-change">Change</button>
-        <button class="btn btn-info" type="button" id="tinder-decrement">-</button>
-        <button class="btn btn-info" type="button" id="tinder-increment">+</button>
+        <button class="btn btn-info" type="button" id="button-1">Button 1</button>
+        <button class="btn btn-info" type="button" id="button-1">Button 2</button>
+        <button class="btn btn-danger" type="button" id="stop-robots">ESTOP Robots</button>
+        <button class="btn btn-success" type="button" id="start-robots">ESTART Robots</button>
       </span>
     </div>
   </div>
@@ -205,29 +174,11 @@
 <div class="row bottom-padding">
   <div class="col">
     <div class="input-group">
-      <span class="input-group-btn">
-        <button class="btn btn-info" type="button" id="hit-wall">Hit Wall</button>
-        <button class="btn btn-info" type="button" id="shortcut">Shortcut</button>
-        <button class="btn btn-danger" type="button" id="stop-robot">ESTOP Robot</button>
-        <button class="btn btn-success" type="button" id="start-robot">ESTART Robot</button>
-      </span>
-    </div>
-  </div>
-</div>
-<div class="text-center">
-  <h3>Biome: <span id="biome"> None </span></h3>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Change State:</h3>
-      <span class="input-group-btn">
-        <button class="btn btn-info" type="button" id="city">City</button>
-        <button class="btn btn-info" type="button" id="desert">Desert</button>
-        <button class="btn btn-info" type="button" id="dehydration">Dehydration</button>
-        <button class="btn btn-info" type="button" id="hypothermia">Hypothermia</button>
-        <button class="btn btn-info" type="button" id="final">Final</button>
-        <button class="btn btn-info" type="button" id="end">End</button>
+      <h3>State: <span id="biome">None</span> </h3>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-info" type="button" id="auto-btn">Auto</button>
+        <button class="btn btn-info" type="button" id="teleop-btn">Teleop</button>
+        <button class="btn btn-info" type="button" id="end-btn">End</button>
       </span>
     </div>
   </div>

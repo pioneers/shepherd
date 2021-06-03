@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
-{% block page_index %}0{% endblock %}
-{% block title %}Staff UI{% endblock %}
-{% block extra_css %}
+{% block head_content %}
+<title>Staff UI</title>
 <style>
   .bottom-padding {
     margin-bottom: 25px;
@@ -15,7 +14,7 @@
     margin:5px;
   }
 
-  #heartbeat-light {
+  .heartbeat-light {
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -31,19 +30,11 @@
     box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px !important;
   }
 </style>
-{% endblock %}
-{% block js_content %}
 <script>
   // this function is called when the page is loaded, from base.html
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
-    $("#instructions-toggle").click(function(e) {
-        e.preventDefault();
-        let el = document.getElementById("instructions-text");
-        el.hidden = !el.hidden;
-    });
-      
     var robot_connected = false;
     var match_num = "";
     var round_num = "";
@@ -219,9 +210,10 @@
 {% endblock %}
 {% block html_content %}
 
-<a href="" id="instructions-toggle" onclick=>Toggle instructions</a>
-<div id="instructions-text" class="bottom-padding" style="white-space: pre-wrap;" hidden>
-1) Fill in the current match # and round #, then click "populate". This should fill in most of the information needed to create the round (you might need to wait for a few seconds). Alternatively, you can click "autopopulate next round" to increment the round # by 1 and populate.
+
+<a href="" onclick="event.preventDefault(); instructionsText.hidden = !instructionsText.hidden">Toggle instructions</a>
+<div id="instructionsText" class="bottom-padding" style="white-space: pre-wrap;" hidden>
+1) Fill in the current match #, then click "populate". This should fill in most of the information needed to create the match (you might need to wait for a few seconds). Alternatively, you can click the "+" button to increment the match # by 1 and populate.
 
 2) Check the robot IPs, then click "connect" on all of them. Wait for the corresponding heatbeats to all turn green.
 
@@ -232,105 +224,108 @@
 
 <div class="row">
     <div class="col">
-  <div class="input-group bottom-padding">
-    <h3>Match/Round:</h3>
-    <input type="number" class="form-control" id="select-match-number" placeholder="Match #">
-    <input type="number" class="form-control" id="select-round-number" placeholder="Round #">
-    <button type="button" class="btn btn-success" id="select-round">Populate</button>
-    <button type="button" class="btn btn-success" id="next-round">Autopopulate Next Round</button>
-  </div>
+      <div class="input-group bottom-padding">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="match-num">Match #</span>
+        </div>
+        <input type="number" class="form-control" id="select-match-number">
+        <div class="input-group-btn">
+            <button type="button" class="btn btn-success" id="next-round">+</button>
+            <button type="button" class="btn btn-success" id="select-round">Populate</button>
+        </div>
+      </div>
     </div>
 </div>
 
 <div class="row">
     <div class="col" style="border:1px solid black; background: #F0F0FF">
         <h3>Blue Team 1</h3>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team #: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team Name: <input type="text" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Generic Items: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
             <button class="btn btn-success" type="button">Connect</button> 
         </div>
-        <div class="input-group">
-            <span class="spaced">Heartbeat:</span> 
-            <div class="form-group spaced" id="heartbeat-light"></div>
-            <span class="spaced" id="heartbeat-message"></span>
+        <div class="input-group mb-1">
+            <span style="margin-right:5px">Heartbeat:</span> 
+            <div class="heartbeat-light"></div>
+            <span class="heartbeat-message"></span>
         </div>
     </div>
     <div class="col" style="border:1px solid black; background: #F0F0FF">
         <h3>Blue Team 2</h3>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team #: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team Name: <input type="text" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Generic Items: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
             <button class="btn btn-success" type="button">Connect</button> 
         </div>
-        <div class="input-group">
-            <span class="spaced">Heartbeat:</span> 
-            <div class="form-group spaced" id="heartbeat-light"></div>
-            <span class="spaced" id="heartbeat-message"></span>
+        <div class="input-group mb-1">
+            <span style="margin-right:5px">Heartbeat:</span> 
+            <div class="heartbeat-light"></div>
+            <span class="heartbeat-message"></span>
         </div>
     </div>
 </div>
 <div class="row">
     <div class="col" style="border:1px solid black; background: #FFFFF0">
         <h3>Gold Team 1</h3>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team #: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team Name: <input type="text" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Generic Items: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
             <button class="btn btn-success" type="button">Connect</button> 
         </div>
-        <div class="input-group">
-            <span class="spaced">Heartbeat:</span> 
-            <div class="form-group spaced" id="heartbeat-light"></div>
-            <span class="spaced" id="heartbeat-message"></span>
+        <div class="input-group mb-1">
+            <span style="margin-right:5px">Heartbeat:</span> 
+            <div class="heartbeat-light"></div>
+            <span class="heartbeat-message"></span>
         </div>
     </div>
     <div class="col" style="border:1px solid black; background: #FFFFF0">
         <h3>Gold Team 2</h3>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team #: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Team Name: <input type="text" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             Generic Items: <input type="number" class="form-control">
         </div>
-        <div class="input-group">
+        <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control" placeholder="0.0.0.0" id="custom-ip-adjustment">
+            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
             <button class="btn btn-success" type="button">Connect</button> 
         </div>
-        <div class="input-group">
-            <span class="spaced">Heartbeat:</span> 
-            <div class="form-group spaced" id="heartbeat-light"></div>
-            <span class="spaced" id="heartbeat-message"></span>
+        <div class="input-group mb-1">
+            <span style="margin-right:5px">Heartbeat:</span> 
+            <div class="heartbeat-light"></div>
+            <span class="heartbeat-message"></span>
         </div>
     </div>
 </div>

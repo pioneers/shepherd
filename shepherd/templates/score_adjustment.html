@@ -1,9 +1,6 @@
 {% extends 'base.html' %}
-{% block page_index %}1{% endblock %}
-{% block title %}Score Adjustment{% endblock %}
-{% block extra_css %}
-{% endblock %}
-{% block js_content %}
+{% block head_content %}
+<title>Score Adjustment</title>
 <script>
   // this function is called when the page is loaded, from base.html
   // socket: the main socketio websocket
@@ -67,74 +64,37 @@
 
 
 <div class="text-center">
-  <h3>Team: (#<span id="team-number"></span>) <span id="team-name"></span></h3>
-  <h3> Team Score: <span id="team-score"></span></h3>
+  <h3 id="teams-info"> (#__)____ + (#__)____ vs (#__)____ + (#__)____</h3>
 </div>
 
-<div class="row">
+<div class="row bottom-padding">
     <div class="col" style="border:1px solid black">
         
-        
-        <div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Base time (seconds):</h3>
-      <input type="number" class="form-control" id="score-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="score-change">Change</button></span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Penalty time (seconds):</h3>
-      <input type="number" class="form-control" id="penalty-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="penalty-change">Change</button></span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Stamp time (seconds):</h3>
-      <input type="number" class="form-control" id="stamp-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="stamp-change">Change</button></span>
-    </div>
-  </div>
-</div>
-        
+        <h3 class="text-center">0</h3>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Points</span>
+            </div>
+            <input type="number" class="form-control">
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="button" id="score-change">Change</button>
+            </span>
+        </div>
         
     </div>
     <div class="col" style="border:1px solid black">
         
         
-        <div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Base time (seconds):</h3>
-      <input type="number" class="form-control" id="score-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="score-change">Change</button></span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Penalty time (seconds):</h3>
-      <input type="number" class="form-control" id="penalty-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="penalty-change">Change</button></span>
-    </div>
-  </div>
-</div>
-<div class="row bottom-padding">
-  <div>
-    <div class="input-group">
-      <h3>Stamp time (seconds):</h3>
-      <input type="number" class="form-control" id="stamp-adjustment">
-      <span class="input-group-btn"><button class="btn btn-success" type="button" id="stamp-change">Change</button></span>
-    </div>
-  </div>
-</div>
+        <h3 class="text-center">0</h3>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Points</span>
+            </div>
+            <input type="number" class="form-control">
+            <span class="input-group-btn">
+                <button class="btn btn-success" type="button" id="score-change">Change</button>
+            </span>
+        </div>
         
         
         

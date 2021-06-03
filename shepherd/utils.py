@@ -100,7 +100,7 @@ UI_PAGES = {
     "scoreboard.html": False,
     "score_adjustment.html": True,
     "staff_gui.html": True,
-    "stage_control.html": True,
+    "match_recovery.html": True,
     "ref_gui.html": True
 }
 
