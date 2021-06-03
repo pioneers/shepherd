@@ -28,7 +28,6 @@ Details for each header will live in Utils.py
 from __future__ import annotations
 from Utils import SENSOR_HEADER, SHEPHERD_HEADER
 import queue
-from YDL import *
 import time
 
 ################################################
@@ -186,6 +185,15 @@ previous_debounced_value = {} # TODO: move this.
 # Game Specific Variables
 ################################################
 
+"""
+
+# This is what sensors looked like in Spring 2021
+# Feel free to take inspiration from this code
+# or burn it with fire
+
+# Look in "sensors overview/underview" on the wiki for more info
+# also look at comments in Parameter class and Device class above
+
 class Light(Parameter):
     def value_from_header(self, header):
         if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT 
@@ -223,9 +231,7 @@ class TrafficLight(Parameter):
     # COLORS = {"red" : 0xFF0000, "green" : 0x00FF00, "yellow" : 0xFFFF00}
 
     def value_from_header(self, header):
-        """
-        this relationship is documented in shepherd_utils.c
-        """
+        # this relationship is documented in shepherd_utils.c
         if header[0] == SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT:
             return 0
         elif header[0] == SENSOR_HEADER.SET_TRAFFIC_LIGHT:
@@ -266,21 +272,21 @@ arduino_1 = Device(1, 1, lights + dehydration_buttons)
 arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
 arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
 arduino_4 = Device(4, 4, [lasers])
-
+"""
 
 ################################################
 # Evergreen Variables (may still need to be updated)
 ################################################
 
 HEADER_MAPPINGS = {
-    SENSOR_HEADER.TURN_ON_LIGHT : lights,
-    SENSOR_HEADER.TURN_OFF_LIGHT : lights,
-    SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
-    SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
-    SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
-    SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light],
-    SENSOR_HEADER.TURN_OFF_LASERS: [lasers],
-    SENSOR_HEADER.TURN_ON_LASERS: [lasers],
+    # SENSOR_HEADER.TURN_ON_LIGHT : lights,
+    # SENSOR_HEADER.TURN_OFF_LIGHT : lights,
+    # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
+    # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
+    # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_LASERS: [lasers],
+    # SENSOR_HEADER.TURN_ON_LASERS: [lasers],
 }
 
 #used to request values from lowcar (non-polled)
@@ -289,10 +295,10 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    arduino_1.get_identifier(): arduino_1, 
-    arduino_2.get_identifier(): arduino_2,
-    arduino_3.get_identifier(): arduino_3,
-    arduino_4.get_identifier(): arduino_4,
+    # arduino_1.get_identifier(): arduino_1, 
+    # arduino_2.get_identifier(): arduino_2,
+    # arduino_3.get_identifier(): arduino_3,
+    # arduino_4.get_identifier(): arduino_4,
 }
 
 ################################################

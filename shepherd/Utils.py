@@ -62,56 +62,27 @@ class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.
     """
+    ALL_INFO = "all_info"
+    # ALL_INFO{}
     TEAMS_INFO = "teams_info"
     # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip, tinder, buttons}
     SCORES = "scores"
-    # SCORES{time[seconds], penalty[seconds], score[seconds], stamp_time[seconds], start_time[seconds]}
-    # overrides (send this at the very end)
-    # time = elapsed time (count up) -> dummy time (DONT SEND) if dont update
-    # penalty = positive time
-    # stamps = negative time (decrement penalty) -> 5 for auto, 3 for tele
-    # TODO:
-    # account for penalty / stamp:
-    #   display penalty / stamp
-    #   update penalty / stamp time
-    # time: change displayed time to this if not null(?)
-    ROBOT_CONNECTION = "robot_connection"  # TODO: ask Matt why this function is commented out
-    # CONNECTIONS{team_num: int, connected: bool}
+    # SCORES{ TODO: interface }
+    ROBOT_CONNECTION = "robot_connection"
+    # CONNECTIONS{team_num: int, connected: bool, ip}
     STAGE = "stage"
     # STAGE{stage, start_time}
     # start_time = timestamp
-    # TODO:
-    # stage: figure out stage to display mapping
-    #   Autonomous vs Teleop
-    # fix the boxes so there's a box for stage
-    # reverse the timer: DONE
-    # calculate the diff between the start_time and our current time (to account for delay): DONE
-    # start the timer from the appropriate time: DONE
-    ALL_INFO = "all_info"
-    # ALL_INFO{}
-    LINEBREAK_INFO = "linebreak_info"
-    # LINEBREAK_INFO{text[string]}
     RESET_TIMERS = "reset_timers"
     # RESET_TIMERS{}
-    SANDSTORM = "sandstorm"
-    # SANDSTORM{on[bool]}
 
 
 class SENSOR_HEADER():
     """
     Headers used for Shepherd to send messages to the Sensor Interface.
     """
-    TURN_ON_LIGHT = "turn_on_light"
-    # {num: int}
-    TURN_OFF_LIGHT = "turn_off_light"
-    # {num: int}
-    SET_TRAFFIC_LIGHT = "set_traffic_light"
-    SET_ALL_SENSORS = "set_all_sensors"
-    TURN_ON_FIRE_LIGHT = "turn_on_fire_light"
-    TURN_OFF_FIRE_LIGHT = "turn_off_fire_light"
-    TURN_ON_LASERS = "turn_on_lasers"
-    TURN_OFF_LASERS = "turn_off_lasers"
-    TURN_OFF_TRAFFIC_LIGHT = "turn_off_traffic_light"
+    # EXAMPLE_HEADER = "example_header"
+    pass
 
 # pylint: disable=invalid-name
 
