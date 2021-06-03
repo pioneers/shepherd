@@ -3,8 +3,8 @@ import queue
 import hashlib
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from Utils import YDL_TARGETS, UI_PAGES
-from YDL import ydl_send, ydl_start_read
+from utils import YDL_TARGETS, UI_PAGES
+from ydl import ydl_send, ydl_start_read
 
 HOST_URL = "0.0.0.0"
 PORT = 5000

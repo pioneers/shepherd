@@ -4,9 +4,9 @@ from protos import text_pb2
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import game_state_pb2
-from Utils import YDL_TARGETS, PROTOBUF_TYPES, UI_HEADER
-from YDL import ydl_send, ydl_start_read
-from Robot import Robot
+from utils import YDL_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from ydl import ydl_send, ydl_start_read
+from robot import Robot
 import socket
 from typing import List
 

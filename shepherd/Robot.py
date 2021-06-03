@@ -1,8 +1,8 @@
 from datetime import datetime
 import random
 import math
-from Utils import *
-from Code import *
+from utils import *
+from code import *
 
 class Robot:
 

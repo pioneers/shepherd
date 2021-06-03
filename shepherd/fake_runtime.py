@@ -2,7 +2,7 @@ import socket
 from protos import run_mode_pb2
 from protos import text_pb2
 from protos import start_pos_pb2
-from Utils import *
+from utils import *
 
 
 class TestSocket:

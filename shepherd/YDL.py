@@ -7,7 +7,7 @@ import time
 
 '''
 when using YDL, please do:
-from YDL import ydl_send, ydl_start_read
+from ydl import ydl_send, ydl_start_read
 since only those two methods are meant for public consumption
 '''
 

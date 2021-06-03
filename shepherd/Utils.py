@@ -110,7 +110,7 @@ class CONSTANTS():
     AUTO_TIME = 10
     TELEOP_TIME = 10
     SPREADSHEET_ID = "[todo: fill with dummy spreadsheet]"
-    CSV_FILE_NAME = "Sheets/sc2021.csv"
+    CSV_FILE_NAME = "sheets/sc2021.csv"
 
 # pylint: disable=invalid-name
 
