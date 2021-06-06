@@ -1,57 +1,71 @@
+
+class YDL_TARGETS():
+    SHEPHERD = "ydl_target_shepherd"
+    UI = "ydl_target_ui"
+    SENSORS = "ydl_target_sensors"
+
+
 # pylint: disable=invalid-name
 class SHEPHERD_HEADER():
+    GET_MATCH_INFO = "get_match_info"
+    # GET_MATCH_INFO{}
+    # source: UI. Asks Shepherd what match info is currently cached.
+    
+    SET_MATCH_NUMBER = "set_match_number"
+    # SET_MATCH_NUMBER{match_num}: 
+    # source: UI. Sets the match number. Shepherd then fetches
+    # information for that match and sends it to the UI.
+
+    SETUP_MATCH = "setup_match"
+    # SETUP_MATCH{team_name, team_num, match_num}
+    # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
+    # sets up the match given all the match info
+
+    RESET_MATCH = "reset_match"
+    # RESET_MATCH{}
+    # source: UI. Resets the match, moving back to setup.
+
+    GET_SCORES = "get_scores"
+    # GET_SCORES{}: 
+    # source: UI. Asks Shepherd what the current scores are.
+
+    SET_SCORES = "set_scores"
+    # SCORE_ADJUST{time, penalty, stamp_time}: 
+    # source: UI. adjusts the current scores to the input scores.
+
+    GET_STATE = "get_state"
+    # GET_STATE{}
+    # source: UI. Asks Shepherd what the current game state is.
+
+    SET_STATE = "set_state"
+    # SET_STATE{state}
+    # source: UI. Sets the game state.
+    
     START_NEXT_STAGE = "start_next_stage"
     # START_NEXT_STAGE{}: starts the next stage
 
     RESET_CURRENT_STAGE = "reset_current_stage"
     # RESET_CURRENT_STAGE{}: resets the current stage
-
-    RESET_MATCH = "reset_match"
-    # RESET_MATCH{}: resets the current match
-
-    SETUP_MATCH = "setup_match"
-    # SETUP_MATCH{team_name, team_num, match_num}
-    # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
-    # sets up the match given the corresponding info about the teams and match number
-    # also has {g1_custom_ip, g2_custom_ip, b1_custom_ip, b2_custom_ip}
-
-
-    GET_CONNECTION_STATUS = "get_connection_status"
-    # GET_CONNECTION_STATUS{}: requested from the Staff UI to check robot
-    # connection statuses
-
-    SET_CUSTOM_IP = "set_custom_ip"
-    # TODO: interface
-
-    GET_MATCH_INFO = "get_match_info"
-    # GET_MATCH_InFO{}: sends match info to the UI
-
-    GET_MATCH_INFO_NO_ARGS = "get_match_info_no_args"
-    # gets cached match info (called on UI page load)
-
-    GET_SCORES = "get_scores"
-    # GET_SCORES{}: get time, penalty and stamps of robot
-
-    SCORE_ADJUST = "score_adjust"
-    # SCORE_ADJUST{time, penalty, stamp_time}: adjusts the current scores to the input scores. Total time is time + penalty + stamp time
-
+    
     STAGE_TIMER_END = "stage_timer_end"
-    # STAGE_TIMER_END{}: ends the stage's timer
+    # STAGE_TIMER_END{}: 
+    # source: Timer. Sent when a stage timer has ended.
+    
+    GET_CONNECTION_STATUS = "get_connection_status"
+    # GET_CONNECTION_STATUS{}:
+    # source: UI. Asks Shepherd to send robot connection statuses to UI.
+    
+    SET_ROBOT_IP = "set_robot_ip"
+    # SET_ROBOT_IP{team_number, ip}
+    # source: UI. Attempts to connect team to robot with given ip.
 
     ROBOT_OFF = "robot_off"
-    # ROBOT_OFF{team_number}: takes in team number and disables their robot
+    # ROBOT_OFF{team_number}: 
+    # source: UI. Takes in team number and disables their robot.
 
     ROBOT_ON = "robot_on"
-    # ROBOT_ON{team_number}: takes in team number and enables their robot
-
-    REQUEST_CONNECTIONS = "request_connections"
-    # REQUEST_CONNECTIONS{}
-
-    GET_STATE = "get_state"
-    # GET_STATE{}
-
-    SET_STATE = "set_state"
-    # SET_STATE{ state }
+    # ROBOT_ON{team_number}: 
+    # source: UI. Takes in team number and enables their robot.
 
 # pylint: disable=invalid-name
 
@@ -64,15 +78,18 @@ class UI_HEADER():
     """
     ALL_INFO = "all_info"
     # ALL_INFO{}
+    # used for match recovery
     TEAMS_INFO = "teams_info"
     # TEAMS_INFO{match_num, round_num, team_num, team_name, custom_ip, tinder, buttons}
+    # info about teams
     SCORES = "scores"
     # SCORES{ TODO: interface }
     ROBOT_CONNECTION = "robot_connection"
     # CONNECTIONS{team_num: int, connected: bool, ip}
-    STAGE = "stage"
-    # STAGE{stage, start_time}
-    # start_time = timestamp
+    STATE = "state"
+    # STATE{state}
+    # tells UI that Shepherd is now in this state
+    # TODO: is this redundant with teams_info?
     RESET_TIMERS = "reset_timers"
     # RESET_TIMERS{}
 
@@ -119,13 +136,6 @@ class ALLIANCE_COLOR():
     GOLD = "gold"
     BLUE = "blue"
 
-# pylint: disable=invalid-name
-
-
-class YDL_TARGETS():
-    SHEPHERD = "ydl_target_shepherd"
-    SENSORS = "ydl_target_sensors"
-    UI = "ydl_target_ui"
 
 # pylint: disable=invalid-name
 

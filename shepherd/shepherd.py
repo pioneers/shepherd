@@ -16,51 +16,33 @@ from sheet import Sheet
 from robot import Robot
 from challenge_results import CHALLENGE_RESULTS
 
-# pylint: disable=global-statement
+from runtimeclient import turn_on_all_robots, turn_off_all_robots, send_challenge_data,
 
-CLIENTS = RuntimeClientManager()
+
 
 ###########################################
 # Evergreen Variables
 ###########################################
 
+MATCH_NUMBER = -1
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
-ROBOT = Robot("", -1, "")
 
-MATCH_NUMBER = -1
-ROUND_NUMBER = -1
-ALLIANCES = {ALLIANCE_COLOR.GOLD: None, ALLIANCE_COLOR.BLUE: None}
-EVENTS = None
+ALLIANCES = {ALLIANCE_COLOR.GOLD: Alliance(Robot(), Robot()), 
+             ALLIANCE_COLOR.BLUE: Alliance(Robot(), Robot())}
 
-LAST_HEADER = None
+CLIENTS = RuntimeClientManager() # TODO: ask Akshit whether to kill this
+# pylint: disable=global-statement
 
 ###########################################
 # Game Specific Variables
 ###########################################
-STARTING_SPOTS = ["unknown", "unknown", "unknown", "unknown"]
-MASTER_ROBOTS = {ALLIANCE_COLOR.BLUE: None, ALLIANCE_COLOR.GOLD: None}
 
-STUDENT_DECODE_TIMER = Timer(TIMER_TYPES.STUDENT_DECODE)
-STOPLIGHT_TIMER = Timer(TIMER_TYPES.STOPLIGHT_WAIT)
-SANDSTORM_TIMER = Timer(TIMER_TYPES.SANDSTORM_COVER)
-DEHYDRATION_TIMER = Timer(TIMER_TYPES.DEHYDRATION)
-ROBOT_DEHYDRATED_TIMER = Timer(TIMER_TYPES.ROBOT_DEHYDRATED)
-
-CODES_USED = []
 
 ###########################################
 # 2020 Game Specific Variables
 ###########################################
-TINDER = 0
-BUTTONS = Buttons()
-FIRE_LIT = False
-LAST_TINDER = 0
-LAST_BUTTONS = Buttons()
-LAST_FIRE_LIT = False
 
-CHECKING_LINEBREAKS = False
-LINEBREAK_HEADERS = [False] * 6
 
 ###########################################
 # Evergreen Methods
@@ -74,15 +56,13 @@ def start():
     Main loop which processes the event queue and calls the appropriate function
     based on game state and the dictionary of available functions
     '''
-    global LAST_HEADER
-    global EVENTS
     global LINEBREAK_HEADERS
-    EVENTS = queue.Queue()
-    ydl_start_read(YDL_TARGETS.SHEPHERD, EVENTS)
+    events = queue.Queue()
+    ydl_start_read(YDL_TARGETS.SHEPHERD, events)
     while True:
         print("GAME STATE OUTSIDE: ", GAME_STATE)
-        time.sleep(0.1)
-        payload = EVENTS.get(True)
+        # time.sleep(0.1) # TODO: remove this sleep?
+        payload = events.get(True)
         LAST_HEADER = payload
         print(payload)
 
@@ -104,6 +84,11 @@ def start():
             print("Invalid State: {}".format(GAME_STATE))
 
 
+def turn_on_all_robots():
+    for client in clients:
+        func(client)
+        
+do_to_all_clients(lambda c: c.send_challenge_data)
 
 #pylint: disable=too-many-locals
 
@@ -114,16 +99,13 @@ def to_setup(args):
     load the teams for the upcoming match, reset all state, and send information to scoreboard.
     By the end, should be ready to start match.
     '''
-    global MATCH_NUMBER, ROUND_NUMBER
-    global GAME_STATE
-    global STARTING_SPOTS
-    global ROBOT
-    global BUTTONS
-    global CLIENTS
+    global MATCH_NUMBER, GAME_STATE, ALLIANCES, CLIENTS
+    GAME_STATE = STATE.SETUP
+    
+    ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance() # TODO: how does this work
+    ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance() # TODO: how does this work
 
-    # code_setup()
-
-    MATCH_NUMBER, ROUND_NUMBER = args["match_num"], args["round_num"]
+    MATCH_NUMBER = args["match_num"]
     name, num = args["team_name"], args["team_num"]
     custom_ip = args.get("custom_ip", ROBOT.custom_ip)
 
@@ -138,17 +120,9 @@ def to_setup(args):
     # so if there are other UIs open they get the update
     send_round_info()
 
-    # turn on lasers
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LASERS, {})
-
     # YDL send to scoreboard about robot
-
-    GAME_STATE = STATE.SETUP
     ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING SETUP STATE")
-
-    # turn stoplight red
-    ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.SET_TRAFFIC_LIGHT, {"color": "red"})
 
 
 def to_auto(args):
@@ -158,25 +132,36 @@ def to_auto(args):
     stage to be called and autonomous match timer should have begun.
     '''
     #pylint: disable= no-member
-    global GAME_STATE, ROBOT
-    global CLIENTS
-    # CLIENTS.receive_all_challenge_data()
-
-    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
+    global GAME_STATE, ALLIENCES, CLIENTS
     GAME_STATE = STATE.AUTO
-    ROBOT.start_time = time.time()
-    # STOPLIGHT_TIMER.start_timer(CONSTANTS.STOPLIGHT_TIME)
-    ydl_send(YDL_TARGETS.UI,
-             UI_HEADER.STAGE, {"stage": GAME_STATE, "start_time": ROBOT.start_time_millis()})
-    send_score_to_ui()
+    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     enable_robots(True)
-    check_code()
-    BUTTONS.illuminate_all()
-    if TINDER > 0:
-        ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_FIRE_LIGHT)
-
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
     print("ENTERING AUTO STATE")
 
+def to_teleop(args):
+    global GAME_STATE
+    GAME_STATE = STATE.TELEOP
+    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
+    enable_robots(False)
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    print("ENTERING TELEOP STATE")
+    
+
+def to_end(args):
+    '''
+    Go to the end state.
+    '''
+    global GAME_STATE
+    GAME_STATE = STATE.END
+    disable_robots()
+    CLIENTS.reset()
+    GAME_TIMER.reset()
+    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
+    send_score_to_ui()
+    flush_scores()
+    
+    
 
 def reset_round(args=None):
     '''
@@ -184,60 +169,28 @@ def reset_round(args=None):
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, EVENTS, CLIENTS, ROBOT, TINDER, BUTTONS, FIRE_LIT
+    global GAME_STATE, CLIENTS
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
-    EVENTS = queue.Queue()
-    ydl_start_read(YDL_TARGETS.SHEPHERD, EVENTS)
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.RESET_TIMERS)
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.SANDSTORM, {"on": False})
-    CLIENTS.send_game_state(State.HYPOTHERMIA_END)
-    ROBOT.reset()
-    TINDER = LAST_TINDER
-    BUTTONS = LAST_BUTTONS
-    FIRE_LIT = LAST_FIRE_LIT
-    """
-    CLIENTS = RuntimeClientManager()
-    """
     disable_robots()
-
-    turn_off_all_lights()
-
-    ydl_send(YDL_TARGETS.TABLET, TABLET_HEADER.RESET)
-    ydl_send(YDL_TARGETS.DAWN, DAWN_HEADER.RESET)
     print("RESET MATCH, MOVE TO SETUP")
 
 
-def reset_state(args):
-    """
-    This is called after a match is complete because tinder and buttons are persisted across rounds for the same alliance but not when the next alliance begins.
-    """
-    global TINDER, BUTTONS, FIRE_LIT
-    TINDER = 0
-    FIRE_LIT = False
-    BUTTONS = Buttons()
-    send_round_info()
-
-
-def get_round(args):
+def set_match_number(args):
     '''
     Retrieves all match info based on match number and sends this information to the UI. If not already cached, fetches info from the spreadsheet.
     '''
-    global MATCH_NUMBER, ROUND_NUMBER, ROBOT, TINDER, BUTTONS
+    global MATCH_NUMBER, ALLIANCES,
     match_num = int(args["match_num"])
-    round_num = int(args["round_num"])
 
     # if robot info is for the correct match, round
-    if not (MATCH_NUMBER == match_num and ROUND_NUMBER == round_num):
+    if MATCH_NUMBER != match_num:
         MATCH_NUMBER = match_num
-        ROUND_NUMBER = round_num
         try:
             info = Sheet.get_round(match_num, round_num)
-            ROBOT.number = info["num"]
-            ROBOT.name = info["name"]
+            # TODO: do things with that info
         except Exception as e:
             print("Exception while reading from sheet:",e)
-            info = {"num":-1, "name":""}
 
     send_round_info()
     
@@ -341,9 +294,6 @@ def disable_robots():
 
 #pylint: disable=redefined-builtin
 
-def log(msg):
-    print("haha log")
-    print(msg)
 
 
 ###########################################
@@ -372,26 +322,10 @@ def send_robot_mode(team_number, mode):
             if client.robot.number == team_number:
                 client.send_mode(mode)
     except Exception as exc:
-        log(exc)
+        print(msg)
 
 
-def set_game_info(args):
-    '''
-    Set tinder/buttons from UI. If tinder/buttons are not passed in, they are ignored.
-    If in end state, LAST_TINDER is also set for the next round. TINDER is always set
-    because it could be done by the referee.
-    '''
-    global TINDER, LAST_TINDER
-    if args.get("tinder", ""):
-        TINDER = int(args["tinder"])
-        if GAME_STATE == STATE.END:
-            LAST_TINDER = TINDER
-    if args.get("buttons", ""):
-        BUTTONS.illuminated = int(args["buttons"])
-        if GAME_STATE == STATE.END:
-            LAST_BUTTONS.illuminated = BUTTONS.illuminated
-    print(f"Current Tinder: {TINDER}")
-    print(f"Current num buttons: {BUTTONS.illuminated}")
+
 
 
 ###########################################
@@ -400,24 +334,6 @@ def set_game_info(args):
 
 
 
-
-
-
-def to_end(args):
-    '''
-    Go to the end state.
-    '''
-    global GAME_STATE
-    GAME_STATE = STATE.END
-    disable_robots()
-    CLIENTS.reset()
-    GAME_TIMER.reset()
-    # ROBOT.end_time = time.time() #TODO: keep?
-    GAME_STATE = STATE.END
-    send_score_to_ui()
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STAGE, {"stage": GAME_STATE})
-
-    flush_scores()
 
 
 

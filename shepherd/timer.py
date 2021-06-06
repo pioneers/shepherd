@@ -75,10 +75,10 @@ class Timer:
 
     def start_timer(self, duration):
         """Starts a new timer with the duration (seconds) and sets timer to active.
-           If Timer is already running, adds duration to Timer"""
+           If Timer is already running, restarts timer"""
         Timer.queueLock.acquire()
         if self.active:
-            self.end_time += duration
+            self.end_time = time.time() + duration
         else:
             self.end_time = time.time() + duration
             Timer.eventQueue.append(self)
