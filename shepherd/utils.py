@@ -30,7 +30,7 @@ class SHEPHERD_HEADER():
     # source: UI. Asks Shepherd what the current scores are.
 
     SET_SCORES = "set_scores"
-    # SCORE_ADJUST{time, penalty, stamp_time}: 
+    # SET_SCORES{blue_score, gold_score}: 
     # source: UI. adjusts the current scores to the input scores.
 
     GET_STATE = "get_state"

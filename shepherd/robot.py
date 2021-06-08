@@ -4,6 +4,9 @@ import math
 from utils import *
 from code import *
 
+# TODO: rewrite this whole class for evergreen
+
+
 class Robot:
 
     def __init__(self, name, number, custom_ip=None):
