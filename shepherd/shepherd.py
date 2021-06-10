@@ -59,7 +59,6 @@ def start():
     ydl_start_read(YDL_TARGETS.SHEPHERD, events)
     while True:
         print("GAME STATE OUTSIDE: ", GAME_STATE)
-        # time.sleep(0.1) # TODO: remove this sleep?
         payload = events.get(True)
         print(payload)
 
@@ -83,18 +82,21 @@ def set_match_number(match_num):
     Retrieves all match info based on match number and sends this information to the UI. 
     If not already cached, fetches info from the spreadsheet, and caches it.
     '''
-    # TODO: fill in
-
     global MATCH_NUMBER
     # if robot info is for the correct match
     if MATCH_NUMBER != match_num:
         MATCH_NUMBER = match_num
-        try:
-            info = Sheet.get_round(match_num, round_num)
-            ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(Robot(), Robot()) # TODO: how does this work
-            ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(Robot(), Robot()) # TODO: how does this work
-        except Exception as e:
-            print("Exception while reading from sheet:",e)
+        info = Sheet.get_round(match_num)
+        ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(
+            Robot(info["blue_1_name"], info["blue_1_num"]),
+            Robot(info["blue_2_name"], info["blue_2_num"]))
+        ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(
+            Robot(info["gold_1_name"], info["gold_1_num"]),
+            Robot(info["gold_2_name"], info["gold_2_num"]))
+        CLIENTS.connect_client(INDICES.BLUE_1, info("blue_1_ip"))
+        CLIENTS.connect_client(INDICES.BLUE_2, info("blue_2_ip"))
+        CLIENTS.connect_client(INDICES.GOLD_1, info("gold_1_ip"))
+        CLIENTS.connect_client(INDICES.GOLD_2, info("gold_2_ip"))
     send_match_info_to_ui()
 
 
@@ -104,11 +106,15 @@ def to_setup(match_num, teams):
     calls reset_match() to move to setup state.
     By the end, should be ready to start match.
     '''
-    # TODO: fill in, settle on args
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
-    ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(Robot(), Robot()) # TODO: how does this work
-    ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(Robot(), Robot()) # TODO: how does this work
+
+    ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.set_from_dict(teams[INDICES.BLUE_1])
+    ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.set_from_dict(teams[INDICES.BLUE_2])
+    ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.set_from_dict(teams[INDICES.GOLD_1])
+    ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.set_from_dict(teams[INDICES.GOLD_2])
+    for i in range(4):
+        CLIENTS.connect_client(i, teams[i]["robot_ip"])
 
     # so if there are other UIs open they get the update
     send_match_info_to_ui()
@@ -132,7 +138,7 @@ def reset_match():
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
     send_state_to_ui()
     print("ENTERING SETUP STATE")
-    
+
 
 def to_auto():
     '''
@@ -140,7 +146,6 @@ def to_auto():
     By the end, should be in autonomous state, allowing any function from this
     stage to be called and autonomous match timer should have begun.
     '''
-    #pylint: disable= no-member
     global GAME_STATE
     GAME_STATE = STATE.AUTO
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
@@ -188,16 +193,16 @@ def go_to_state(state):
 
 
 
-def set_robot_ip(team_number, ip):
-    # TODO: fill in
-    pass
-
+def set_robot_ip(ind, ip):
+    '''
+    Sets the given client ip, and attempts to connect to it
+    '''
+    CLIENTS.connect_client(ind, ip)
 
 def score_adjust(blue_score, gold_score):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    # TODO: fill in
     ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(blue_score)
     ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(gold_score)
     send_score_to_ui()
@@ -209,22 +214,23 @@ def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
-    # TODO: fill in
-    try:
-        Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
-    except Exception as e:
-        print(f"Unable to push scores to spreadsheet: {e}")
+    Sheet.write_scores(
+        MATCH_NUMBER,
+        ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+        ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    )
 
 
 def send_match_info_to_ui():
     '''
     Sends all match info to the UI
     '''
-    # TODO: fill in
-    team_num = ROBOT.number
-    team_name = ROBOT.name
-    ydl_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
-                "team_num": team_num, "team_name": team_name, "custom_ip": ROBOT.custom_ip, "tinder": TINDER, "buttons": BUTTONS.illuminated}
+    ydl_data = {"match_num": MATCH_NUMBER, "teams": [
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_url),
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_url),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_url),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(CLIENTS.clients[INDICES.GOLD_2].robot_url),
+    ]}
     ydl_send(YDL_TARGETS.UI, UI_HEADER.TEAMS_INFO, ydl_data)
 
 def send_score_to_ui():

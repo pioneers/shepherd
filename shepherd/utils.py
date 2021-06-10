@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name
 
 class YDL_TARGETS():
     SHEPHERD = "ydl_target_shepherd"
@@ -5,16 +6,21 @@ class YDL_TARGETS():
     SENSORS = "ydl_target_sensors"
 
 
-# pylint: disable=invalid-name
+
 class SHEPHERD_HEADER():
     GET_MATCH_INFO = "get_match_info"
     # GET_MATCH_INFO{}
     # source: UI. Asks Shepherd what match info is currently cached.
-    
+
     SET_MATCH_NUMBER = "set_match_number"
-    # SET_MATCH_NUMBER{match_num}: 
+    # SET_MATCH_NUMBER{match_num}:
     # source: UI. Sets the match number. Shepherd then fetches
     # information for that match and sends it to the UI.
+
+    SPREADSHEET_INFO = "spreadsheet_info"
+    # SPREADSHEET_INFO{teams}:
+    # teams = 4*[{team_name, team_num, robot_ip}]
+    # source: sheets. Sets the match info, which has been fetched from a spreadsheet
 
     SETUP_MATCH = "setup_match"
     # SETUP_MATCH{team_name, team_num, match_num}
@@ -26,11 +32,11 @@ class SHEPHERD_HEADER():
     # source: UI. Resets the match, moving back to setup.
 
     GET_SCORES = "get_scores"
-    # GET_SCORES{}: 
+    # GET_SCORES{}:
     # source: UI. Asks Shepherd what the current scores are.
 
     SET_SCORES = "set_scores"
-    # SET_SCORES{blue_score, gold_score}: 
+    # SET_SCORES{blue_score, gold_score}:
     # source: UI. adjusts the current scores to the input scores.
 
     GET_STATE = "get_state"
@@ -40,34 +46,32 @@ class SHEPHERD_HEADER():
     SET_STATE = "set_state"
     # SET_STATE{state}
     # source: UI. Sets the game state.
-    
+
     START_NEXT_STAGE = "start_next_stage"
     # START_NEXT_STAGE{}: starts the next stage
 
     RESET_CURRENT_STAGE = "reset_current_stage"
     # RESET_CURRENT_STAGE{}: resets the current stage
-    
+
     STAGE_TIMER_END = "stage_timer_end"
-    # STAGE_TIMER_END{}: 
+    # STAGE_TIMER_END{}:
     # source: Timer. Sent when a stage timer has ended.
-    
+
     GET_CONNECTION_STATUS = "get_connection_status"
     # GET_CONNECTION_STATUS{}:
     # source: UI. Asks Shepherd to send robot connection statuses to UI.
-    
+
     SET_ROBOT_IP = "set_robot_ip"
     # SET_ROBOT_IP{team_number, ip}
     # source: UI. Attempts to connect team to robot with given ip.
 
     ROBOT_OFF = "robot_off"
-    # ROBOT_OFF{team_number}: 
+    # ROBOT_OFF{team_number}:
     # source: UI. Takes in team number and disables their robot.
 
     ROBOT_ON = "robot_on"
-    # ROBOT_ON{team_number}: 
+    # ROBOT_ON{team_number}:
     # source: UI. Takes in team number and enables their robot.
-
-# pylint: disable=invalid-name
 
 
 
@@ -99,9 +103,8 @@ class SENSOR_HEADER():
     Headers used for Shepherd to send messages to the Sensor Interface.
     """
     # EXAMPLE_HEADER = "example_header"
-    pass
 
-# pylint: disable=invalid-name
+
 
 
 
@@ -129,21 +132,27 @@ class CONSTANTS():
     SPREADSHEET_ID = "[todo: fill with dummy spreadsheet]"
     CSV_FILE_NAME = "sheets/sc2021.csv"
 
-# pylint: disable=invalid-name
+
 
 
 class ALLIANCE_COLOR():
     GOLD = "gold"
     BLUE = "blue"
 
+class INDICES():
+    BLUE_1 = 0
+    BLUE_2 = 1
+    GOLD_1 = 2
+    GOLD_2 = 3
 
-# pylint: disable=invalid-name
+
+
+
 
 
 class TIMER_TYPES():
     MATCH = {"TYPE": "match", "FUNCTION": SHEPHERD_HEADER.STAGE_TIMER_END}
 
-# pylint: disable=invalid-name
 
 
 class STATE():

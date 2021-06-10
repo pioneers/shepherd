@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import csv
+from ydl import ydl_send
 
 import httplib2  # pylint: disable=import-error
 from googleapiclient import discovery  # pylint: disable=import-error,no-name-in-module
@@ -49,17 +50,22 @@ class Sheet:
         return credentials
 
 
-    def get_round(match_number, round_number):
+    def get_round(match_number):
         # return get_offline_match(match_number)
+        info = None
         try:
-            return get_online_round(match_number, round_number)
+            info =  get_online_round(match_number)
         except httplib2.ServerNotFoundError:
-            return get_offline_match(match_number)
+            info = get_offline_match(match_number)
+
+        ydl_send(YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.SPREADSHEET_INFO, {
+            "things": 4 #TODO: fill in
+        })
 
 
-    def write_scores(match_number, round_number, score):
+    def write_scores(match_number, blue_score, gold_score):
         try:
-            write_online_scores(match_number, round_number, score)
+            write_online_scores(match_number, blue_score, gold_score)
         except httplib2.ServerNotFoundError:
             print("Unable to write to spreadsheet")
 
@@ -95,6 +101,7 @@ class Sheet:
         }
 
 
+
     def get_offline_match(match_number):
         """
         reads from the downloaded csv file in the event that the online file cannot
@@ -115,7 +122,7 @@ class Sheet:
     # pylint: disable=too-many-locals
 
 
-    def write_online_scores(match_number, round_number, score):
+    def write_online_scores(match_number, blue_score, gold_score):
         """
         A method that writes the scores to the sheet
         """
@@ -138,18 +145,21 @@ class Sheet:
             if int(j[0]) == match_number:
                 row = i
                 break
+        
 
-        if round_number == 1:
-            range_name = "'Match Database'!E" + str(row + 2)
-        elif round_number == 2:
-            range_name = "'Match Database'!H" + str(row + 2)
-        elif round_number == 3:
-            range_name = "'Match Database'!K" + str(row + 2)
+        # TODO: get this working for reals
+
+        range_name_1 = "'Match Database'!E" + str(row + 2)
+        range_name_2 = "'Match Database'!H" + str(row + 2)
 
         score_sheets = service.spreadsheets()  # pylint: disable=no-member
         game_scores = score_sheets.values().get(
-            spreadsheetId=spreadsheetId, range=range_name).execute()
-        game_scores['values'] = [[score]]
+            spreadsheetId=spreadsheetId, range=range_name_1).execute()
+        game_scores['values'] = [[blue_score]]
+        game_scores = score_sheets.values().get(
+            spreadsheetId=spreadsheetId, range=range_name_2).execute()
+        game_scores['values'] = [[gold_score]]
+
         sheets = service.spreadsheets()  # pylint: disable=no-member
         sheets.values().update(spreadsheetId=spreadsheetId,
                             range=range_name, body=game_scores,
