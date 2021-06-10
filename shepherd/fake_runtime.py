@@ -4,13 +4,15 @@ from protos import text_pb2
 from protos import start_pos_pb2
 from utils import *
 
+PORT_RASPI = 8101
+
 
 class TestSocket:
 
     def __init__(self):
         self.connection = self.connect_tcp()
         # this is the byte that indicates it was Shepherd sending the message
-        self.connection.recv(1)
+        print(f"Identification byte (should be 0): {self.connection.recv(1)}")
 
     def receive(self):
         while True:
@@ -40,18 +42,19 @@ class TestSocket:
 
     def connect_tcp(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(("127.0.0.1", 5000))
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("127.0.0.1", PORT_RASPI))
         server.listen(1)
         (connection, client_address) = server.accept()
         return connection
 
 
-socket = TestSocket()
-socket.connection.send(b'\x02')
-text = text_pb2.Text()
-text.payload.append("wieofw")
-bytearr = bytearray(text.SerializeToString())
+tsock = TestSocket()
+# tsock.connection.send(b'\x02')
+# text = text_pb2.Text()
+# text.payload.append("wieofw")
+# bytearr = bytearray(text.SerializeToString())
 # hardcoded in, really should be len(bytearr), truncated to 2 bits
-socket.connection.send(b'\x00\x08')
-socket.connection.send(bytearr)
-socket.receive()
+# tsock.connection.send(b'\x00\x08')
+# tsock.connection.send(bytearr)
+tsock.receive()

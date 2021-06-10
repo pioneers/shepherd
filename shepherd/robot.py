@@ -9,10 +9,9 @@ from code import *
 
 class Robot:
 
-    def __init__(self, name, number, custom_ip=None):
+    def __init__(self, name: str, number: int):
         self.name: str = name
         self.number: int = number
-        self.custom_ip = custom_ip or f"192.168.128.{number + 100}"
         self.coding_challenge = [False] * 8
         self.starting_position = None
     

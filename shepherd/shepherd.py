@@ -8,9 +8,8 @@ from alliance import Alliance
 from ydl import ydl_send, ydl_start_read
 from timer import Timer
 from utils import *
-from code import *
-from protos.run_mode_pb2 import Mode
 from runtimeclient import RuntimeClientManager
+from protos.run_mode_pb2 import Mode
 from protos.game_state_pb2 import State
 from sheet import Sheet
 from robot import Robot
@@ -26,10 +25,12 @@ MATCH_NUMBER = -1
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
 
-ALLIANCES = {ALLIANCE_COLOR.GOLD: Alliance(Robot(), Robot()), 
-             ALLIANCE_COLOR.BLUE: Alliance(Robot(), Robot())}
+ALLIANCES = {
+    ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
+    ALLIANCE_COLOR.BLUE: Alliance(Robot("", -1), Robot("", -1)),
+}
 
-CLIENTS = RuntimeClientManager() # TODO: ask Akshit whether to kill this
+CLIENTS = RuntimeClientManager()
 
 
 ###########################################
@@ -60,11 +61,10 @@ def start():
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         # time.sleep(0.1) # TODO: remove this sleep?
         payload = events.get(True)
-        LAST_HEADER = payload
         print(payload)
 
         if GAME_STATE in FUNCTION_MAPPINGS:
-            func_list = funcmappings.get(GAME_STATE)
+            func_list = FUNCTION_MAPPINGS.get(GAME_STATE)
             func = func_list.get(payload[0]) or EVERYWHERE_FUNCTIONS.get(payload[0])
             if func is not None:
                 func(**payload[1]) #deconstructs dictionary into arguments
@@ -77,15 +77,16 @@ def start():
 
 
 
-            
+
 def set_match_number(match_num):
     '''
     Retrieves all match info based on match number and sends this information to the UI. 
     If not already cached, fetches info from the spreadsheet, and caches it.
     '''
-    global MATCH_NUMBER
+    # TODO: fill in
 
-    # if robot info is for the correct match, round
+    global MATCH_NUMBER
+    # if robot info is for the correct match
     if MATCH_NUMBER != match_num:
         MATCH_NUMBER = match_num
         try:
@@ -97,12 +98,13 @@ def set_match_number(match_num):
     send_match_info_to_ui()
 
 
-def to_setup(match_num, b1, b2, g1, g2):
+def to_setup(match_num, teams):
     '''
     loads the match information for the upcoming match, then
     calls reset_match() to move to setup state.
     By the end, should be ready to start match.
     '''
+    # TODO: fill in, settle on args
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(Robot(), Robot()) # TODO: how does this work
@@ -113,7 +115,7 @@ def to_setup(match_num, b1, b2, g1, g2):
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
-    
+
 def reset_match():
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
@@ -125,7 +127,7 @@ def reset_match():
     Timer.reset_all()
     disable_robots()
     CLIENTS.reset()
-    connect()
+    CLIENTS.connect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
     send_state_to_ui()
@@ -142,7 +144,7 @@ def to_auto():
     global GAME_STATE
     GAME_STATE = STATE.AUTO
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
-    enable_robots(True)
+    enable_robots(autonomous=True)
     send_state_to_ui()
     print("ENTERING AUTO STATE")
 
@@ -151,7 +153,7 @@ def to_teleop():
     global GAME_STATE
     GAME_STATE = STATE.TELEOP
     GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
-    enable_robots(False)
+    enable_robots(autonomous=False)
     send_state_to_ui()
     print("ENTERING TELEOP STATE")
 
@@ -169,7 +171,7 @@ def to_end():
     send_score_to_ui()
     flush_scores()
     print("ENTERING END STATE")
-    
+
 
 def go_to_state(state):
     transitions = {
@@ -190,10 +192,6 @@ def set_robot_ip(team_number, ip):
     # TODO: fill in
     pass
 
-def connect():
-    # TODO: fill in
-    # CLIENTS.get_clients([ROBOT.custom_ip], [ROBOT])
-
 
 def score_adjust(blue_score, gold_score):
     '''
@@ -211,6 +209,7 @@ def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
+    # TODO: fill in
     try:
         Sheet.write_scores(MATCH_NUMBER, ROUND_NUMBER, ROBOT.total_time())
     except Exception as e:
@@ -221,6 +220,7 @@ def send_match_info_to_ui():
     '''
     Sends all match info to the UI
     '''
+    # TODO: fill in
     team_num = ROBOT.number
     team_name = ROBOT.name
     ydl_data = {"match_num": MATCH_NUMBER, "round_num": ROUND_NUMBER,
@@ -247,10 +247,10 @@ def send_connection_status_to_ui():
     '''
     Sends the connection status of all runtime clients to the UI
     '''
-    CLIENTS.send_connection_status_to_ui() #TODO: runtimeclientmanager done? 
-    
-    
-    
+    CLIENTS.send_connection_status_to_ui()
+
+
+
 
 ###########################################
 # Game Specific Methods
@@ -270,28 +270,19 @@ def disable_robots():
     '''
     CLIENTS.send_mode(Mode.IDLE)
 
-def disable_robot(args):
+def disable_robot(ind):
     '''
     Send message to Runtime to disable the robot of team
     '''
-    disable_robots() #hotfix, no idea why other doesn't work
-    #send_robot_mode(int(args["team_number"]), Mode.IDLE)
+    CLIENTS.clients[ind].send_mode(Mode.IDLE)
 
-def enable_robot(args):
+def enable_robot(ind):
     '''
     Send message to Runtime to enable the robot of team
     '''
-    enable_robots(GAME_STATE == STATE.AUTO) #hotfix, no idea why other doesn't work
-    #mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
-    #send_robot_mode(int(args["team_number"]), mode)
+    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    CLIENTS.clients[ind].send_mode(mode)
 
-def send_robot_mode(team_number, mode):
-    try:
-        for client in CLIENTS.clients:
-            if client.robot.number == team_number:
-                client.send_mode(mode)
-    except Exception as exc:
-        print(msg)
 
 
 
@@ -338,7 +329,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
     SHEPHERD_HEADER.GET_STATE: send_state_to_ui,
     SHEPHERD_HEADER.GET_CONNECTION_STATUS: send_connection_status_to_ui,
-    
+
     SHEPHERD_HEADER.SET_STATE: go_to_state,
     SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
     SHEPHERD_HEADER.ROBOT_ON: enable_robot,

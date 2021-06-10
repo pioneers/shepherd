@@ -5,11 +5,9 @@ import selectors
 import time
 
 
-'''
-when using YDL, please do:
-from ydl import ydl_send, ydl_start_read
-since only those two methods are meant for public consumption
-'''
+# when using YDL, please do:
+# from ydl import ydl_send, ydl_start_read
+# since only those two methods are meant for public consumption
 
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
 CLIENT_THREAD = None
