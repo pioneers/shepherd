@@ -6,54 +6,48 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
+
+    const teams_info_msg = $("#teams-info");
+    const blue_score_msg = $("#blue-score-msg");
+    const blue_score_input = $("#blue-score-input");
+    const blue_score_btn = $("#blue-score-btn");
+    const gold_score_msg = $("#gold-score-msg");
+    const gold_score_input = $("#gold-score-input");
+    const gold_score_btn = $("#gold-score-btn");
+
     socket.on('connect', function(data) {
       socket.emit('join', 'score_adjustment');
-      send('get_round_info_no_args');
+      send('get_match_info');
       send('get_scores');
     });
 
-    socket.on('scores', function(scores) {
-      let parsed_data = JSON.parse(scores);
-      show_score(parseFloat(parsed_data.time * 1000), parsed_data.penalty, parsed_data.stamp_time);
-    });
-    
-    function show_score(elapsed, penalty, stamp) {
-      let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
-                    (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
-      $("#team-score").html(
-      `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
-      );
-    }
-
-    socket.on('teams_info', function (data) {
-      parsed_data = JSON.parse(data);
-      
-      $("#team-number").text(parsed_data.team_num);
-      $("#team-name").text(parsed_data.team_name);
+    socket.on('teams_info', function(data) {
+      data = JSON.parse(data);
+      let names = data.teams.map((t) => "#"+t.team_num+" "+t.team_name);
+      let msg = `Match ${data.match_num}: ` + names.join(", ");
+      teams_info_msg.text(msg);
     });
 
-    $("#score-change").click(() => {
-        let t = parseFloat($("#score-adjustment").val());
-        if(isNaN(t)) { alert("invalid time"); return; }
-        send("score_adjust", JSON.stringify({ "time": t }));
-        $("#score-adjustment").val("");
+    socket.on('scores', function(data) {
+      data = JSON.parse(data);
+      blue_score_msg.text(data.blue_score);
+      gold_score_msg.text(data.gold_score);
     });
-    
-    $("#penalty-change").click(() => {
-        let t = parseInt($("#penalty-adjustment").val());
-        if(isNaN(t)) { alert("invalid time"); return; }
-        if(t < 0) { alert("Penalty time should be a positive number"); return; }
-        send("score_adjust", JSON.stringify({ "penalty": t }));
-        $("#penalty-adjustment").val("");
+
+    blue_score_btn.click(() => {
+      let s = parseFloat(blue_score_input.val());
+      if(isNaN(s)){ alert("invalid score"); return; }
+      blue_score_input.val("");
+      send("set_scores", JSON.stringify({"blue_score":s}))
     });
-    
-    $("#stamp-change").click(() => {
-        let t = parseInt($("#stamp-adjustment").val());
-        if(isNaN(t)) { alert("invalid time"); return; }
-        if(t > 0) { alert("Stamp time should be a negative number"); return; }
-        send("score_adjust", JSON.stringify({ "stamp_time": t }));
-        $("#stamp-adjustment").val("");
+
+    gold_score_btn.click(() => {
+      let s = parseFloat(gold_score_input.val());
+      if(isNaN(s)){ alert("invalid score"); return; }
+      gold_score_input.val("");
+      send("set_scores", JSON.stringify({"gold_score":s}))
     });
+
   }
 </script>
 {% endblock %}
@@ -64,20 +58,20 @@
 
 
 <div class="text-center">
-  <h3 id="teams-info"> (#__)____ + (#__)____ vs (#__)____ + (#__)____</h3>
+  <h3 id="teams-info">[loading...]</h3>
 </div>
 
 <div class="row bottom-padding">
     <div class="col" style="border:1px solid black">
         
-        <h3 class="text-center">0</h3>
+        <h3 class="text-center" id="blue-score-msg">0</h3>
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <span class="input-group-text">Points</span>
             </div>
-            <input type="number" class="form-control">
+            <input type="number" class="form-control" id="blue-score-input">
             <span class="input-group-btn">
-                <button class="btn btn-success" type="button" id="score-change">Change</button>
+                <button class="btn btn-success" type="button" id="blue-score-btn">Change</button>
             </span>
         </div>
         
@@ -85,14 +79,14 @@
     <div class="col" style="border:1px solid black">
         
         
-        <h3 class="text-center">0</h3>
+        <h3 class="text-center" id="gold-score-msg">0</h3>
         <div class="input-group mb-3">
             <div class="input-group-prepend">
                 <span class="input-group-text">Points</span>
             </div>
-            <input type="number" class="form-control">
+            <input type="number" class="form-control" id="gold-score-input">
             <span class="input-group-btn">
-                <button class="btn btn-success" type="button" id="score-change">Change</button>
+                <button class="btn btn-success" type="button" id="gold-score-btn">Change</button>
             </span>
         </div>
         

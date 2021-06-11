@@ -18,7 +18,7 @@ class TimerThread(threading.Thread):
         while Timer.eventQueue:
             time_to_wait = Timer.update_all()
             if time_to_wait > 0:
-                time.sleep(0.99 * time_to_wait) 
+                time.sleep(0.99 * time_to_wait)
                 # 0.99 makes it run a few extra cycles, but more accurate
 
 
@@ -36,20 +36,24 @@ class Timer:
     @classmethod
     def update_all(cls):
         """
-        Checks to see if any of the timers has run out, and does the timer's callback if so (may run multiple callbacks). 
-        Returns the time remaining until the next timer (could be negative if timers expire at the same time). 
-        This assumes that a timer will never have its end_time spontanously decrease, and that all timers last at least MIN_TIMER_TIME
+        Checks to see if any of the timers has run out, and does the timer's callback if so
+        (may run multiple callbacks). Returns the time remaining until the next timer
+        (could be negative if timers expire at the same time).
+        This assumes that a timer will never have its end_time spontanously decrease,
+        and that all timers last at least MIN_TIMER_TIME
         """
         cls.queueLock.acquire()
         current_time = time.time()
         finished = [t for t in cls.eventQueue if t.end_time <  current_time]
         keep     = [t for t in cls.eventQueue if t.end_time >= current_time]
-        min_time = current_time if len(keep) == 0 else min((t.end_time for t in keep)) #want to end immediately if queue is empty
+        # want to end immediately if queue is empty
+        min_time = current_time if len(keep) == 0 else min((t.end_time for t in keep))
         cls.eventQueue = keep
         cls.queueLock.release()
         for t in finished:
-            t.end_timer() # timer's callback can introduce deadlock, want this outside the lock
-        return min(cls.MIN_TIMER_TIME, min_time - time.time()) #current time is recalculated for accuracy
+            t.end_timer()
+        # current time is recalculated for accuracy
+        return min(cls.MIN_TIMER_TIME, min_time - time.time())
 
 
     @classmethod
@@ -93,10 +97,11 @@ class Timer:
     def end_timer(self):
         """Does the callback for current timer and sets it to inactive.
            Note that current timer should not be in the event queue, to avoid deadlock"""
-        if not self.active: return #if timer was just reset
+        if not self.active:
+            return #if timer was just reset
         self.active = False #in case callback restarts the timer, do this first
-        if self.timer_type is not None and self.timer_type["NEEDS_FUNCTION"]:
-            YDL.ydl_send(YDL_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
+        if self.timer_type is not None and "FUNCTION" in self.timer_type:
+            ydl.ydl_send(YDL_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
 
 
     def reset(self):
@@ -112,7 +117,7 @@ class Timer:
     def is_running(self):
         """
         Returns true if the timer is currently running.
-        Specifically, returns true if it's in the event queue, 
+        Specifically, returns true if it's in the event queue,
         or about to do its callback
         """
         return self.active

@@ -6,145 +6,70 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
-    var team_num = NaN;
-    var start_time = NaN;
-    var base_time = NaN;
-    var penalty_time = 1000;
-    var stamp_time = 2000;
-    var tinder = 3000;
+
+    const teams_info_msg = $("#teams-info");
+    const score_info_msg = $("#score-info");
+    const btn_1 = $("#button-1");
+    const btn_2 = $("#button-2");
+    const estop_btn = $("#stop-robots");
+    const estart_btn = $("#start-robots");
+    const state_msg = $("#state");
+    const auto_btn = $("#auto-btn");
+    const teleop_btn = $("#teleop-btn");
+    const end_btn = $("#end-btn");
 
     socket.on('connect', function(data) {
       socket.emit('join', 'ref_gui');
-      send('get_round_info_no_args');
+      send('get_match_info');
       send('get_scores');
-      send('get_biome');
+      send('get_state');
     });
 
-    socket.on('scores', function(scores) {
-      let parsed_data = JSON.parse(scores);
-      start_time = parseInt(parsed_data.start_time);
-      penalty_time = parseInt(parsed_data.penalty);
-      stamp_time = parseInt(parsed_data.stamp_time);
-      base_time = parseFloat(parsed_data.time);
-    });
-
-    (function update_score() {
-      let elapsed = base_time * 1000 || (isNaN(start_time) ? 0 : new Date().getTime() - start_time);
-      show_score(elapsed, penalty_time, stamp_time);
-      requestAnimationFrame(update_score);
-    })();
-    
-    function show_score(elapsed, penalty, stamp) {
-      let basestr = (""+Math.floor(elapsed/60000)).padStart(1,'0') + ":" +
-                    (""+Math.floor(elapsed/1000)%60).padStart(2,'0');
-      $("#team-score").html(
-      `${basestr} <span style="color:red">(+${penalty})</span> <span style="color:green">(-${-1*stamp})</span>`
-      );
-    }
-    
-    socket.on('teams_info', function (data) {
-      let parsed_data = JSON.parse(data);
-      team_num = parsed_data.team_num;
-      $("#team-number").text(parsed_data.team_num);
-      $("#team-name").text(parsed_data.team_name);
-      $("#tinder").text(parsed_data.tinder);
-      tinder = parseInt(parsed_data.tinder);
-    });
-
-    socket.on('stage', function (data) {
+    socket.on('teams_info', function(data) {
       data = JSON.parse(data);
-      const biome = data.stage;
-      updateBiome(biome);
+      let names = data.teams.map((t) => "#"+t.team_num+" "+t.team_name);
+      let msg = `Match ${data.match_num}: ` + names.join(", ");
+      teams_info_msg.text(msg);
     });
 
-    function updateBiome(biome) {
-      $("#biome").text(biome);
-    }
+    socket.on('scores', function(data) {
+      data = JSON.parse(data);
+      score_info_msg.text(`Blue: ${data.blue_score}, Gold: ${data.gold_score}`);
+    });
 
+    socket.on('state', function(data) {
+      data = JSON.parse(data);
+      state_msg.text(data.state);
+    });
 
-    $("#penalty-change").click(() => {
-      let v = parseInt($("#penalty-adjustment").val());
-      if(isNaN(v)) { alert("invalid input"); return; }
-      if(v < 0) { alert("Penalty time should be a positive number"); return; }
-      send('score_adjust', JSON.stringify({ "penalty": v }));
-      $("#penalty-adjustment").val("");
+    btn_1.click(() => {
+      send('button_1_pressed');
+    });
+
+    btn_2.click(() => {
+      send('button_2_pressed');
+    });
+
+    estop_btn.click(() => {
+      for(let a=0;a<4;a++) send('robot_off', JSON.stringify({"ind":a}));
+    });
+
+    estart_btn.click(() => {
+      for(let a=0;a<4;a++) send('robot_on', JSON.stringify({"ind":a}));
+    });
+
+    auto_btn.click(() => {
+      send('set_state', JSON.stringify({"state":"auto"}));
+    });
+
+    teleop_btn.click(() => {
+      send('set_state', JSON.stringify({"state":"teleop"}));
+    });
+
+    end_btn.click(() => {
+      send('set_state', JSON.stringify({"state":"end"}));
     });
     
-    $("#penalty-5").click(() => {
-      send('score_adjust', JSON.stringify({ "penalty": penalty_time+5 }));
-    });
-    
-    $("#stamp-change").click(() => {
-      let v = parseInt($("#stamp-adjustment").val());
-      if(isNaN(v)) { alert("invalid input"); return; }
-      if(v > 0) { alert("Stamp time should be a negative number"); return; }
-      send('score_adjust', JSON.stringify({ "stamp_time": v }));
-      $("#stamp-adjustment").val("");
-    });
-    
-    $("#stamp-3").click(() => {
-      send('score_adjust', JSON.stringify({ "stamp_time": stamp_time-3 }));
-    });
-    
-    $("#stamp-5").click(() => {
-      send('score_adjust', JSON.stringify({ "stamp_time": stamp_time-5 }));
-    });
-    
-    $("#tinder-change").click(() => {
-      let v = parseInt($("#tinder-adjustment").val());
-      if(isNaN(v)) { alert("invalid input"); return; }
-      send('set_tinder', JSON.stringify({ "tinder": v }));
-      $("#tinder-adjustment").val("");
-    });
-    
-    $("#tinder-decrement").click(() => {
-      send('set_tinder', JSON.stringify({ "tinder": tinder-1 }));
-    });
-    
-    $("#tinder-increment").click(() => {
-      send('set_tinder', JSON.stringify({ "tinder": tinder+1 }));
-    });
-
-    
-    $("#hit-wall").click(() => {
-      send('contact_wall');
-    });
-    
-    $("#shortcut").click(() => {
-      send('drawbridge_shortcut');
-    });
-
-    $("#stop-robot").click(() => {
-      send('robot_off', JSON.stringify({ "team_number": team_num }));
-    });
-
-    $("#start-robot").click(() => {
-      send('robot_on', JSON.stringify({ "team_number": team_num }));
-    });
-
-    $("#city").click(() => {
-      send("set_biome", JSON.stringify({"biome": "city"}));
-    });
-
-    $("#desert").click(() => {
-      send('set_biome', JSON.stringify({"biome": "sandstorm"}))
-    });
-
-    $("#dehydration").click(() => {
-      send('set_biome', JSON.stringify({"biome": "dehydration"}))
-    });
-
-    $("#hypothermia").click(() => {
-      send('set_biome', JSON.stringify({"biome": "hypothermia"}))
-    });
-
-    $("#final").click(() => {
-      send('set_biome', JSON.stringify({"biome": "final"}))
-    });
-
-    $("#end").click(() => {
-      send('set_biome', JSON.stringify({"biome": "end"}))
-    });
   }
 </script>
 {% endblock %}
@@ -155,7 +80,8 @@
 
 
 <div class="text-center">
-  <h3 id="teams-info"> (#__)____ + (#__)____ vs (#__)____ + (#__)____</h3>
+  <h3 id="teams-info">[loading...]</h3>
+  <h3 id="score-info">[loading...]</h3>
 </div>
 
 
@@ -164,7 +90,7 @@
     <div class="input-group">
       <span class="input-group-btn">
         <button class="btn btn-info" type="button" id="button-1">Button 1</button>
-        <button class="btn btn-info" type="button" id="button-1">Button 2</button>
+        <button class="btn btn-info" type="button" id="button-2">Button 2</button>
         <button class="btn btn-danger" type="button" id="stop-robots">ESTOP Robots</button>
         <button class="btn btn-success" type="button" id="start-robots">ESTART Robots</button>
       </span>
@@ -174,7 +100,7 @@
 <div class="row bottom-padding">
   <div class="col">
     <div class="input-group">
-      <h3>State: <span id="biome">None</span> </h3>
+      <h3>State: <span id="state">None</span> </h3>
       <span class="input-group-btn ml-3">
         <button class="btn btn-info" type="button" id="auto-btn">Auto</button>
         <button class="btn btn-info" type="button" id="teleop-btn">Teleop</button>

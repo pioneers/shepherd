@@ -20,21 +20,21 @@ class RuntimeClient:
     reconnect. If close_connection is called, the socket will close and the
     thread will end.
     """
-    def __init__(self, ind, robot_url):
+    def __init__(self, ind, robot_ip):
         self.ind = ind
-        self.robot_url = robot_url
+        self.robot_ip = robot_ip
         self.sock = None
         self.connected = False
         self.manually_closed = False # whether Shepherd has manually closed this client
         # note that the first connect_tcp has to be in main thread,
         # because otherwise close_connection could be called before first connection
-        self.__connect_tcp(silent=(robot_url==""))
+        self.__connect_tcp(silent=(robot_ip==""))
         self.send_connection_status_to_ui()
         if self.connected:
             threading.Thread(target=self.__start_recv).start()
 
     def __repr__(self) -> str:
-        return f"RuntimeClient({self.ind}, {self.robot_url})"
+        return f"RuntimeClient({self.ind}, {self.robot_ip})"
 
     def __send_msg(self, mode: int, protobuf_obj):
         msg_str = protobuf_obj.SerializeToString()
@@ -46,7 +46,7 @@ class RuntimeClient:
             except (ConnectionError, OSError) as ex:
                 print(f"Error while sending from {self}: {ex}")
         else:
-            print("{self} is not connected. Could not send message {msg_str}")
+            print(f"{self} is not connected. Could not send message {msg_str}")
 
     def send_mode(self, mode):
         """
@@ -93,7 +93,7 @@ class RuntimeClient:
         data = {
             "ind": self.ind,
             "connected": self.connected,
-            "robot_url": self.robot_url
+            "robot_ip": self.robot_ip
         }
         ydl_send(YDL_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, data)
 
@@ -107,7 +107,7 @@ class RuntimeClient:
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.settimeout(2)
-            self.sock.connect((self.robot_url, PORT_RASPI))
+            self.sock.connect((self.robot_ip, PORT_RASPI))
             self.connected = True
             message = f"Successfully connected to {self}"
         except (ConnectionError, OSError) as ex:
@@ -161,21 +161,21 @@ class RuntimeClientManager:
     def __init__(self):
         self.clients = [RuntimeClient(i, "") for i in range(4)]
 
-    def connect_client(self, ind: int, robot_url: str):
+    def connect_client(self, ind: int, robot_ip: str):
         """
         Makes a RuntimeClient at ind and connects it to the
-        given robot_url, terminating any previous connection
+        given robot_ip, terminating any previous connection
         """
         self.clients[ind].close_connection()
-        self.clients[ind] = RuntimeClient(ind, robot_url)
+        self.clients[ind] = RuntimeClient(ind, robot_ip)
 
     def reconnect_all(self):
         """
-        Reconnects all clients to their saved robot_urls
+        Reconnects all clients to their saved robot_ips
         (terminates existing connections - no need for close_all before)
         """
         for c in range(len(self.clients)):
-            self.connect_client(c, self.clients[c].robot_url)
+            self.connect_client(c, self.clients[c].robot_ip)
 
     def foreach(self, fun, *args, **kwargs):
         for client in self.clients:

@@ -35,60 +35,75 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
-    var robot_connected = false;
-    var match_num = "";
-    var round_num = "";
-    var team_num = "";
-    var team_name = "";
-    var tinder = "";
-    var buttons = "";
-    var custom_ip = "";
+    var match_num = -1;
+    var teams = [
+      {team_name: "[loading]", team_num: -1, robot_ip: "[loading]", starting_position: null},
+      {team_name: "[loading]", team_num: -1, robot_ip: "[loading]", starting_position: null},
+      {team_name: "[loading]", team_num: -1, robot_ip: "[loading]", starting_position: null},
+      {team_name: "[loading]", team_num: -1, robot_ip: "[loading]", starting_position: null},
+    ];
+    const INDEX_NAMES = ["Blue Team 1", "Blue Team 2", "Gold Team 1", "Gold Team 2"];
+    const match_num_input = $("#select-match-number");
+    const next_match_btn = $("#next-round");
+    const populate_btn = $("#select-round");
+    const team_num_inputs = individual($(".team-num-input"));
+    const team_name_inputs = individual($(".team-name-input"));
+    const team_sp_inputs = individual($(".team-starting-position-input"));
+    const robot_ip_inputs = individual($(".robot-ip-input"));
+    const robot_connect_btns = individual($(".robot-connect-button"));
+    const heartbeat_lights = individual($(".heartbeat-light"));
+    const heartbeat_msgs = individual($(".heartbeat-message"));
+    const state_msg = $("#state-msg");
+    const create_match_btn = $("#create-match");
+    const start_match_btn = $("#match-start");
+    const reset_match_btn = $("#match-reset");
+
+    function individual(jq_obj) {
+      let res = Array(jq_obj.length);
+      for(let a=0;a<jq_obj.length;a++){
+        res[a] = $(jq_obj[a])
+      }
+      return res
+    }
 
     socket.on('connect', function (data) {
       socket.emit('join', 'staff_gui');
-      send('get_round_info_no_args');
-      send('get_biome');
-      send('request_connections');
+      send('get_match_info');
+      send('get_state');
+      send('get_connection_status');
     });
 
     socket.on('teams_info', function (data) {
-      parsed_data = JSON.parse(data);
-      match_num = parsed_data.match_num;
-      round_num = parsed_data.round_num;
-      team_num  = parsed_data.team_num;
-      team_name = parsed_data.team_name;
-      tinder    = parsed_data.tinder;
-      buttons   = parsed_data.buttons;
-      if ($("#custom-ip-adjustment").val() === "") {
-        custom_ip = parsed_data.custom_ip;
-      }
+      data = JSON.parse(data);
+      match_num = data.match_num
+      teams = data.teams
       setDefaultTeamsInfo()
     });
 
-    socket.on('stage', function (data) {
+    socket.on('state', function (data) {
       data = JSON.parse(data);
-      const biome = data.stage;
-      updateBiome(biome);
+      state_msg.text(data.state)
     });
 
-    function updateBiome(biome) {
-      console.log(`updating biome to ${biome}`)
-      $("#biome").text(biome);
-    }
+    socket.on('robot_connection', function (data) {
+      data = JSON.parse(data);
+      let msg = data.connected ? `Connected to ${data.robot_ip}` : 
+        data.robot_ip === "" ? "Not connected" : `Disconnected from ${data.robot_ip}`;
+      toggleHeartbeat(data.ind, data.connected, msg);
+    });
     
     function setDefaultTeamsInfo() {
-      $("#select-match-number").val(match_num);
-      $("#select-round-number").val(round_num);
-      $("#team-number").val(team_num);
-      $("#team-name").val(team_name);
-      $("#tinder").val(tinder);
-      $("#buttons").val(buttons);
-      $("#custom-ip-adjustment").val(custom_ip);
+      match_num_input.val(match_num);
+      for(let a = 0; a < 4; a++){
+        team_num_inputs[a].val(teams[a].team_num);
+        team_name_inputs[a].val(teams[a].team_name);
+        team_sp_inputs[a].val(teams[a].starting_position);
+        robot_ip_inputs[a].val(teams[a].robot_ip);
+      }
     }
 
-    function toggleHeartbeat(connected, message) {
-      robot_connected = connected;
-      const hbl = $("#heartbeat-light");
+    function toggleHeartbeat(ind, connected, message) {
+      const hbl = heartbeat_lights[ind];
       if (connected == null) {
         hbl.toggleClass("led-green", false);
         hbl.toggleClass("led-red",  false);
@@ -96,95 +111,48 @@
         hbl.toggleClass("led-green", connected);
         hbl.toggleClass("led-red",  !connected);
       }
-      $("#heartbeat-message").text(message);
+      heartbeat_msgs[ind].text(message);
     }
-    
-    socket.on('robot_connection', function (data) {
-      data = JSON.parse(data);
-      const connected = data.connected;
-      if (typeof data.team_num == 'undefined') {
-        toggleHeartbeat(connected, "Not connected to any robot");
-      } else if (data.team_num == team_num || true) {
-        // the || true is a hotfix because sometimes people want to connect to the robot before submitting the match info
-        // and we only have one robot anyway
-        // in years with multiple robots, remove the || true
-        toggleHeartbeat(connected, `Robot #: ${data.team_num} IP: ${data.custom_ip}`);
+
+    next_match_btn.click(() => {
+      match_num++;
+      match_num_input.val(match_num);
+      send('set_match_number', JSON.stringify({"match_num": match_num}));
+    });
+
+    populate_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      if(isNaN(match_num)){ alert("invalid match number"); return; }
+      send('set_match_number', JSON.stringify({"match_num": match_num}));
+    });
+
+    create_match_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      for(let a = 0; a < 4; a++) {
+        teams[a].team_num = parseInt(team_num_inputs[a].val());
+        teams[a].team_name = team_name_inputs[a].val();
+        teams[a].starting_position = team_sp_inputs[a].val();
+        teams[a].robot_ip = robot_ip_inputs[a].val();
       }
-    });
-    
-    socket.on('linebreak_info', function(data) {
-      $("#linebreaks-info").text("Not working: " + JSON.parse(data).text);
-    })
-
-    $("#next-round").click(() => {
-      if(round_num >= 3){
-          round_num = 1;
-          match_num++;
-      } else {
-          round_num++;
-      }
-      $("#select-match-number").val(match_num);
-      $("#select-round-number").val(round_num);
-      send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
-    })
-
-    $("#next-match").click(() => {
-      send('reset_match');
-    })
-
-    $("#select-round").click(() => {
-      match_num = parseInt($("#select-match-number").val());
-      round_num = parseInt($("#select-round-number").val());
-      if(isNaN(match_num) || isNaN(round_num)){ alert("invalid match or round number"); return; }
-      send('get_round_info', JSON.stringify({ "match_num": match_num, "round_num": round_num }));
+      send('setup_match', JSON.stringify({"match_num": match_num, "teams": teams}));
     });
 
-    $("#create-match").click(() => {
-      match_num = parseInt($("#select-match-number").val());
-      round_num = parseInt($("#select-round-number").val());
-      team_num = parseInt($("#team-number").val());
-      team_name = $("#team-name").val();
-      custom_ip = $("#custom-ip-adjustment").val();
-
-      if(isNaN(match_num)) { alert("invalid match number"); return; }
-      if(isNaN(round_num)) { alert("invalid round number"); return; }
-      if(isNaN(team_num)) { alert("invalid team number"); return; }
-      if(team_name === "") { alert("empty team name"); return; } 
-      toggleHeartbeat(null, "awaiting connection");
-      let data = {
-          "match_num": match_num,
-          "round_num": round_num,
-          "team_num": team_num,
-          "team_name": team_name,
-      };
-      if (custom_ip !== "") {
-        data["custom_ip"] = custom_ip;
-      }
-      send('setup_match', JSON.stringify(data));
+    start_match_btn.click(() => {
+      send('start_next_stage')
     });
 
-
-    $("#submit-tinder").click(function () {
-      let tinder = parseInt($("#tinder").val());
-      if(isNaN(tinder)){ alert("invalid firewood"); return; }
-      send('set_game_info', JSON.stringify({ "tinder": tinder }));
+    reset_match_btn.click(() => {
+      send('reset_match')
     });
 
-    $("#submit-buttons").click(function () {
-      let buttons = parseInt($("#buttons").val());
-      if(isNaN(buttons)){ alert("invalid buttons"); return; }
-      send('set_game_info', JSON.stringify({ "buttons": buttons }));
-    });
+    for(let outer_a=0;outer_a<4;outer_a++) ((a) => {
+      robot_connect_btns[a].click(() => {
+        teams[a].robot_ip = robot_ip_inputs[a].val()
+        toggleHeartbeat(a, null, "awaiting connection...")
+        send('set_robot_ip', JSON.stringify({"ind":a, "robot_ip":teams[a].robot_ip}));
+      });
+    })(outer_a);
 
-    $("#round-start").click(function () {
-      send('start_next_stage');
-    });
-
-
-    $("#round-reset").click(function () {
-      send('reset_round');
-    });
-    
     $("#custom-ip-change").click(function () {
       let ip = $("#custom-ip-adjustment").val();
       if(ip == "") { alert("empty custom ip"); return; } 
@@ -196,14 +164,6 @@
       if(robot_connected || confirm("Not connected to a robot. Try anyway?")) {
         send('robot_off', JSON.stringify({ "team_number": team_num }));
       }
-    });
-
-    $("#linebreaks-off").click(function () {
-      send('linebreaks_off');
-    });
-
-    $("#linebreaks-on").click(function () {
-      send('linebreaks_on');
     });
   }
 </script>
@@ -241,18 +201,18 @@
     <div class="col" style="border:1px solid black; background: #F0F0FF">
         <h3>Blue Team 1</h3>
         <div class="input-group mb-1">
-            Team #: <input type="number" class="form-control">
+            Team #: <input type="number" class="form-control team-num-input">
         </div>
         <div class="input-group mb-1">
-            Team Name: <input type="text" class="form-control">
+            Team Name: <input type="text" class="form-control team-name-input">
         </div>
         <div class="input-group mb-1">
-            Generic Items: <input type="number" class="form-control">
+            Starting Position: <input type="number" class="form-control team-starting-position-input">
         </div>
         <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
-            <button class="btn btn-success" type="button">Connect</button> 
+            <input type="text" class="form-control robot-ip-input" placeholder="0.0.0.0">
+            <button class="btn btn-success robot-connect-button" type="button">Connect</button> 
         </div>
         <div class="input-group mb-1">
             <span style="margin-right:5px">Heartbeat:</span> 
@@ -263,18 +223,18 @@
     <div class="col" style="border:1px solid black; background: #F0F0FF">
         <h3>Blue Team 2</h3>
         <div class="input-group mb-1">
-            Team #: <input type="number" class="form-control">
+            Team #: <input type="number" class="form-control team-num-input">
         </div>
         <div class="input-group mb-1">
-            Team Name: <input type="text" class="form-control">
+            Team Name: <input type="text" class="form-control team-name-input">
         </div>
         <div class="input-group mb-1">
-            Generic Items: <input type="number" class="form-control">
+            Starting Position: <input type="number" class="form-control team-starting-position-input">
         </div>
         <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
-            <button class="btn btn-success" type="button">Connect</button> 
+            <input type="text" class="form-control robot-ip-input" placeholder="0.0.0.0">
+            <button class="btn btn-success robot-connect-button" type="button">Connect</button> 
         </div>
         <div class="input-group mb-1">
             <span style="margin-right:5px">Heartbeat:</span> 
@@ -287,18 +247,18 @@
     <div class="col" style="border:1px solid black; background: #FFFFF0">
         <h3>Gold Team 1</h3>
         <div class="input-group mb-1">
-            Team #: <input type="number" class="form-control">
+            Team #: <input type="number" class="form-control team-num-input">
         </div>
         <div class="input-group mb-1">
-            Team Name: <input type="text" class="form-control">
+            Team Name: <input type="text" class="form-control team-name-input">
         </div>
         <div class="input-group mb-1">
-            Generic Items: <input type="number" class="form-control">
+            Starting Position: <input type="number" class="form-control team-starting-position-input">
         </div>
         <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
-            <button class="btn btn-success" type="button">Connect</button> 
+            <input type="text" class="form-control robot-ip-input" placeholder="0.0.0.0">
+            <button class="btn btn-success robot-connect-button" type="button">Connect</button> 
         </div>
         <div class="input-group mb-1">
             <span style="margin-right:5px">Heartbeat:</span> 
@@ -309,18 +269,18 @@
     <div class="col" style="border:1px solid black; background: #FFFFF0">
         <h3>Gold Team 2</h3>
         <div class="input-group mb-1">
-            Team #: <input type="number" class="form-control">
+            Team #: <input type="number" class="form-control team-num-input">
         </div>
         <div class="input-group mb-1">
-            Team Name: <input type="text" class="form-control">
+            Team Name: <input type="text" class="form-control team-name-input">
         </div>
         <div class="input-group mb-1">
-            Generic Items: <input type="number" class="form-control">
+            Starting Position: <input type="number" class="form-control team-starting-position-input">
         </div>
         <div class="input-group mb-1">
             IP:
-            <input type="text" class="form-control custom-ip-adjustment" placeholder="0.0.0.0">
-            <button class="btn btn-success" type="button">Connect</button> 
+            <input type="text" class="form-control robot-ip-input" placeholder="0.0.0.0">
+            <button class="btn btn-success robot-connect-button" type="button">Connect</button> 
         </div>
         <div class="input-group mb-1">
             <span style="margin-right:5px">Heartbeat:</span> 
@@ -334,32 +294,19 @@
     <div class="col" style="border:1px solid black">
         <h3>Meta</h3>
         <div class="input-group">
-            <span>Biome: <span id="biome">None</span></span>
-        </div>
-        <div class="btn-group bottom-padding" role="group" aria-label="...">
-    <button type="button" class="btn btn-success spaced" id="linebreaks-off"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Linebreaks Off</button>
-    <button type="button" class="btn btn-success spaced" id="linebreaks-on"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Linebreaks On</button>
-      <span id="linebreaks-info">N/A</span>
-  </div>
-        
-        
+            <span>State: <span id="state-msg">None</span></span>
+        </div>        
     </div>
 </div>
-
-
-
-
 
 <div class="row bottom-padding">
   <div class="btn-group" role="group" aria-label="...">
     <button type="button" class="btn btn-success spaced" id="create-match"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Create Round</button>
-    <button type="button" class="btn btn-success spaced" id="round-start"><span class="glyphicon glyphicon-play"
-        aria-hidden="true"></span>Start Round</button>
-    <button type="button" class="btn btn-danger spaced" id="round-reset"><span class="glyphicon glyphicon-fast-backward"
-        aria-hidden="true"></span>Reset Round</button>
+        aria-hidden="true"></span>Create Match</button>
+    <button type="button" class="btn btn-success spaced" id="match-start"><span class="glyphicon glyphicon-play"
+        aria-hidden="true"></span>Start Match</button>
+    <button type="button" class="btn btn-danger spaced" id="match-reset"><span class="glyphicon glyphicon-fast-backward"
+        aria-hidden="true"></span>Reset Match</button>
   </div>
 </div>
 

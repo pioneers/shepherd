@@ -38,7 +38,7 @@
       function logg(str) {
         let log = document.getElementById("events-log");
         let m = log.innerHTML.split("\n");
-        if(m.length >= 10) m.shift();
+        if(m.length >= 30) m.shift();
         log.innerHTML = m.join("\n") + `\n[${counter++}] ` + str;
       }
             

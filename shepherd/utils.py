@@ -13,19 +13,18 @@ class SHEPHERD_HEADER():
     # source: UI. Asks Shepherd what match info is currently cached.
 
     SET_MATCH_NUMBER = "set_match_number"
-    # SET_MATCH_NUMBER{match_num}:
+    # SET_MATCH_NUMBER{match_num}
     # source: UI. Sets the match number. Shepherd then fetches
     # information for that match and sends it to the UI.
 
     SET_TEAMS_INFO = "set_teams_info"
-    # SET_TEAMS_INFO{teams}:
+    # SET_TEAMS_INFO{teams}
     # teams = 4*[{team_name, team_num, robot_ip, starting_position}]
     # source: Sheet. Sets the match info, which has been fetched from a spreadsheet
     # note that starting_position is an optional field
 
     SETUP_MATCH = "setup_match"
-    # SETUP_MATCH{team_name, team_num, match_num}
-    # SETUP_MATCH{b1name, b1#, b2name, b2#, g1name, g1#, g2name, g2#, match#}:
+    # SETUP_MATCH{match_num, teams}
     # sets up the match given all the match info
 
     RESET_MATCH = "reset_match"
@@ -33,12 +32,13 @@ class SHEPHERD_HEADER():
     # source: UI. Resets the match, moving back to setup.
 
     GET_SCORES = "get_scores"
-    # GET_SCORES{}:
+    # GET_SCORES{}
     # source: UI. Asks Shepherd what the current scores are.
 
     SET_SCORES = "set_scores"
-    # SET_SCORES{blue_score, gold_score}:
+    # SET_SCORES{blue_score, gold_score}
     # source: UI. adjusts the current scores to the input scores.
+    # both fields are optional
 
     GET_STATE = "get_state"
     # GET_STATE{}
@@ -63,16 +63,16 @@ class SHEPHERD_HEADER():
     # source: UI. Asks Shepherd to send robot connection statuses to UI.
 
     SET_ROBOT_IP = "set_robot_ip"
-    # SET_ROBOT_IP{team_number, ip}
+    # SET_ROBOT_IP{ind, robot_ip}
     # source: UI. Attempts to connect team to robot with given ip.
 
     ROBOT_OFF = "robot_off"
-    # ROBOT_OFF{team_number}:
-    # source: UI. Takes in team number and disables their robot.
+    # ROBOT_OFF{ind}:
+    # source: UI. Takes in index and disables their robot.
 
     ROBOT_ON = "robot_on"
-    # ROBOT_ON{team_number}:
-    # source: UI. Takes in team number and enables their robot.
+    # ROBOT_ON{ind}:
+    # source: UI. Takes in index and enables their robot.
 
 
 
@@ -90,7 +90,7 @@ class UI_HEADER():
     SCORES = "scores"
     # SCORES{ TODO: interface }
     ROBOT_CONNECTION = "robot_connection"
-    # ROBOT_CONNECTION{ind: int, connected: bool, ip: str}
+    # ROBOT_CONNECTION{ind: int, connected: bool, robot_ip: str}
     STATE = "state"
     # STATE{state}
     # tells UI that Shepherd is now in this state

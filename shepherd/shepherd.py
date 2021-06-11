@@ -151,8 +151,8 @@ def to_auto():
     for r in robots:
         r.coding_challenge = CHALLENGE_RESULTS.get(r.number, r.coding_challenge)
     for al in ALLIANCES.values():
-        al.score = al.robot1.coding_challenges.count(True) \
-                 + al.robot2.coding_challenges.count(True)
+        al.score = al.robot1.coding_challenge.count(True) \
+                 + al.robot2.coding_challenge.count(True)
 
     send_score_to_ui()
     send_state_to_ui()
@@ -198,19 +198,21 @@ def go_to_state(state):
 
 
 
-def set_robot_ip(ind, ip):
+def set_robot_ip(ind, robot_ip):
     '''
     Sets the given client ip, and attempts to connect to it
     '''
-    CLIENTS.connect_client(ind, ip)
+    CLIENTS.connect_client(ind, robot_ip)
 
 
-def score_adjust(blue_score, gold_score):
+def score_adjust(blue_score=None, gold_score=None):
     '''
     Allow for score to be changed based on referee decisions
     '''
-    ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(blue_score)
-    ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(gold_score)
+    if blue_score is not None:
+        ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(blue_score)
+    if gold_score is not None:
+        ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(gold_score)
     send_score_to_ui()
     flush_scores()
 
@@ -231,10 +233,10 @@ def send_match_info_to_ui():
     Sends all match info to the UI
     '''
     ydl_data = {"match_num": MATCH_NUMBER, "teams": [
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_url),
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_url),
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_url),
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(CLIENTS.clients[INDICES.GOLD_2].robot_url),
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(CLIENTS.clients[INDICES.GOLD_2].robot_ip),
     ]}
     ydl_send(YDL_TARGETS.UI, UI_HEADER.TEAMS_INFO, ydl_data)
 
