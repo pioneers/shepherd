@@ -407,3 +407,9 @@ hibike/virtual_devices.txt
 /dawn-*
 /artifacts
 .vagrant
+
+# user token used for google auth flow
+user_token.json
+
+
+

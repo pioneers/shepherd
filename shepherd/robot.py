@@ -2,7 +2,6 @@ from datetime import datetime
 import random
 import math
 from utils import *
-from code import *
 
 # TODO: rewrite this whole class for evergreen
 
@@ -22,13 +21,13 @@ class Robot:
     def set_from_dict(self, dic: dict):
         self.name = dic["team_name"]
         self.number = dic["team_num"]
-        self.starting_position = dic["starting_position"]
+        self.starting_position = dic.get("starting_position", self.starting_position)
 
     def info_dict(self, robot_ip):
         return {
-            "team_name": self.name, 
-            "team_num": self.number, 
-            "starting_position": self.starting_position, 
+            "team_name": self.name,
+            "team_num": self.number,
+            "starting_position": self.starting_position,
             "robot_ip": robot_ip
         }
 

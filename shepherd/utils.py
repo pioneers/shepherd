@@ -17,10 +17,11 @@ class SHEPHERD_HEADER():
     # source: UI. Sets the match number. Shepherd then fetches
     # information for that match and sends it to the UI.
 
-    SPREADSHEET_INFO = "spreadsheet_info"
-    # SPREADSHEET_INFO{teams}:
-    # teams = 4*[{team_name, team_num, robot_ip}]
-    # source: sheets. Sets the match info, which has been fetched from a spreadsheet
+    SET_TEAMS_INFO = "set_teams_info"
+    # SET_TEAMS_INFO{teams}:
+    # teams = 4*[{team_name, team_num, robot_ip, starting_position}]
+    # source: Sheet. Sets the match info, which has been fetched from a spreadsheet
+    # note that starting_position is an optional field
 
     SETUP_MATCH = "setup_match"
     # SETUP_MATCH{team_name, team_num, match_num}
@@ -89,7 +90,7 @@ class UI_HEADER():
     SCORES = "scores"
     # SCORES{ TODO: interface }
     ROBOT_CONNECTION = "robot_connection"
-    # CONNECTIONS{team_num: int, connected: bool, ip}
+    # ROBOT_CONNECTION{ind: int, connected: bool, ip: str}
     STATE = "state"
     # STATE{state}
     # tells UI that Shepherd is now in this state
@@ -129,15 +130,12 @@ UI_PAGES = {
 class CONSTANTS():
     AUTO_TIME = 10
     TELEOP_TIME = 10
-    SPREADSHEET_ID = "[todo: fill with dummy spreadsheet]"
-    CSV_FILE_NAME = "sheets/sc2021.csv"
-
-
 
 
 class ALLIANCE_COLOR():
     GOLD = "gold"
     BLUE = "blue"
+
 
 class INDICES():
     BLUE_1 = 0

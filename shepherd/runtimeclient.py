@@ -20,17 +20,21 @@ class RuntimeClient:
     reconnect. If close_connection is called, the socket will close and the
     thread will end.
     """
-    def __init__(self, identifier, robot_url):
-        # set sock in case close_connection is called before thread is started
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.identifier = identifier
+    def __init__(self, ind, robot_url):
+        self.ind = ind
         self.robot_url = robot_url
+        self.sock = None
         self.connected = False
         self.manually_closed = False # whether Shepherd has manually closed this client
-        threading.Thread(target=self.__start_recv).start()
+        # note that the first connect_tcp has to be in main thread,
+        # because otherwise close_connection could be called before first connection
+        self.__connect_tcp(silent=(robot_url==""))
+        self.send_connection_status_to_ui()
+        if self.connected:
+            threading.Thread(target=self.__start_recv).start()
 
     def __repr__(self) -> str:
-        return f"RuntimeClient({self.identifier}, {self.robot_url})"
+        return f"RuntimeClient({self.ind}, {self.robot_url})"
 
     def __send_msg(self, mode: int, protobuf_obj):
         msg_str = protobuf_obj.SerializeToString()
@@ -87,7 +91,7 @@ class RuntimeClient:
 
     def send_connection_status_to_ui(self):
         data = {
-            "identifier": self.identifier, # TODO: utils
+            "ind": self.ind,
             "connected": self.connected,
             "robot_url": self.robot_url
         }
@@ -113,6 +117,7 @@ class RuntimeClient:
             print(message)
         if self.connected:
             self.sock.settimeout(None)
+            # send 0 byte so that Runtime knows it's Shepherd
             self.sock.sendall(bytes([0]))
 
 
@@ -123,17 +128,13 @@ class RuntimeClient:
         then tries to reconnect infinitely until self.manually_closed is True
         sends connection status to UI when appropriate
         """
-        self.__connect_tcp()
-        self.send_connection_status_to_ui()
-        if not self.connected:
-            return
         while True:
             try:
                 received = self.sock.recv(1024)
+                print(f"Received message from {self}: ", received)
             except (ConnectionError, OSError) as ex:
                 print(f"Error while reading from socket of {self}: {ex}")
                 received = False
-            print(f"Received message from {self}: ", received)
             if not received:
                 self.connected = False
                 self.send_connection_status_to_ui()
@@ -156,57 +157,29 @@ class RuntimeClient:
 
 
 
-class DummyClient:
-    """
-    A DummyClient just saves a robot_url for the next time
-    that Shepherd wants to connect to that url
-    """
-    def __init__(self, robot_url):
-        self.robot_url = robot_url
-        self.connected = False
-
-    def send_mode(self, mode):
-        pass
-
-    def send_start_pos(self, pos):
-        pass
-
-    def send_game_state(self, state):
-        pass
-
-    def close_connection(self):
-        pass
-
-    def send_connection_status_to_ui(self):
-        pass
-
-
 class RuntimeClientManager:
     def __init__(self):
-        self.clients = [DummyClient("")] * 4 # each is a RuntimeClient or a DummyClient
+        self.clients = [RuntimeClient(i, "") for i in range(4)]
 
-    def connect_client(self, ind, robot_url=None):
+    def connect_client(self, ind: int, robot_url: str):
         """
         Makes a RuntimeClient at ind and connects it to the
-        given robot_url, or to the previous robot_url
+        given robot_url, terminating any previous connection
         """
-        if robot_url is None:
-            robot_url = self.clients[ind].robot_url
-        if isinstance(self.clients[ind], RuntimeClient):
-            self.clients[ind].close_connection()
+        self.clients[ind].close_connection()
         self.clients[ind] = RuntimeClient(ind, robot_url)
 
-    def connect_all(self):
+    def reconnect_all(self):
         """
-        Connects all 4 clients to their saved robot_urls
+        Reconnects all clients to their saved robot_urls
+        (terminates existing connections - no need for close_all before)
         """
-        for c in range(4):
-            self.connect_client(c)
+        for c in range(len(self.clients)):
+            self.connect_client(c, self.clients[c].robot_url)
 
     def foreach(self, fun, *args, **kwargs):
         for client in self.clients:
-            if isinstance(client, RuntimeClient):
-                fun(client, *args, **kwargs)
+            fun(client, *args, **kwargs)
 
     def send_connection_status_to_ui(self):
         self.foreach(RuntimeClient.send_connection_status_to_ui)
@@ -220,10 +193,5 @@ class RuntimeClientManager:
     def send_game_state(self, state):
         self.foreach(RuntimeClient.send_game_state, state)
 
-    def reset(self):
-        """
-        Closes all connections, and
-        sets all clients to DummyClients to save the robot_urls
-        """
+    def close_all(self):
         self.foreach(RuntimeClient.close_connection)
-        self.clients = [DummyClient(c.robot_url) for c in self.clients]

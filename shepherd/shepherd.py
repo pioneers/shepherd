@@ -1,12 +1,7 @@
-import argparse
 import queue
-import time
-import traceback
-import threading
-from datetime import datetime
 from alliance import Alliance
-from ydl import ydl_send, ydl_start_read
 from timer import Timer
+from ydl import ydl_send, ydl_start_read
 from utils import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import Mode
@@ -21,7 +16,7 @@ from challenge_results import CHALLENGE_RESULTS
 # Evergreen Variables
 ###########################################
 
-MATCH_NUMBER = -1
+MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
 
@@ -79,24 +74,29 @@ def start():
 
 def set_match_number(match_num):
     '''
-    Retrieves all match info based on match number and sends this information to the UI. 
+    Retrieves all match info based on match number and sends this information to the UI.
     If not already cached, fetches info from the spreadsheet, and caches it.
+    Fetching info from spreadsheet is asynchronous, will send a ydl header back with results
     '''
     global MATCH_NUMBER
-    # if robot info is for the correct match
     if MATCH_NUMBER != match_num:
         MATCH_NUMBER = match_num
-        info = Sheet.get_round(match_num)
-        ALLIANCES[ALLIANCE_COLOR.BLUE] = Alliance(
-            Robot(info["blue_1_name"], info["blue_1_num"]),
-            Robot(info["blue_2_name"], info["blue_2_num"]))
-        ALLIANCES[ALLIANCE_COLOR.GOLD] = Alliance(
-            Robot(info["gold_1_name"], info["gold_1_num"]),
-            Robot(info["gold_2_name"], info["gold_2_num"]))
-        CLIENTS.connect_client(INDICES.BLUE_1, info("blue_1_ip"))
-        CLIENTS.connect_client(INDICES.BLUE_2, info("blue_2_ip"))
-        CLIENTS.connect_client(INDICES.GOLD_1, info("gold_1_ip"))
-        CLIENTS.connect_client(INDICES.GOLD_2, info("gold_2_ip"))
+        Sheet.get_match(match_num)
+    else:
+        send_match_info_to_ui()
+
+
+def set_teams_info(teams):
+    '''
+    Caches info and sends it to any open UIs.
+    '''
+    ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.set_from_dict(teams[INDICES.BLUE_1])
+    ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.set_from_dict(teams[INDICES.BLUE_2])
+    ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.set_from_dict(teams[INDICES.GOLD_1])
+    ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.set_from_dict(teams[INDICES.GOLD_2])
+    for i in range(4):
+        CLIENTS.connect_client(i, teams[i]["robot_ip"])
+    # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
 
 
@@ -108,16 +108,7 @@ def to_setup(match_num, teams):
     '''
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
-
-    ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.set_from_dict(teams[INDICES.BLUE_1])
-    ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.set_from_dict(teams[INDICES.BLUE_2])
-    ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.set_from_dict(teams[INDICES.GOLD_1])
-    ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.set_from_dict(teams[INDICES.GOLD_2])
-    for i in range(4):
-        CLIENTS.connect_client(i, teams[i]["robot_ip"])
-
-    # so if there are other UIs open they get the update
-    send_match_info_to_ui()
+    set_teams_info(teams)
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
@@ -132,8 +123,7 @@ def reset_match():
     GAME_STATE = STATE.SETUP
     Timer.reset_all()
     disable_robots()
-    CLIENTS.reset()
-    CLIENTS.connect_all()
+    CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
     send_state_to_ui()
@@ -150,6 +140,21 @@ def to_auto():
     GAME_STATE = STATE.AUTO
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     enable_robots(autonomous=True)
+
+    # score for each alliance is sum of passed coding challenges
+    robots = [
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1,
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2,
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1,
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2,
+    ]
+    for r in robots:
+        r.coding_challenge = CHALLENGE_RESULTS.get(r.number, r.coding_challenge)
+    for al in ALLIANCES.values():
+        al.score = al.robot1.coding_challenges.count(True) \
+                 + al.robot2.coding_challenges.count(True)
+
+    send_score_to_ui()
     send_state_to_ui()
     print("ENTERING AUTO STATE")
 
@@ -170,7 +175,7 @@ def to_end():
     global GAME_STATE
     GAME_STATE = STATE.END
     disable_robots()
-    CLIENTS.reset()
+    CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
     send_score_to_ui()
@@ -199,6 +204,7 @@ def set_robot_ip(ind, ip):
     '''
     CLIENTS.connect_client(ind, ip)
 
+
 def score_adjust(blue_score, gold_score):
     '''
     Allow for score to be changed based on referee decisions
@@ -207,7 +213,6 @@ def score_adjust(blue_score, gold_score):
     ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(gold_score)
     send_score_to_ui()
     flush_scores()
-
 
 
 def flush_scores():
@@ -233,6 +238,7 @@ def send_match_info_to_ui():
     ]}
     ydl_send(YDL_TARGETS.UI, UI_HEADER.TEAMS_INFO, ydl_data)
 
+
 def send_score_to_ui():
     '''
     Sends the current score to the UI
@@ -243,11 +249,13 @@ def send_score_to_ui():
     }
     ydl_send(YDL_TARGETS.UI, UI_HEADER.SCORES, data)
 
+
 def send_state_to_ui():
     '''
     Sends the GAME_STATE to the UI
     '''
     ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE})
+
 
 def send_connection_status_to_ui():
     '''
@@ -270,17 +278,20 @@ def enable_robots(autonomous):
     '''
     CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
 
+
 def disable_robots():
     '''
     Sends message to Runtime to disable all robots
     '''
     CLIENTS.send_mode(Mode.IDLE)
 
+
 def disable_robot(ind):
     '''
     Send message to Runtime to disable the robot of team
     '''
     CLIENTS.clients[ind].send_mode(Mode.IDLE)
+
 
 def enable_robot(ind):
     '''
@@ -310,6 +321,7 @@ def enable_robot(ind):
 FUNCTION_MAPPINGS = {
     STATE.SETUP: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER: set_match_number,
+        SHEPHERD_HEADER.SET_TEAMS_INFO: set_teams_info,
         SHEPHERD_HEADER.SETUP_MATCH: to_setup,
         SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
     },
@@ -325,6 +337,7 @@ FUNCTION_MAPPINGS = {
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER: set_match_number,
+        SHEPHERD_HEADER.SET_TEAMS_INFO: set_teams_info,
         SHEPHERD_HEADER.SETUP_MATCH: to_setup,
         SHEPHERD_HEADER.SET_SCORES: score_adjust,
     }
