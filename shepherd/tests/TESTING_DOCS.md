@@ -142,7 +142,15 @@ The WAIT statement is used to pause code execution until a specific LCM message 
 
   - WAIT statements will only apply changes to the environment as soon as a header is received, however since execution cannot continue until all chained headers are satisfied, all changes effectively are applied after the WAIT statement, using the most recent version of each header.
 
+- The wait statement will timeout after a certain amount of time of inactivity. If any header is received the timeout is reset. By default this is 30 seconds, but this may be modified with the TIMEOUT statement.
+
 Usage: `WAIT <header> FROM <target> WITH <assignment>... SET <python expression>... AND <header> FROM <target>... OR...`
+
+### TIMEOUT
+
+The TIMEOUT statement is used in order to set the timeout for subsequent WAIT statements. WAIT statements will cause the test to fail if they see no inactivity for the amount of time specified. By default this value is 30 seconds. The TIMEOUT statement modifies this value, and the value stays at the new value until another TIMEOUT statement, or the end of the test. Inactivity is defined as no new LCM messages being received. The timeout time may be a decimal, and is in terms of seconds. TIMEOUT may take a python expression as an argument, so long as it evaluates to a float.
+
+Usage: `TIMEOUT <time / python expression>`
 
 ### EMIT
 
