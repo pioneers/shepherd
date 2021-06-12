@@ -116,13 +116,14 @@
 
     next_match_btn.click(() => {
       match_num++;
-      match_num_input.val(match_num);
+      match_num_input.val("");
       send('set_match_number', JSON.stringify({"match_num": match_num}));
     });
 
     populate_btn.click(() => {
       match_num = parseInt(match_num_input.val());
       if(isNaN(match_num)){ alert("invalid match number"); return; }
+      match_num_input.val("");
       send('set_match_number', JSON.stringify({"match_num": match_num}));
     });
 
