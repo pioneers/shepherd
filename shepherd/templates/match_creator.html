@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+  <title>Match Creator</title>
+
+
+  <!-- Couple of notes:
+  - the battery rn is very jank
+  - alot of the padding is also jank 
+  - if you dont go with a bootstrap color for the button you lose that thing where it slightly changes color on hover
+  - the symbols for start and stop are wrong (not sure why - the correct ascii codes are used) -->
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    #heartbeat-light {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: lightgrey;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
+    }
+
+    .led-green {
+      background-color: #ABFF00 !important;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #89FF00 0 2px 12px !important;
+    }
+
+    .led-red {
+      background-color: #F00 !important;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px, rgba(255, 0, 0, 0.5) 0 2px 12px !important;
+    }
+
+    .box-border {
+      border: black solid 3px;
+    }
+
+    .center-text {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .bg-gold {
+      background-color: gold;
+    }
+
+    .element-minheight {
+      min-height: 20px;
+    }
+
+
+
+    .container-minheight {
+      min-height: 150px;
+    }
+
+    .batteryContainer {
+      display: -webkit-box;
+      display: -moz-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+
+    .batteryOuter {
+      border-radius: 1px;
+      border: 1px solid #444;
+      padding: 1px;
+      width: 25px;
+      height: 9px;
+    }
+
+    .batteryBump {
+      border-radius: 1px;
+      background-color: #444;
+      margin: 0px;
+      width: 1px;
+      height: 5px;
+    }
+
+    .batteryLevel {
+      border-radius: 1px;
+      background-color: #444;
+      width: calc(24px * calc(var(--level) / 100));
+      height: 9px;
+    }
+
+    .warn {
+      background-color: #ff0000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="p-3" style="margin: auto; width: 95vw;">
+    <div class="row min-height">
+      <div class="col-md-6 box-border container-minheight" style="border-radius: 20px; background-color: lightgray;">
+        <div class="row mx-4 my-2">
+          <div class="bg-primary text-light text-center">
+            <h4>
+              Blue 1
+            </h4>
+
+          </div>
+        </div>
+
+        <div class="row mx-2 my-2">
+
+          <input class="col-md-2 mx-1 rounded box-border element-minheight" type=" text" placeholder="Team #"
+            aria-label="Team #" aria-describedby="basic-addon2">
+
+
+          <input class="col-md mx-1 rounded box-border" type="text" placeholder="Team Name" aria-label="Team Name"
+            aria-describedby="basic-addon2">
+
+
+          <input class="col-md mx-1 rounded box-border" type="text" placeholder="Robot IP" aria-label="Robot IP"
+            aria-describedby="basic-addon2">
+
+
+        </div>
+        <div class="row mx-2 my-2">
+          <button type="button" class="btn btn-success col-md-2 mx-1 rounded box-border"
+            style="font-size: small;">Connect</button>
+          <button type="button" class="btn btn-danger col-md-2 mx-1 rounded box-border"
+            style="font-size: small;">Disconnect</button>
+          <div class="col-md-1 bg-light mx-1 led-green center-text">
+            S
+          </div>
+          <div class="col-md-1 bg-light mx-1 led-red center-text">
+            D
+          </div>
+          <div class="col-md-2 mx-1" style="transform: rotate(270deg) translateX(2.5vw) scale(1.3);">
+            <!-- Battery -->
+            <div>
+              <div class="batteryContainer" style="--level: 100">
+                <div class="batteryOuter">
+                  <div class="batteryLevel"></div>
+                </div>
+                <div class="batteryBump"></div>
+              </div>
+            </div>
+            <div>
+              <div class="batteryContainer" style="--level: 75">
+                <div class="batteryOuter">
+                  <div class="batteryLevel"></div>
+                </div>
+                <div class="batteryBump"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="batteryContainer" style="--level: 50">
+                <div class="batteryOuter">
+                  <div class="batteryLevel"></div>
+                </div>
+                <div class="batteryBump"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="batteryContainer" style="--level: 25">
+                <div class="batteryOuter">
+                  <div class="batteryLevel warn"></div>
+                </div>
+                <div class="batteryBump"></div>
+              </div>
+            </div>
+            <div>
+              <div class="batteryContainer" style="--level: 0">
+                <div class="batteryOuter">
+                  <div class="batteryLevel warn"></div>
+                </div>
+                <div class="batteryBump"></div>
+              </div>
+            </div>
+
+          </div>
+          <div class="col-md mx-1 p-0" style="font-size: small;">
+
+            Shepherd latency: N/A
+            <br>
+            Dawn latency: N/A
+
+
+          </div>
+        </div>
+
+      </div>
+      <div class="col-md-2 p-3 container-minheight bg-warning box-border " style="border-radius: 20px;">
+        <div class="row">
+          <button type="button" class="btn btn-success col-md m-1 box-border">▶</button>
+          <button type="button" class="btn btn-danger col-md m-1 box-border">&#9632</button>
+        </div>
+        <div class="row text-center">
+          <h2>
+            N/A
+          </h2>
+
+        </div>
+      </div>
+      <div class="col-md-3  container-minheight bg-success box-border" style="border-radius: 20px; ">
+        <div class="row p-3">
+          <img class="col-md-4" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
+
+          <h2 class="col-md center-text">
+            Shepherd Match Creator
+          </h2>
+        </div>
+
+      </div>
+    </div>
+
+
+    <div class="row">
+      <div class="col-md-6 container-minheight box-border" style="border-radius: 20px; background-color: lightgray;">
+        <div class="row mx-4 my-2">
+          <div class="bg-primary text-light text-center">
+            <h4>
+              Blue 2
+            </h4>
+          </div>
+        </div>
+
+        <div class="row mx-2 my-2">
+
+          <input class="col-md-2 mx-1 rounded box-border" type="text" placeholder="Team #" aria-label="Team #"
+            aria-describedby="basic-addon2">
+
+
+          <input class="col-md mx-1 rounded box-border" type="text" placeholder="Team Name" aria-label="Team Name"
+            aria-describedby="basic-addon2">
+
+
+          <input class="col-md mx-1 rounded box-border" type="text" placeholder="Robot IP" aria-label="Robot IP"
+            aria-describedby="basic-addon2">
+
+
+        </div>
+        <div class="row mx-2 my-2">
+          <button type="button" class="btn btn-success col-md-2 mx-1 rounded box-border"
+            style="font-size: small;">Connect</button>
+          <button type="button" class="btn btn-danger col-md-2 mx-1 rounded box-border"
+            style="font-size: small;">Disconnect</button>
+          <div class="col-md-1 bg-light mx-1 led-green center-text">
+            S
+          </div>
+          <div class="col-md-1 bg-light mx-1 led-red center-text">
+            D
+          </div>
+          <div class="col-md-2 mx-1">
+            Battery
+          </div>
+          <div class="col-md mx-1 p-0" style="font-size: small;">
+
+            Shepherd latency: N/A
+            <br>
+            Dawn latency: N/A
+
+
+          </div>
+        </div>
+
+      </div>
+      <div class="col-md-2  container-minheight p-3 bg-warning box-border " style="border-radius: 20px;">
+        <div class="row">
+          <button type="button" class="btn btn-success col-md m-1 box-border">&#9654</button>
+          <button type="button" class="btn btn-danger col-md m-1 box-border">&#9632</button>
+        </div>
+        <div class="row text-center">
+          <h2>
+            TELEOP
+          </h2>
+
+        </div>
+      </div>
+      <div class="col-md-3  container-minheight bg-success box-border text-center p-4" style="border-radius: 20px;">
+        <div class="row center-text">
+          <div class="col-md-6  p-0">
+            <h3>
+              Match Number:
+            </h3>
+          </div>
+          <input class="col-md-3 mx-1 rounded box-border" type="text" placeholder="#" aria-label="#"
+            aria-describedby="basic-addon2">
+        </div>
+
+        <div class="row center-text">
+          <button type="button" class="btn btn-success col-md-4 mx-1 rounded box-border"
+            style="font-size: small;">Populate</button>
+          <button type="button" class="btn col-md-4 mx-1 rounded box-border"
+            style="font-size: small; background-color: lightgreen;">Next</button>
+        </div>
+
+
+      </div>
+    </div>
+
+
+    <!-- ------------------------------------------------------------------------------------------------------------------- -->
+    <!-- ------------------------------------------------------------------------------------------------------------------- -->
+    <div class="row">
+      <div class="col-md-6  container-minheight p-0">
+        <div class=" box-border  container-minheight" style="border-radius: 20px; background-color: lightgray;">
+          <div class="row mx-4 my-2">
+            <div class="text-dark text-center bg-gold">
+              <h4>
+                Gold 1
+              </h4>
+            </div>
+          </div>
+
+          <div class="row mx-2 my-2">
+
+            <input class="col-md-2 mx-1 rounded box-border" type="text" placeholder="Team #" aria-label="Team #"
+              aria-describedby="basic-addon2">
+
+
+            <input class="col-md mx-1 rounded box-border" type="text" placeholder="Team Name" aria-label="Team Name"
+              aria-describedby="basic-addon2">
+
+
+            <input class="col-md mx-1 rounded box-border" type="text" placeholder="Robot IP" aria-label="Robot IP"
+              aria-describedby="basic-addon2">
+
+
+          </div>
+          <div class="row mx-2 my-2">
+            <button type="button" class="btn btn-success col-md-2 mx-1 rounded box-border"
+              style="font-size: small;">Connect</button>
+            <button type="button" class="btn btn-danger col-md-2 mx-1 rounded box-border"
+              style="font-size: small;">Disconnect</button>
+            <div class="col-md-1 bg-light mx-1 led-green center-text">
+              S
+            </div>
+            <div class="col-md-1 bg-light mx-1 led-red center-text">
+              D
+            </div>
+            <div class="col-md-2 mx-1">
+              Battery
+            </div>
+            <div class="col-md mx-1 p-0" style="font-size: small;">
+
+              Shepherd latency: N/A
+              <br>
+              Dawn latency: N/A
+
+
+            </div>
+          </div>
+
+        </div>
+
+        <div class="box-border  container-minheight" style="border-radius: 20px; background-color: lightgray;">
+          <div class="row mx-4 my-2">
+            <div class="bg-gold text-dark text-center">
+              <h4>
+                Gold 2
+              </h4>
+            </div>
+          </div>
+
+          <div class="row mx-2 my-2">
+
+            <input class="col-md-2 mx-1 rounded box-border" type="text" placeholder="Team #" aria-label="Team #"
+              aria-describedby="basic-addon2">
+
+
+            <input class="col-md mx-1 rounded box-border" type="text" placeholder="Team Name" aria-label="Team Name"
+              aria-describedby="basic-addon2">
+
+
+            <input class="col-md mx-1 rounded box-border" type="text" placeholder="Robot IP" aria-label="Robot IP"
+              aria-describedby="basic-addon2">
+
+
+          </div>
+          <div class="row mx-2 my-2">
+            <button type="button" class="btn btn-success col-md-2 mx-1 rounded box-border"
+              style="font-size: small;">Connect</button>
+            <button type="button" class="btn btn-danger col-md-2 mx-1 rounded box-border"
+              style="font-size: small;">Disconnect</button>
+            <div class="col-md-1 bg-light mx-1 led-green center-text">
+              S
+            </div>
+            <div class="col-md-1 bg-light mx-1 led-red center-text">
+              D
+            </div>
+            <div class="col-md-2 mx-1">
+              Battery
+            </div>
+            <div class="col-md mx-1 p-0" style="font-size: small;">
+
+              Shepherd latency: N/A
+              <br>
+              Dawn latency: N/A
+
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+      <div class="col-md-2  container-minheight p-0">
+        <div class="col-md bg-warning p-3 container-minheight box-border " style="border-radius: 20px;">
+          <div class="row">
+            <button type="button" class="btn btn-success col-md m-1 box-border">&#9654</button>
+            <button type="button" class="btn btn-danger col-md m-1 box-border">&#9632</button>
+          </div>
+          <div class="row text-center">
+            <h2>
+              AUTO
+            </h2>
+
+          </div>
+        </div>
+
+        <div class="col-md bg-warning p-3  container-minheight box-border " style="border-radius: 20px;">
+          <div class="row">
+            <button type="button" class="btn btn-success col-md m-1 box-border">&#9654</button>
+            <button type="button" class="btn btn-danger col-md m-1 box-border">&#9632</button>
+          </div>
+          <div class="row text-center">
+            <h2>
+              N/A
+            </h2>
+
+          </div>
+        </div>
+
+      </div>
+      <div class="col-md-3  container-minheight bg-success box-border text-center p-4"
+        style="border-radius: 20px; display: flex; flex-direction: column; justify-content: space-evenly; align-items: center;">
+        <h3>
+          Match Control
+        </h3>
+        <div class="row">
+          <input class="mx-1 rounded box-border" type="text" placeholder="TELEOP" aria-label="TELEOP"
+            aria-describedby="basic-addon2">
+        </div>
+        <div class="row">
+          <button type="button" class="btn mx-1 rounded box-border"
+            style="font-size: small; background-color: lightgreen;">Create Match</button>
+        </div>
+
+
+
+        <div class="row">
+          <button type="button" class="btn btn-success mx-1 rounded box-border" style="font-size: small;">Start
+            Match</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn bg-danger mx-1 rounded box-border" style="font-size: small;">Reset
+            Match</button>
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous">
+  </script>
+
+
+</body>
+
+</html>

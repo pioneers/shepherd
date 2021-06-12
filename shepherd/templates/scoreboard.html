@@ -1,54 +1,478 @@
-<html>
+<!DOCTYPE html>
+
+<!-- Todo:
+    - The lines between matches needs to be done
+    - elim matches needs to be centered
+    - we need to update it based on pulling from a spreadsheet
+    - based on the info from spreadsheet should also influence colors
+    - need to change the heights that the boxes appear at
+    - would love it if the right numbers of the things was not there and it had more to do with color
+
+    spreadsheet info:
+        - who the alliances are (color)
+        - which match is going right now (different color)
+        - update who was the winner of a match (update display) -->
+
+<html lang="en">
 
 <head>
-    <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
-    <!-- TODO MAKE THE BELOW THING A FILE -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
-    <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
-    <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
-    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='scoreboard.css')}}">
+    <title>
+        scoreboard
+    </title>
+
+    <meta type="content" description="This is a testing scoreboard for pie">
+
+
+    <style>
+        body {
+            height: auto;
+        }
+
+        .bracket_container {
+            display: block;
+            background-color: lightgray;
+            height: 60vh;
+            border-style: solid;
+            padding: 0px;
+            margin: 1vh;
+            display: flex;
+            flex-direction: row;
+
+        }
+
+        .matches_container {
+            display: block;
+            background-color: white;
+            height: 35vh;
+            border-style: solid;
+            margin: 1vh;
+            overflow-y: scroll;
+        }
+
+
+        #title {
+            /* need to have this relative to the div box and nothing else */
+            display: flex;
+            position: absolute;
+            color: red;
+            padding-top: s 0%;
+            margin: 1vh;
+            text-align: center;
+
+        }
+
+        .lineh {
+            width: 18%;
+            height: 5px;
+            position: absolute;
+            background-color: blue;
+        }
+
+
+
+
+        .container {
+            display: flex;
+            border-style: solid;
+            border-color: black;
+            border-radius: 10px;
+            border-width: 2px;
+            margin: 2px;
+            background-color: gold;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .container.score {
+            display: flex;
+            width: 8%;
+            height: 50%;
+
+
+
+        }
+
+        .container.school {
+            height: 80%;
+            width: 15%;
+
+        }
+
+        .container.single_match {
+            height: 30%;
+            width: auto;
+            background-color: blue;
+            justify-content: space-evenly;
+
+        }
+
+
+        .stage {
+            display: flex;
+            height: 100%;
+            width: 33%;
+            justify-content: space-evenly;
+            flex-direction: column;
+            align-items: center;
+
+        }
+
+        .final {
+            display: flex;
+            height: 100%;
+            width: 33%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container.seed {
+            height: 15%;
+            width: 15%;
+            flex-direction: column;
+        }
+
+        .bracket_container {
+            justify-content: center;
+        }
+
+
+        /*
+ *  Flex Layout Specifics
+*/
+        .main {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 200px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .words-at-top {
+            position: absolute;
+        }
+
+
+        .round-final {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 200px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .round .spacer {
+            flex-grow: 1;
+        }
+
+        .round .spacer:first-child,
+        .round .spacer:last-child {
+            flex-grow: .5;
+        }
+
+        .round .game-spacer {
+            flex-grow: 1;
+        }
+
+        .round .game-spacer-flip {
+            flex-grow: 1;
+        }
+
+        /*
+*  General Styles
+*/
+        body {
+            font-family: sans-serif;
+            font-size: small;
+            padding: 10px;
+            line-height: 1.4em;
+        }
+
+        li.game {
+            padding-left: 20px;
+        }
+
+        li.game.winner {
+            font-weight: bold;
+        }
+
+        li.game span {
+            float: right;
+            margin-right: 5px;
+        }
+
+        li.game-top {
+            border-bottom: 1px solid #aaa;
+            border-color: black;
+            background-color: gold;
+            border-radius: 10px;
+
+        }
+
+        li.game-spacer {
+            border-right: 2px solid #aaa;
+            min-height: 40px;
+        }
+
+        li.game-spacer-flip {
+            border-left: 1px solid #aaa;
+            min-height: 40px;
+        }
+
+        li.game-bottom {
+            border-top: 1px solid #aaa;
+            border-color: black;
+            background-color: blue;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- <img id="sandstorm" src="{{url_for('static', filename='sand1.png')}}" /> -->
-    <!-- <div class="container" id="stagename-container">
-        
-    </div> -->
-    <div class="scoreboard-outer-container">
-        <div class="scoreboard-container">
-            <!-- <div class="stagename">
-                Autonomous
-            </div> -->
+    <div class="bracket_container">
 
-            <div class="robotinfo">
-                <mark class="black" id="team-num">Team 123</mark>
-                <div id="team-name">Bo Gears Elem.</div>
-            </div>
 
-            <div class="time">
-                <div> <mark class="black">Time</mark> </div>
-                <div id="stage-timer">0:00</div>
-            </div>
+        <h1 class="words-at-top">Elimination Matches </h1>
+        <div class="main" id="tournament">
 
-            <div class="penalty">
-                <div><mark class="black">Penalty</mark> </div>
-                <div id="penalty">+ 0:00</div>
-            </div>
+            <ul class="round round-3">
+                <li class="spacer">&nbsp;</li>
 
-            <div class="stamps">
-                <div> <mark class="black">Stamps</mark> </div>
-                <div id="stamp_time">- 0:00</div>
-            </div>
-        </div>
+                <li class="game game-top winner">Lousville <span>77</span></li>
+                <li class="game game-spacer">&nbsp;</li>
+                <li class="game game-bottom ">Oregon <span>69</span></li>
 
-        <div class="total-container">
-            <div class="totalinfo">
-                <div> <mark class="black">Total Score</mark></div>
-                <div id="total">0</div>
-            </div>
-        </div>
+                <li class="spacer">&nbsp;</li>
+
+                <li class="game game-top ">Mich St <span>61</span></li>
+                <li class="game game-spacer">&nbsp;</li>
+                <li class="game game-bottom winner">Duke <span>71</span></li>
+
+                <li class="spacer">&nbsp;</li>
+            </ul>
+
+
+
+            <ul class="round round-4">
+                <li class="spacer">&nbsp;</li>
+
+                <li class="game game-top winner">Lousville <span>85</span></li>
+                <li class="game game-spacer">&nbsp;</li>
+                <li class="game game-bottom ">Duke <span>63</span></li>
+
+                <li class="spacer">&nbsp;</li>
+            </ul>
+
+            <ul class="round-final final">
+
+                <li style="width: 200px;" class="game left game-top">Lousville</li>
+                <!-- <li class="game game-spacer">&nbsp;</li> -->
+                <li style="width: 200px;" class="game right game-top">Oregon</li>
+
+
+            </ul>
+
+            <ul class="round round-4">
+                <li class="spacer">&nbsp;</li>
+
+                <li class="game game-top winner">Lousville <span>85</span></li>
+                <li class="game game-spacer-flip">&nbsp;</li>
+                <li class="game game-bottom">Duke <span>63</span></li>
+
+                <li class="spacer">&nbsp;</li>
+            </ul>
+            <ul class="round round-3">
+                <li class="spacer">&nbsp;</li>
+
+                <li class="game game-top winner">Lousville <span>77</span></li>
+                <li class="game game-spacer-flip">&nbsp;</li>
+                <li class="game game-bottom">Oregon <span>69</span></li>
+
+                <li class="spacer">&nbsp;</li>
+
+                <li class="game game-top">Mich St <span>61</span></li>
+                <li class="game game-spacer-flip">&nbsp;</li>
+                <li class="game game-bottom winner">Duke <span>71</span></li>
+
+                <li class="spacer">&nbsp;</li>
+            </ul>
+
+        </div class="main">
+
     </div>
+
+    <div class="matches_container">
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+        <div class="container single_match">
+
+            <div class="container school">
+                El Cerrito
+            </div>
+            <div class="container school">
+                ACLC
+            </div>
+            <div class="container school">
+                Encinal
+            </div>
+            <div class="container score small">
+                1-2
+            </div>
+            <div class="container school">
+                Salesian
+            </div>
+            <div class="container school">
+                Skyline
+            </div>
+            <div class="container school">
+                Hercules
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
 </body>
 
-</html> 
+</html>
