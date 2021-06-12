@@ -382,6 +382,21 @@ def sleep_function(expression):
         raise Exception(f'expected a time afer after SLEEP, but got {expression}')
     time.sleep(amount)
 
+def timeout_function(expression):
+    """
+    The function that parses TIMEOUT statements.
+    Enforces syntax and sets the global TIMEOUT variable to the specified amount.
+    """
+    global TIMEOUT
+    expression = remove_outer_spaces(expression)
+    if expression == '':
+        raise Exception('expected a time afer after TIMEOUT')
+    try:
+        amount = float(evaluate_python(expression))
+    except ValueError as e:
+        raise Exception(f'expected a time afer after TIMEOUT, but got {expression}')
+    TIMEOUT = amount
+
 def discard_function(expression):
     """
     The function that parses DISCARD statements.
@@ -631,7 +646,7 @@ def run_until_wait():
     while has_next_line() and not WAITING:
         process_line(remove_outer_spaces(current_line()))
         read_next_line()
-    if not has_next_line():
+    if not has_next_line() and not WAITING:
         print('reached end of test without failing')
         sys.exit(0)
 
@@ -648,13 +663,17 @@ def start():
     the code execution will advance to the next WAIT before any more LCM headers
     will be processed.
     """
-    global TARGET, EVENTS, CURRENT_HEADERS
+    global TARGET, EVENTS, CURRENT_HEADERS, TIMEOUT
     if TARGET == 'unassigned':
         raise Exception("READ needs to be called before the first WAIT.")
 
     while True:
         time.sleep(0.1)
-        payload = EVENTS.get(True)
+        try:
+            payload = EVENTS.get(block=True, timeout=TIMEOUT)
+        except queue.Empty:
+            print(f"TEST FAILED on line {LINE + 1} because WAIT statement TIMEOUT")
+            sys.exit(-1)
         # a quick try block to ensure that errors in WAIT statements get line #
         ex = None
         try:
@@ -701,6 +720,11 @@ TARGET = 'unassigned'
 """
 The queue used to store incoming LCM requests. These requests are then popped
 off in the start function and processed.
+"""
+TIMEOUT = 30
+"""
+The global timeout for all WAIT statements. Can be modified with a TIMEOUT
+statement. Test fails if WAIT lasts longer than this timeout.
 """
 EVENTS = queue.Queue()
 """
@@ -761,7 +785,8 @@ COMMANDS = {'WAIT': wait_function,
             'ASSERT': assert_function,
             '##': lambda line: None,
             'SLEEP': sleep_function,
-            'DISCARD': discard_function
+            'DISCARD': discard_function,
+            'TIMEOUT': timeout_function
             }
 
 if __name__ == '__main__':
