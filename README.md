@@ -22,83 +22,34 @@ Shepherd is essentially a [Flask](https://palletsprojects.com/p/flask/) web app 
 
 ## Installing dependencies
 
-### LCM
-
-#### Linux
-
-Run the installlcm script
-
-```
-./installlcm
+```bash
+pip3 install -r requirements.txt
 ```
 
-#### Mac
+## Architecture
 
-1. Set the Java Version to 8
+To read about Shepherd in detail, check out the [onboarding readme](https://github.com/pioneers/shepherd-onboarding#about-shepherd). This is where you will find detailed information about what each component of Shepherd does.
 
-```
-export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
-```
+## 2021 Instructions
 
-2. Run the installlcm script
+First get the release labelled "working game spring 2021" or grab the core_game_2021 branch. 
 
-```
-./installlcm
-```
-
-## Running Shepherd
-
-### Instructions for 2018-2019, aka Sugar Blast:
-
-This year, we ran Shepherd on Ajax, one of the computers owned by PiE.
-In order to make it easier to run Shepherd on various machines, we added needed dependencies to a Pipfile.
-This allows you to work in a virtual environment with all necessary dependencies
-(except for [LCM](https://lcm-proj.github.io/build_instructions.html), which must be installed beforehand)
-by issuing the following commands in PieCentral/shepherd:
+For competition, we have 5 different scripts to run. Matthew has created a tmux script that runs everything we need that we encourage you to modify in future years because it is really easy to use. Do this inside a terminal (not VSCode) so that you have space.
 
 ```
-pipenv install
-pipenv shell
+docker restart sheep
+docker attach sheep
+cd outsideshep/shepherd
+./shepherd_tmux.sh
+```
+After you are done, be sure to stop the container to please Samuel.
+```
+docker stop sheep
 ```
 
-Next, open a terminal pane for each of the below (using tmux) and run the following commands in PieCentral/shepherd directory.
+One part of this that has not yet been tested is dev handler communication with Arduino devices. After that, Shepherd should be able to run straight out of the Docker container.
 
-1:
-
+If you are not using docker, open a terminal, cd into shepherd and run
 ```
-export FLASK_APP=server.py
-flask run
-```
-
-2:
-
-```
-export FLASK_APP=scoreboard_server.py
-flask run
-```
-
-3:
-
-```
-export FLASK_APP=dawn_server.py
-flask run
-```
-
-4:
-
-```
-python3 Shepherd.py
-```
-
-5:
-
-```
-python3 Sensors.py
-```
-
-6:
-
-```
-export FLASK_APP=perks_server.py
-flask run
+./shepherd_tmux.sh
 ```
