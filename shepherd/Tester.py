@@ -5,8 +5,8 @@ import queue
 import time
 from typing import Any
 from keyword import iskeyword
-from Utils import *
-from LCM import *
+from utils import *
+from ydl import ydl_start_read, ydl_send
 
 # pylint: disable=global-statement
 
@@ -36,9 +36,9 @@ def get_attr_from_name(source, name):
 def parse_header(header):
     """
     A helper function that translates the headers in format
-    <LCM_target>.<header> to the string representation stored in Utils.py.
+    <YDL_target>.<header> to the string representation stored in utils.py.
     Enforces the syntax for referencing the header, as well as the existance of
-    the header in Utils.py.
+    the header in utils.py.
     """
     parts: list = header.split('.')
     if len(parts) != 2:
@@ -49,7 +49,7 @@ def parse_header(header):
         klass = get_class_from_name(parts[0])
     except KeyError:
         ex = Exception(
-            '{} is not recognized. Make sure this is a class of headers in Utils.py'.format(parts[0]))
+            '{} is not recognized. Make sure this is a class of headers in utils.py'.format(parts[0]))
     finally:
         if ex:
             raise ex
@@ -58,7 +58,7 @@ def parse_header(header):
     try:
         name = get_attr_from_name(klass, parts[1])
     except AttributeError:
-        ex = Exception('{} is not recognized. Make sure this is a header in {} in Utils.py'.format(
+        ex = Exception('{} is not recognized. Make sure this is a header in {} in utils.py'.format(
             parts[1], parts[0]))
     finally:
         if ex:
@@ -111,13 +111,13 @@ def tokenize_wait_exp(expression):
     header = parse_header(remove_outer_spaces(tokens[0]))
     expression = tokens[1]
     whole_target = remove_outer_spaces(expression).split(' ')[0]
-    if whole_target.split('.')[0] != 'LCM_TARGETS':
-        raise Exception('was expecting a target in LCM_TARGETS for WAIT statement: WAIT {}'.format(
+    if whole_target.split('.')[0] != 'YDL_TARGETS':
+        raise Exception('was expecting a target in YDL_TARGETS for WAIT statement: WAIT {}'.format(
             original_expression))
-    target = get_attr_from_name(LCM_TARGETS, whole_target.split('.')[1])
-    if target != TARGET:
-        raise Exception('target for WAIT expression is not the current target ({}): WAIT {}'.format(
-            TARGET, original_expression))
+    target = get_attr_from_name(YDL_TARGETS, whole_target.split('.')[1])
+    if target not in TARGETS:
+        raise Exception('target for WAIT expression is not the current targets ({}): WAIT {}'.format(
+            TARGETS, original_expression))
     expression = expression[helper_min(expression.find(
         ' SET '), expression.find(' WITH ')):None]
     statements = {'SET': [], 'WITH': []}
@@ -400,7 +400,7 @@ def timeout_function(expression):
 def discard_function(expression):
     """
     The function that parses DISCARD statements.
-    Enforces syntax and clears the LCM / YDL queue so that no outstanding requests
+    Enforces syntax and clears the YDL queue so that no outstanding requests
     are processed.
     """
     global EVENTS
@@ -414,18 +414,18 @@ def read_function(line):
     The function that parses READ statements.
     Enforces syntax, and sets the global TARGET appropriately.
     """
-    global TARGET, EVENTS
-    if remove_outer_spaces(line.split('.')[0]) != 'LCM_TARGETS' or len(line.split('.')) != 2:
+    global TARGETS, EVENTS
+    if remove_outer_spaces(line.split('.')[0]) != 'YDL_TARGETS' or len(line.split('.')) != 2:
         raise Exception(
-            'was expecting a target in LCM_TARGETS for READ statement: READ {}'.format(line))
-    target = get_attr_from_name(LCM_TARGETS, line.split('.')[1])
-    if TARGET == target:
-        print("[WARNING] Calling READ again on the same target will cause the LCM queue to be \
+            'was expecting a target in YDL_TARGETS for READ statement: READ {}'.format(line))
+    target = get_attr_from_name(YDL_TARGETS, line.split('.')[1])
+    if target in TARGETS:
+        print("[WARNING] Calling READ again on the same target will cause the YDL queue to be \
             cleared. Make sure that this is intended.")
-    TARGET = target
+    TARGETS += [target]
     EVENTS = queue.Queue()
-    lcm_start_read(TARGET, EVENTS, daemon=True)
-    print('now reading from lcm target: LCM_TARGETS.{}'.format(
+    ydl_start_read(target, EVENTS)
+    print('now reading from ydl target: YDL_TARGETS.{}'.format(
         line.split('.')[1]))
 
 
@@ -449,10 +449,10 @@ def tokenize_emit_exp(expression):
             original_expression))
     header = parse_header(remove_outer_spaces(tokens[0]))
     expression = tokens[1]
-    if remove_outer_spaces(expression[0:helper_find(expression, ' WITH ')].split('.')[0]) != 'LCM_TARGETS':
-        raise Exception('was expecting a target in LCM_TARGETS for EMIT statement: EMIT {}'.format(
+    if remove_outer_spaces(expression[0:helper_find(expression, ' WITH ')].split('.')[0]) != 'YDL_TARGETS':
+        raise Exception('was expecting a target in YDL_TARGETS for EMIT statement: EMIT {}'.format(
             original_expression))
-    target = get_attr_from_name(LCM_TARGETS, remove_outer_spaces(
+    target = get_attr_from_name(YDL_TARGETS, remove_outer_spaces(
         expression[0:helper_find(expression, ' WITH ')].split('.')[1]))
     expression = expression[helper_find(expression, ' WITH '):None]
     statements = []
@@ -473,13 +473,13 @@ def emit_function(expression):
     """
     The function called to handle the execution of an EMIT statement.
     Processes the statement, processes the WITH statements, and then emits the
-    appropriate header and data via LCM.
+    appropriate header and data via YDL.
     """
     emit_expression = tokenize_emit_exp(expression)
     data = {}
     for with_statement in emit_expression['with_statements']:
         with_function_emit(with_statement, data)
-    lcm_send(emit_expression['target'], emit_expression['header'], data)
+    ydl_send(emit_expression['target'], emit_expression['header'], data)
 
 
 def with_function_wait(expression, data):
@@ -549,7 +549,7 @@ def with_function_emit(expression, data):
     be issued to the emmited header and modifies the data appropriately.
     Also handles syntax checking of the WITH statement.
     Example:
-    code: SCOREBOARD_HEADER.STAGE TO LCM_TARGETS.SCOREBOARD WITH 'stage' = AUTO
+    code: SCOREBOARD_HEADER.STAGE TO YDL_TARGETS.SCOREBOARD WITH 'stage' = AUTO
     expression: 'stage' = AUTO
     """
     parts = expression.split('=')
@@ -598,7 +598,7 @@ def check_received_headers():
 
 def execute_header(header, data):
     """
-    Takes in a header data structure and the data from the LCM call and will
+    Takes in a header data structure and the data from the YDL call and will
     modify the local environment accordingly.
     Processes all SET and WITH statements in the header individually, and with
     no guarantee on order.
@@ -653,18 +653,18 @@ def run_until_wait():
 
 def start():
     """
-    The loop that interacts with LCM!
+    The loop that interacts with YDL!
     Here target must be assigned before start() may be called, and so this will
     detect and error on that condition.
-    Otherwise this loop binds a queue to the correct LCM target and processes
-    LCM events that it recieves.
-    Each LCM header that is recieved will be processed based on the current
+    Otherwise this loop binds a queue to the correct YDL target and processes
+    YDL events that it recieves.
+    Each YDL header that is recieved will be processed based on the current
     WAIT statements and then if all wait statements have been satisfied,
-    the code execution will advance to the next WAIT before any more LCM headers
+    the code execution will advance to the next WAIT before any more YDL headers
     will be processed.
     """
-    global TARGET, EVENTS, CURRENT_HEADERS, TIMEOUT
-    if TARGET == 'unassigned':
+    global TARGETS, EVENTS, CURRENT_HEADERS, TIMEOUT
+    if not TARGETS:
         raise Exception("READ needs to be called before the first WAIT.")
 
     while True:
@@ -714,11 +714,11 @@ def main():
 
 
 """
-The LCM target that we are currently reading from.
+A list of the YDL target that we are currently reading from.
 """
-TARGET = 'unassigned'
+TARGETS = []
 """
-The queue used to store incoming LCM requests. These requests are then popped
+The queue used to store incoming YDL requests. These requests are then popped
 off in the start function and processed.
 """
 TIMEOUT = 30
@@ -792,7 +792,7 @@ COMMANDS = {'WAIT': wait_function,
 if __name__ == '__main__':
     """
     The main function! Calls main to read the specified file into the heap,
-    and then advances until the first wait command where it begins the LCM
+    and then advances until the first wait command where it begins the YDL
     interaction found in start.
     """
     if main():
