@@ -6,6 +6,7 @@ class YDL_TARGETS():
     SENSORS = "ydl_target_sensors"
 
 
+# for headers, [field] denotes an optional field
 
 class SHEPHERD_HEADER():
     GET_MATCH_INFO = "get_match_info"
@@ -19,9 +20,8 @@ class SHEPHERD_HEADER():
 
     SET_TEAMS_INFO = "set_teams_info"
     # SET_TEAMS_INFO{teams}
-    # teams = 4*[{team_name, team_num, robot_ip, starting_position}]
+    # teams = 4*{team_name, team_num, robot_ip, [starting_position]}
     # source: Sheet. Sets the match info, which has been fetched from a spreadsheet
-    # note that starting_position is an optional field
 
     SETUP_MATCH = "setup_match"
     # SETUP_MATCH{match_num, teams}
@@ -36,9 +36,8 @@ class SHEPHERD_HEADER():
     # source: UI. Asks Shepherd what the current scores are.
 
     SET_SCORES = "set_scores"
-    # SET_SCORES{blue_score, gold_score}
+    # SET_SCORES{[blue_score], [gold_score]}
     # source: UI. adjusts the current scores to the input scores.
-    # both fields are optional
 
     GET_STATE = "get_state"
     # GET_STATE{}
@@ -92,7 +91,7 @@ class UI_HEADER():
     ROBOT_CONNECTION = "robot_connection"
     # ROBOT_CONNECTION{ind: int, connected: bool, robot_ip: str}
     STATE = "state"
-    # STATE{state}
+    # STATE{state, [start_time]}
     # tells UI that Shepherd is now in this state
     # TODO: is this redundant with teams_info?
     RESET_TIMERS = "reset_timers"

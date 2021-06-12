@@ -31,7 +31,7 @@ class RuntimeClient:
         self.__connect_tcp(silent=(robot_ip==""))
         self.send_connection_status_to_ui()
         if self.connected:
-            threading.Thread(target=self.__start_recv).start()
+            threading.Thread(target=self.__start_recv, daemon=True).start()
 
     def __repr__(self) -> str:
         return f"RuntimeClient({self.ind}, {self.robot_ip})"

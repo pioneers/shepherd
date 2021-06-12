@@ -6,9 +6,11 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
+    let stage_start_time = null;
 
     const teams_info_msg = $("#teams-info");
     const score_info_msg = $("#score-info");
+    const timer_info_msg = $("#timer-time");
     const btn_1 = $("#button-1");
     const btn_2 = $("#button-2");
     const estop_btn = $("#stop-robots");
@@ -40,7 +42,19 @@
     socket.on('state', function(data) {
       data = JSON.parse(data);
       state_msg.text(data.state);
+      stage_start_time = data.start_time;
     });
+
+    (function displayTime(){
+      if(stage_start_time) {
+        let t = (new Date().getTime() - stage_start_time)/1000;
+        let s = `${Math.floor(t/60)}:${("" + Math.floor(t%60)).padStart(2,'0')}`
+        timer_info_msg.text(s)
+      } else {
+        timer_info_msg.text("0:00")
+      }
+      requestAnimationFrame(displayTime);
+    })();
 
     btn_1.click(() => {
       send('button_1_pressed');
@@ -82,6 +96,7 @@
 <div class="text-center">
   <h3 id="teams-info">[loading...]</h3>
   <h3 id="score-info">[loading...]</h3>
+  <h3 id="timer-time">[loading...]</h3>
 </div>
 
 

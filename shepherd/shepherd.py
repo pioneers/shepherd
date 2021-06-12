@@ -4,7 +4,7 @@ from timer import Timer
 from ydl import ydl_send, ydl_start_read
 from utils import *
 from runtimeclient import RuntimeClientManager
-from protos.run_mode_pb2 import Mode
+from protos.run_mode_pb2 import Mode, TELEOP
 from protos.game_state_pb2 import State
 from sheet import Sheet
 from robot import Robot
@@ -256,7 +256,15 @@ def send_state_to_ui():
     '''
     Sends the GAME_STATE to the UI
     '''
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE})
+    stage_times = {
+        STATE.AUTO: CONSTANTS.AUTO_TIME,
+        STATE.TELEOP: CONSTANTS.TELEOP_TIME
+    }
+    if GAME_STATE in stage_times:
+        st = (GAME_TIMER.end_time - stage_times.get(GAME_STATE)) * 1000
+        ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE, "start_time": st})
+    else:
+        ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE})
 
 
 def send_connection_status_to_ui():
