@@ -122,7 +122,10 @@ UI_PAGES = {
     "score_adjustment.html": True,
     "staff_gui.html": True,
     "match_recovery.html": True,
-    "ref_gui.html": True
+    "ref_gui.html": True,
+    "match_creator.html": True,
+    "alliance_selection.html": True,
+    "bracket_ui.html": False,
 }
 
 

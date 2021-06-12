@@ -1,3 +1,272 @@
+{% extends 'base.html' %}
+{% block head_content %}
+<title>Alliance Selection</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .container {
+    display: block;
+  }
+
+  .inner-container {
+    display: flex;
+    height: auto;
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+
+  .left-container,
+  .right-container {
+    display: block;
+    flex-direction: column;
+    width: 30%;
+    height: 70vh;
+    padding: 10px;
+    border: 1px solid black;
+    background-color: #F5F5F5;
+    overflow-y: auto;
+  }
+
+
+  .alliance {
+    display: flex;
+    flex-direction: row;
+    background-color: goldenrod;
+    border: 1px solid black;
+    height: 40%;
+    border-radius: 10px;
+    margin: 5px;
+    justify-content: center;
+    align-items: center;
+    padding: 0%;
+  }
+
+  .alliance-num {
+    display: flex;
+    flex-direction: row;
+    background-color: white;
+    width: 15%;
+    height: 25%;
+    border: 1px solid black;
+    margin: 5px 5px 5px 5px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .alliance-drop-area {
+    background-color: white;
+    height: 90%;
+    width: 70%;
+    margin: 5px 5px 5px 5px;
+    border: 1px solid black;
+    border-radius: 10px;
+  }
+
+  .team {
+    display: flex;
+    flex-direction: row;
+    background-color: green;
+    border: 1px solid black;
+    border-radius: 10px;
+    height: 100px;
+    width: 100%;
+  }
+
+  .name {
+    display: flex;
+    flex-direction: row;
+    background-color: blue;
+    width: 70%;
+    height: 90%;
+    border: 1px solid black;
+    margin: 5px 5px 5px 5px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .record {
+    display: flex;
+    flex-direction: row;
+    background-color: blue;
+    width: 25%;
+    height: 90%;
+    border: 1px solid black;
+    margin: 5px 5px 5px 5px;
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    const draggables = document.querySelectorAll('.draggable')
+    const containers = document.querySelectorAll('.drop-here')
+
+    draggables.forEach(draggable => {
+      draggable.addEventListener('dragstart', () => {
+        draggable.classList.add('dragging')
+      })
+
+      draggable.addEventListener('dragend', () => {
+        draggable.classList.remove('dragging')
+      })
+    })
+
+    containers.forEach(container => {
+      container.addEventListener('dragover', e => {
+        e.preventDefault()
+        const afterElement = getDragAfterElement(container, e.clientY)
+        const draggable = document.querySelector('.dragging')
+        if (afterElement == null) {
+          container.appendChild(draggable)
+        } else {
+          container.insertBefore(draggable, afterElement)
+        }
+      })
+    })
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect()
+        const offset = y - box.top - box.height / 2
+        if (offset < 0 && offset > closest.offset) {
+          return {
+            offset: offset,
+            element: child
+          }
+        } else {
+          return closest
+        }
+      }, {
+        offset: Number.NEGATIVE_INFINITY
+      }).element
+    }
+  }
+</script>
+{% endblock %}
+{% block html_content %}
+<div class="m-5" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+  <img style="position: fixed; left: 8vw;" height="100px" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
+  <h1 style="font-size: 40px;">
+    Alliance Selection
+  </h1>
+</div>
+
+<div class="inner-container">
+  <div class="left-container">
+
+    <div class="alliance">
+      <div class="alliance-num">
+        <span>
+          1
+        </span>
+
+      </div>
+      <div class="alliance-drop-area drop-here">
+      </div>
+    </div>
+
+    <div class="alliance">
+      <div class="alliance-num">
+        <span>
+          2
+        </span>
+
+      </div>
+      <div class="alliance-drop-area drop-here">
+      </div>
+    </div>
+
+    <div class="alliance">
+      <div class="alliance-num">
+        <span>
+          3
+        </span>
+
+      </div>
+      <div class="alliance-drop-area drop-here">
+      </div>
+    </div>
+
+    <div class="alliance">
+      <div class="alliance-num">
+        <span>
+          4
+        </span>
+
+      </div>
+      <div class="alliance-drop-area drop-here">
+      </div>
+    </div>
+
+    
+  </div>
+
+  
+
+
+
+  <div class="right-container drop-here">
+
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+      <div class="col-md-8 bg-light rounded">
+        San Mateo
+      </div>
+      <div class="col-md-3 bg-warning rounded">
+        0:3
+      </div>
+    </div>
+
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+      <div class="col-md-8 bg-light rounded">
+        Berkeley
+      </div>
+      <div class="col-md-3 bg-warning rounded">
+        0:3
+      </div>
+    </div>
+
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+      <div class="col-md-8 bg-light rounded">
+        Stanford
+      </div>
+      <div class="col-md-3 bg-warning rounded">
+        0:3
+      </div>
+    </div>
+
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+      <div class="col-md-8 bg-light rounded">
+        Subway
+      </div>
+      <div class="col-md-3 bg-warning rounded">
+        0:3
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+
+
+
+
+
+
 <!DOCTYPE HTML>
 
 <!-- For this to work:
@@ -33,214 +302,11 @@ Todo:
 
 
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    .container {
-      display: block;
-    }
-
-    .inner-container {
-      display: flex;
-      height: auto;
-      width: auto;
-      flex-direction: row;
-      justify-content: space-between;
-    }
-
-
-    .left-container,
-    .right-container {
-      display: block;
-      flex-direction: column;
-      width: 30%;
-      height: 70vh;
-      padding: 10px;
-      border: 1px solid black;
-      background-color: #F5F5F5;
-      overflow-y: auto;
-    }
-
-
-    .alliance {
-      display: flex;
-      flex-direction: row;
-      background-color: goldenrod;
-      border: 1px solid black;
-      height: 40%;
-      border-radius: 10px;
-      margin: 5px;
-      justify-content: center;
-      align-items: center;
-      padding: 0%;
-    }
-
-    .alliance-num {
-      display: flex;
-      flex-direction: row;
-      background-color: white;
-      width: 15%;
-      height: 25%;
-      border: 1px solid black;
-      margin: 5px 5px 5px 5px;
-      border-radius: 10px;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .alliance-drop-area {
-      background-color: white;
-      height: 90%;
-      width: 70%;
-      margin: 5px 5px 5px 5px;
-      border: 1px solid black;
-      border-radius: 10px;
-    }
-
-    .team {
-      display: flex;
-      flex-direction: row;
-      background-color: green;
-      border: 1px solid black;
-      border-radius: 10px;
-      height: 100px;
-      width: 100%;
-    }
-
-    .name {
-      display: flex;
-      flex-direction: row;
-      background-color: blue;
-      width: 70%;
-      height: 90%;
-      border: 1px solid black;
-      margin: 5px 5px 5px 5px;
-      border-radius: 10px;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .record {
-      display: flex;
-      flex-direction: row;
-      background-color: blue;
-      width: 25%;
-      height: 90%;
-      border: 1px solid black;
-      margin: 5px 5px 5px 5px;
-      border-radius: 10px;
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
 
 </head>
 
 <body class="container">
-  <div class="m-5" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-    <img style="position: fixed; left: 8vw;" height="100px" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
-    <h1 style="font-size: 40px;">
-      Alliance Selection
-    </h1>
-  </div>
 
-  <div class="inner-container">
-    <div class="left-container">
-
-      <div class="alliance">
-        <div class="alliance-num">
-          <span>
-            1
-          </span>
-
-        </div>
-        <div class="alliance-drop-area drop-here">
-        </div>
-      </div>
-
-      <div class="alliance">
-        <div class="alliance-num">
-          <span>
-            2
-          </span>
-
-        </div>
-        <div class="alliance-drop-area drop-here">
-        </div>
-      </div>
-
-      <div class="alliance">
-        <div class="alliance-num">
-          <span>
-            3
-          </span>
-
-        </div>
-        <div class="alliance-drop-area drop-here">
-        </div>
-      </div>
-
-      <div class="alliance">
-        <div class="alliance-num">
-          <span>
-            4
-          </span>
-
-        </div>
-        <div class="alliance-drop-area drop-here">
-        </div>
-      </div>
-
-      
-    </div>
-
-    
-
-
-
-    <div class="right-container drop-here">
-
-      <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
-        <div class="col-md-8 bg-light rounded">
-          San Mateo
-        </div>
-        <div class="col-md-3 bg-warning rounded">
-          0:3
-        </div>
-      </div>
-
-      <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
-        <div class="col-md-8 bg-light rounded">
-          Berkeley
-        </div>
-        <div class="col-md-3 bg-warning rounded">
-          0:3
-        </div>
-      </div>
-
-      <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
-        <div class="col-md-8 bg-light rounded">
-          Stanford
-        </div>
-        <div class="col-md-3 bg-warning rounded">
-          0:3
-        </div>
-      </div>
-
-      <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
-        <div class="col-md-8 bg-light rounded">
-          Subway
-        </div>
-        <div class="col-md-3 bg-warning rounded">
-          0:3
-        </div>
-      </div>
-    </div>
-
-  </div>
   </div>
 
 
@@ -253,50 +319,7 @@ Todo:
 
 
 <script>
-  const draggables = document.querySelectorAll('.draggable')
-  const containers = document.querySelectorAll('.drop-here')
 
-  draggables.forEach(draggable => {
-    draggable.addEventListener('dragstart', () => {
-      draggable.classList.add('dragging')
-    })
-
-    draggable.addEventListener('dragend', () => {
-      draggable.classList.remove('dragging')
-    })
-  })
-
-  containers.forEach(container => {
-    container.addEventListener('dragover', e => {
-      e.preventDefault()
-      const afterElement = getDragAfterElement(container, e.clientY)
-      const draggable = document.querySelector('.dragging')
-      if (afterElement == null) {
-        container.appendChild(draggable)
-      } else {
-        container.insertBefore(draggable, afterElement)
-      }
-    })
-  })
-
-  function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
-
-    return draggableElements.reduce((closest, child) => {
-      const box = child.getBoundingClientRect()
-      const offset = y - box.top - box.height / 2
-      if (offset < 0 && offset > closest.offset) {
-        return {
-          offset: offset,
-          element: child
-        }
-      } else {
-        return closest
-      }
-    }, {
-      offset: Number.NEGATIVE_INFINITY
-    }).element
-  }
 </script>
 
 </html>
