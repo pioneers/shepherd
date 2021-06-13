@@ -34,7 +34,7 @@ Usage: `## <comment>`
 
 The READ statement will mount a listener to the YDL channel that is indicated.
 
-Typically, this is put at the top of a test file but it is possible to have multiple READ statements in a test. Subsequent READ statements will cause the YDL queue to clear.
+Typically, this is put at the top of a test file but it is possible to have multiple READ statements in a test. Subsequent identical READ statements will cause the YDL queue to clear. Different YDL targets will all be read from, allowing a testing file to read from multiple targets at once.
 
 Usage: `READ <YDL target>`
 
@@ -66,7 +66,7 @@ Usage: `SLEEP <time / python expression>`
 
 ### DISCARD
 
-The DISCARD statement clears the YDL / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is the desired functionality.
+The DISCARD statement clears the YDL of any messages that have been received so far, but have not been processed, ensuring that they will not be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is the desired functionality.
 
 Usage: `DISCARD`
 
