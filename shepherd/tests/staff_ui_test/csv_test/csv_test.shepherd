@@ -1,0 +1,22 @@
+READ YDL_TARGETS.UI
+EMIT SHEPHERD_HEADER.SET_MATCH_NUMBER TO YDL_TARGETS.SHEPHERD WITH 'match_num' = 1
+WAIT UI_HEADER.TEAMS_INFO FROM YDL_TARGETS.UI WITH INFER
+RUN from utils import *
+RUN import csv
+RUN import os
+RUN csv_file = open(CONSTANTS.CSV_FILE_NAME, newline='')
+RUN match_reader = csv.reader(csv_file, delimiter=' ', quotechar='|')
+RUN matches = list(match_reader)
+RUN match = matches[1]
+RUN match = " ".join(match)
+RUN match = match.split(',')
+FAIL teams[0]["team_name"] != match[2]
+FAIL str(teams[0]["team_num"]) != match[1]
+FAIL teams[1]["team_name"] != match[5]
+FAIL str(teams[1]["team_num"]) != match[4]
+FAIL teams[2]["team_name"] != match[8]
+FAIL str(teams[2]["team_num"]) != match[7]
+FAIL teams[3]["team_name"] != match[11]
+FAIL str(teams[3]["team_num"]) != match[10]
+FAIL int(match_num) != 1
+PASS

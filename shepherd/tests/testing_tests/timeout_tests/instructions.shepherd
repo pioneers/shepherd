@@ -1,0 +1,2 @@
+TEST timeout_server.shepherd
+TEST timeout_client.shepherd

@@ -1,0 +1,8 @@
+READ YDL_TARGETS.UI
+RUN done1 = False
+RUN done2 = False
+EMIT SHEPHERD_HEADER.START_NEXT_STAGE TO YDL_TARGETS.SHEPHERD
+WHILE not (done1 and done2)
+  WAIT UI_HEADER.STATE FROM YDL_TARGETS.UI WITH stage = 'stage' SET done1 = True AND UI_HEADER.SCORES FROM YDL_TARGETS.UI WITH INFER SET done2 = True
+END
+PRINTP "blue_score:{}, gold_score:{}".format(blue_score, gold_score)

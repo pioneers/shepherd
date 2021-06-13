@@ -1,0 +1,29 @@
+READ YDL_TARGETS.UI
+WAIT UI_HEADER.ALL_INFO FROM YDL_TARGETS.UI
+## Delay here
+RUN import time
+RUN time.sleep(2)
+##
+RUN go = 0
+WHILE go < 10
+  WAIT UI_HEADER.ALL_INFO FROM YDL_TARGETS.UI
+  RUN go = go + 1
+END
+PRINT got 10 headers(1)
+RUN go = 0
+WHILE go < 10
+  WAIT UI_HEADER.ALL_INFO FROM YDL_TARGETS.UI WITH a = 'a'
+  IF a == 1
+    RUN go = go + 1
+  END
+END
+PRINT got 10 headers(2)
+RUN go = 0
+WHILE go < 10
+  WAIT UI_HEADER.ALL_INFO FROM YDL_TARGETS.UI SET b = 1
+  IF b == 1
+    RUN go = go + 1
+  END
+  RUN b = 0
+END
+PRINT got 10 headers(3)

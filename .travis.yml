@@ -1,32 +1,31 @@
 dist: xenial
 sudo: required
 os: linux
-
 language: python
 python: 3.7
-
-# list packages installable using apt here
 addons:
-    apt:
-        packages:
-            - python3-setuptools
-            - python3-pip
-            - libasound2-dev
-            - socat
-
-# requires that commit is for a PR or is on master branch
-if : (type = pull_request) OR (type = push AND branch = master)
-
+  apt:
+    packages:
+    - python3-setuptools
+    - python3-pip
+    - libasound2-dev
+    - socat
+if: "(type = pull_request) OR (type = push AND branch = master)"
 jobs:
-    include:
-        - name: test
-          script:
-            - echo "testing"
-
-        - name: format
-          script:
-            - echo "formatting"
-
-        - name: build
-          script:
-            - echo "building"
+  include:
+  - name: test
+    install:
+    - pip install -r requirements.txt
+    script:
+    - echo "testing"
+    - cd shepherd
+    - python3 testing_script.py
+  - name: format
+    script:
+    - echo "formatting"
+  - name: build
+    script:
+    - echo "building"
+before_install:
+- openssl aes-256-cbc -K $encrypted_6a33d71cd260_key -iv $encrypted_6a33d71cd260_iv
+  -in shepherd/sheets/user_token.json.enc -out shepherd/sheets/user_token.json -d
