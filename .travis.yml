@@ -28,4 +28,4 @@ jobs:
     - echo "building"
 before_install:
 - openssl aes-256-cbc -K $encrypted_6a33d71cd260_key -iv $encrypted_6a33d71cd260_iv
-  -in user_token.json.enc -out sheets/user_token.json -d
+  -in shepherd/sheets/user_token.json.enc -out shepherd/sheets/user_token.json -d
