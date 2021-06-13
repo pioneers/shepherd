@@ -20,10 +20,11 @@ if: (type = pull_request) OR (type = push AND branch = master)
 jobs:
   include:
     - name: test
+      install:
+        - pip install -r requirements.txt
       script:
         - echo "testing"
         - cd shepherd
-        - ./installlcm
         - python3 testing_script.py
 
     - name: format
