@@ -12,17 +12,17 @@
 
 ## Intro
 
-The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to LCM messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Unfortunately, the shepherd testing utility requires LCM to communicate with other parts of shepherd, so a computer without LCM will not be able to run it.
+The testing utility was designed as an asynchronous dummy that would be able to mock up the communication between a piece of shepherd and the rest. It is designed to make simple responses to YDL messages sent by the piece of shepherd that is being tested, and it can be used to test any number of shepherd pieces together. Unfortunately, the shepherd testing utility requires YDL to communicate with other parts of shepherd, so a computer without YDL will not be able to run it.
 
-The testing utility communicates via LCM targets, and there are a few important things to be aware of while using the utility. All LCM targets and headers must be included in Utils.py, otherwise the utility will not recognize them. In addition, Utils.py is not imported into the internal environment for python execution that the tester provides. LCM headers and targets will be looked up in Utils.py when they appear in a non-python context, but otherwise they would need to be imported via a RUN statement. Due to underlying limitations, we can only read from one target at a time, so each READ statement will override any previous READ statements, and change our LCM target. Furthermore, we cannot wait on a header from a target before we read from that target, so READ should probably be the first line of your script.
+The testing utility communicates via YDL targets, and there are a few important things to be aware of while using the utility. All YDL targets and headers must be included in Utils.py, otherwise the utility will not recognize them. In addition, Utils.py is not imported into the internal environment for python execution that the tester provides. YDL headers and targets will be looked up in Utils.py when they appear in a non-python context, but otherwise they would need to be imported via a RUN statement. Due to underlying limitations, we can only read from one target at a time, so each READ statement will override any previous READ statements, and change our YDL target. Furthermore, we cannot wait on a header from a target before we read from that target, so READ should probably be the first line of your script.
 
 While the error recognition and reporting in this utility is helpful, it is not exhaustive. Some disallowed behavior in the following command may not result in a runtime exception, and instead have unexpected and undefined consequences. Adhering to the syntax provided below is the best way to make sure your script works.
 
-It is possible to run multiple .shepherd scripts at once, and have them communicate, however having multiple scripts read from the same LCM target is currently untested and may result in undefined behavior. Also keep in mind that there is no synchronization or timing command in this utility yet, however the RUN command may be used in combination with python timing and synchronization to create the same effect.
+It is possible to run multiple .shepherd scripts at once, and have them communicate, however having multiple scripts read from the same YDL target is currently untested and may result in undefined behavior. Also keep in mind that there is no synchronization or timing command in this utility yet, however the RUN command may be used in combination with python timing and synchronization to create the same effect.
 
 ## Commands
 
-The testing utility reads in .shepherd testing scripts and emulates the LCM communication per those script's specifications. These scripts use special syntax, which is covered below.
+The testing utility reads in .shepherd testing scripts and emulates the YDL communication per those script's specifications. These scripts use special syntax, which is covered below.
 
 ### Comments
 
@@ -32,11 +32,11 @@ Usage: `## <comment>`
 
 ### READ
 
-The READ statement will mount a listener to the LCM channel that is indicated.
+The READ statement will mount a listener to the YDL channel that is indicated.
 
-Typically, this is put at the top of a test file but it is possible to have multiple READ statements in a test. Subsequent READ statements will cause the LCM queue to clear.
+Typically, this is put at the top of a test file but it is possible to have multiple READ statements in a test. Subsequent READ statements will cause the YDL queue to clear.
 
-Usage: `READ <LCM target>`
+Usage: `READ <YDL target>`
 
 ### RUN
 
@@ -60,13 +60,13 @@ Usage: `PRINTP <python expression>`
 
 ### SLEEP
 
-The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any LCM messages received while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep time may be a decimal, and is in terms of seconds. SLEEP may take a python expression as an argument, so long as it evaluates to a float.
+The SLEEP statement is used in order to pause the execution of the .shepherd interpreter for a specified amount of time. Any YDL messages received while the interpreter is paused will still be recorded and may be processed by the next WAIT statement that the interpreter encounters. The sleep time may be a decimal, and is in terms of seconds. SLEEP may take a python expression as an argument, so long as it evaluates to a float.
 
 Usage: `SLEEP <time / python expression>`
 
 ### DISCARD
 
-The DISCARD statement clears the LCM / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is the desired functionality.
+The DISCARD statement clears the YDL / YDL of any messages that have been received so far, but have not been processed, ensuring that they will not be processed. This is helpful after a SLEEP statement, to ensure that any messages that were received during the sleep would be ignored, if that is the desired functionality.
 
 Usage: `DISCARD`
 
@@ -120,17 +120,17 @@ Usage: `ASSERT <python conditional expression>`
 
 ### WAIT
 
-The WAIT statement is used to pause code execution until a specific LCM message is received by the testing script. A WAIT statement consists of the following pieces:
+The WAIT statement is used to pause code execution until a specific YDL message is received by the testing script. A WAIT statement consists of the following pieces:
 
-- A LCM header must follow the WAIT statement, this is the header that will be waited on.
+- A YDL header must follow the WAIT statement, this is the header that will be waited on.
 
 - FROM
 
-- A LCM target must follow the header, separated by the keyword FROM. This is the LCM channel that the WAIT statement will listen to for the specified header.
+- A YDL target must follow the header, separated by the keyword FROM. This is the YDL channel that the WAIT statement will listen to for the specified header.
 
 - WITH can then be specified, to store arguments from the header into the namespace. This must follow the target specified by FROM. The WITH statement looks something like this, `WITH argument = 'argument in header'`. The name of the argument in the header must be surrounded by single quotes. If the argument is not present in the header, an error will be thrown.
 
-- WITH INFER is a special kind of WITH statement which instructs the testing script to place all of the data found in the LCM message into the namespace with the variable name inferred as the name of the key in the data dictionary from the header. Any key in the data dictionary that is used in another WITH statement will not be inferred, and therefore will not be copied into the namespace a second time. The WITH INFER statement does not need to go in any particular place and will look both ahead and behind when calculating what statements to infer. This means it can go anywhere a normal WITH statement can go. It is important to note that any header keys that are inferred that are not valid python variable names, or that begin with an underscore will cause an error. Therefore you must explicitly name and store any such key values in their own WITH statements in order to give them valid names and cause WITH INFER to skip over them.
+- WITH INFER is a special kind of WITH statement which instructs the testing script to place all of the data found in the YDL message into the namespace with the variable name inferred as the name of the key in the data dictionary from the header. Any key in the data dictionary that is used in another WITH statement will not be inferred, and therefore will not be copied into the namespace a second time. The WITH INFER statement does not need to go in any particular place and will look both ahead and behind when calculating what statements to infer. This means it can go anywhere a normal WITH statement can go. It is important to note that any header keys that are inferred that are not valid python variable names, or that begin with an underscore will cause an error. Therefore you must explicitly name and store any such key values in their own WITH statements in order to give them valid names and cause WITH INFER to skip over them.
 
 - SET can then be specified, which will execute a line of python code when the header is received. The SET statement looks something like this, `SET test = True`.
 
@@ -148,19 +148,19 @@ Usage: `WAIT <header> FROM <target> WITH <assignment>... SET <python expression>
 
 ### TIMEOUT
 
-The TIMEOUT statement is used in order to set the timeout for subsequent WAIT statements. WAIT statements will cause the test to fail if they see no inactivity for the amount of time specified. By default this value is 30 seconds. The TIMEOUT statement modifies this value, and the value stays at the new value until another TIMEOUT statement, or the end of the test. Inactivity is defined as no new LCM messages being received. The timeout time may be a decimal, and is in terms of seconds. TIMEOUT may take a python expression as an argument, so long as it evaluates to a float.
+The TIMEOUT statement is used in order to set the timeout for subsequent WAIT statements. WAIT statements will cause the test to fail if they see no inactivity for the amount of time specified. By default this value is 30 seconds. The TIMEOUT statement modifies this value, and the value stays at the new value until another TIMEOUT statement, or the end of the test. Inactivity is defined as no new YDL messages being received. The timeout time may be a decimal, and is in terms of seconds. TIMEOUT may take a python expression as an argument, so long as it evaluates to a float.
 
 Usage: `TIMEOUT <time / python expression>`
 
 ### EMIT
 
-The EMIT statement will send an LCM message from the script to a target. The EMIT statement is significantly simpler than the WAIT statement, and it's structure is as follows:
+The EMIT statement will send an YDL message from the script to a target. The EMIT statement is significantly simpler than the WAIT statement, and it's structure is as follows:
 
-- A LCM header must follow the EMIT statement, this is the header that will be sent.
+- A YDL header must follow the EMIT statement, this is the header that will be sent.
 
 - TO
 
-  - A LCM target must follow the header, separated by the keyword TO. This is the LCM channel that the EMIT statement send specified header to.
+  - A YDL target must follow the header, separated by the keyword TO. This is the YDL channel that the EMIT statement send specified header to.
 
 - WITH can then be specified to set the arguments into the header from the namespace. This must follow the header specified by TO. The WITH statement looks something like this, `WITH 'argument in header' = argument`. The name of the argument in the header must be surrounded by single quotes. It is worth noting that this is the reverse of the WITH statement used in WAIT.
 
@@ -202,7 +202,7 @@ where example/example_client.shepherd is the path to a test inside the tests fol
 
 ## Future modifications:
 
-The testing utility right now is functional, but flawed. The most precarious systems are the syntax error recognition, the execution of IF and WHILE statements, and the LCM interactions. There are also quite a few features that the framework might benefit from.
+The testing utility right now is functional, but flawed. The most precarious systems are the syntax error recognition, the execution of IF and WHILE statements, and the YDL interactions. There are also quite a few features that the framework might benefit from.
 
 ### Modifications:
 
@@ -210,7 +210,7 @@ The testing utility right now is functional, but flawed. The most precarious sys
 
 - The IF and WHILE statements would also see more reliable functionality from the previous strategy. The grammar would allow IF and WHILE to be packaged with their corresponding END statements, and this would make execution faster and more robust. Furthermore, unbalanced END statements would be detected when the file was read in, and not at runtime (how they currently are) making debugging a script much simpler.
 
-- LCM is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the LCM issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign LCM targets, or potentially to even read from multiple would make the scripting much more intuitive.
+- YDL is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the YDL issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign YDL targets, or potentially to even read from multiple would make the scripting much more intuitive.
 
 ### Additions:
 

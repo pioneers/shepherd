@@ -132,6 +132,8 @@ UI_PAGES = {
 class CONSTANTS():
     AUTO_TIME = 10
     TELEOP_TIME = 10
+    CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
+    SPREADSHEET_ID = "1JCtt_Iqyx15EOAZN6agqeeUKCFsrL6oOy3brKyAWjBM"
 
 
 class ALLIANCE_COLOR():
