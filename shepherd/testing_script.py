@@ -129,8 +129,17 @@ def start():
     # and now run them
     print(f"Running {len(queued_tests)} out of {len(tests)} possible tests")
     print("---------------\n")
-    for test in queued_tests:
-        run_test(test, os.path.join('./tests', test), verbose=True)
+
+    args = ['python3', 'ydl.py']
+    ydl_process = Popen(args, stdout=PIPE)
+    try:
+        for test in queued_tests:
+            run_test(test, os.path.join('./tests', test), verbose=True)
+    except (Exception, BaseException) as ex:
+        ydl_process.kill()
+        raise ex
+    ydl_process.kill()
+
 
     if SUCCESS:
         print("[PASSED ALL TESTS]")
