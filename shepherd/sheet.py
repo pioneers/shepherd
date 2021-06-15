@@ -10,15 +10,13 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from ydl import ydl_send
-from utils import YDL_TARGETS, SHEPHERD_HEADER
+from utils import YDL_TARGETS, SHEPHERD_HEADER, CONSTANTS
 
 # If modifying these scopes, delete your previously saved credentials
 # at USER_TOKEN_FILE
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'sheets/client_secret.json'
-CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
 USER_TOKEN_FILE = "sheets/user_token.json" # user token; do not upload to github (.gitignore it)
-SPREADSHEET_ID = "1JCtt_Iqyx15EOAZN6agqeeUKCFsrL6oOy3brKyAWjBM"
 
 
 class Sheet:
@@ -32,11 +30,12 @@ class Sheet:
             game_data = [[]]
             try:
                 spreadsheet = Sheet.__get_authorized_sheet()
-                game_data = spreadsheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                     range="Match Database!A2:M").execute()['values']
             except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Fetching data from offline csv file")
-                with open(CSV_FILE_NAME) as csv_file:
+                with open(CONSTANTS.CSV_FILE_NAME) as csv_file:
                     game_data = list(csv.reader(csv_file, delimiter=','))[1:]
 
             return_len = 12
@@ -60,6 +59,7 @@ class Sheet:
             try:
                 Sheet.__write_online_scores(match_number, blue_score, gold_score)
             except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
@@ -96,7 +96,7 @@ class Sheet:
         A method that writes the scores to the sheet
         """
         spreadsheet = Sheet.__get_authorized_sheet()
-        game_data = spreadsheet.values().get(spreadsheetId=SPREADSHEET_ID,
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range="Match Database!A2:A").execute()['values']
 
         row_num = -1 # if this fails, it'll overwrite the header which is fine
@@ -109,5 +109,5 @@ class Sheet:
         body = {
             'values': [[str(blue_score), str(gold_score)]]
         }
-        spreadsheet.values().update(spreadsheetId=SPREADSHEET_ID,
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range=range_name, body=body, valueInputOption="RAW").execute()

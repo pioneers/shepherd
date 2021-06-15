@@ -85,7 +85,8 @@ class RuntimeClient:
             try:
                 self.sock.shutdown(socket.SHUT_RDWR) # see above docstring
             except (ConnectionError, OSError) as ex:
-                print(f"Error shutting down {self}: {ex}")
+                if self.connected:
+                    print(f"Error shutting down {self}: {ex}")
             self.sock.close() # deallocates
 
 

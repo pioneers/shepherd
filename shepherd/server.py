@@ -3,7 +3,7 @@ import queue
 import hashlib
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from utils import YDL_TARGETS, UI_PAGES
+from utils import YDL_TARGETS, UI_PAGES, CONSTANTS
 from ydl import ydl_send, ydl_start_read
 
 HOST_URL = "0.0.0.0"
@@ -19,26 +19,24 @@ socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 def hello_world():
     return 'Hello, World!'
 
-
-"""
-checks to make sure p is the correct password
-if you want to change the password, just change the hash
-"""
 def password(p):
+    """
+    checks to make sure p is the correct password
+    if you want to change the password, change the hash in utils.py
+    """
     if p is None:
         return False
     m = hashlib.sha256()
     m.update((p + "cheese").encode("utf-8"))
-    return m.hexdigest() == \
-        "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
+    return m.hexdigest() == CONSTANTS.UI_PASSWORD_HASH
 
-"""
-routing for all ui pages. Gives "page not found" if
-the page isn't in UI_PAGES, or prompts for password 
-if the page is password protected
-"""
 @app.route('/<path:subpath>')
 def give_page(subpath):
+    """
+    routing for all ui pages. Gives "page not found" if
+    the page isn't in UI_PAGES, or prompts for password
+    if the page is password protected
+    """
     if subpath[-1] == "/":
         subpath = subpath[:-1]
     if subpath in UI_PAGES:
@@ -76,9 +74,9 @@ def receiver():
 
 if __name__ == "__main__":
     print("Hello, world!")
-    print(f"Running server on port {PORT}.",
-        f"Go to http://localhost:{PORT}/staff_gui.html",
-        f"or http://localhost:{PORT}/scoreboard.html")
+    print(f"Running server on port {PORT}. Pages:")
+    for page in UI_PAGES:
+        print(f"\thttp://localhost:{PORT}/{page}")
 
 socketio.start_background_task(receiver)
 socketio.run(app, host=HOST_URL, port=PORT)
