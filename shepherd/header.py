@@ -1,3 +1,4 @@
+from typeguard import check_type
 # global list of header names, used to check for collisions
 global_header_names = []
 def header(target, name):
@@ -16,14 +17,10 @@ def header(target, name):
         Returns a HeaderPrimitive object with the appropriate target, name, and
         typing_function.
         """
-        # make sure that there are no positional only args defined, as we only
-        # allow keyword assignment later (this is new in python 3.8)
-        if func.__code__.co_posonlyargcount:
-            raise SyntaxError("Headers cannot take positional only arguments")
         # this is magic
         # purposefully confusing pylance so it will give up and
         # show the header with the signature of the original function
-        # it is synonymous with `return HeaderPrimitive(target, name, func
+        # it is synonymous with `return HeaderPrimitive(target, name, func)`
         return [HeaderPrimitive(target, name, func),0][0]
     return make_header
 class HeaderPrimitive():
@@ -67,10 +64,14 @@ class HeaderPrimitive():
         # check the typing for each arg in kwargs against the annotation.
         annots = self.typing_function.__annotations__
         for arg in kwargs:
-            # skips unannotated arguments, typechecks annotated arguments
-            if arg in annots and not isinstance(kwargs[arg], annots[arg]):
-                raise TypeError(f"argument {arg} is of type "
-                    + f"{annots[arg]}, but was given type {type(kwargs[arg])}")
+            # skips unannotated arguments, typechecks annotated arguments.
+            # skips nonetype args, those will get handled later if they are an issue.
+            if arg in annots and not kwargs[arg] == None:
+                try:
+                    check_type(arg, kwargs[arg], annots[arg])
+                except TypeError:
+                    raise TypeError(f"argument {arg} is of type {annots[arg]}, "
+                        + f"but was given type {type(kwargs[arg])}")
         # call the typing_function and ignore any return value.
         # the typing_function must raise an error to have an effect.
         self.typing_function(**kwargs)
@@ -91,7 +92,7 @@ class HeaderPrimitive():
         Return the name for str().
         """
         return self.name
-    def __setattr__(self, *_):
+    def __setarr__(self, *_):
         """
         Do not allow assignment to members of this class in order to make it immutable
         """
