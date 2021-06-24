@@ -16,10 +16,14 @@ def header(target, name):
         Returns a HeaderPrimitive object with the appropriate target, name, and
         typing_function.
         """
+        # make sure that there are no positional only args defined, as we only
+        # allow keyword assignment later (this is new in python 3.8)
+        if func.__code__.co_posonlyargcount:
+            raise SyntaxError("Headers cannot take positional only arguments")
         # this is magic
         # purposefully confusing pylance so it will give up and
         # show the header with the signature of the original function
-        # it is synonymous with `return HeaderPrimitive(target, name, func)`
+        # it is synonymous with `return HeaderPrimitive(target, name, func
         return [HeaderPrimitive(target, name, func),0][0]
     return make_header
 class HeaderPrimitive():
@@ -87,7 +91,7 @@ class HeaderPrimitive():
         Return the name for str().
         """
         return self.name
-    def __setarr__(self, *_):
+    def __setattr__(self, *_):
         """
         Do not allow assignment to members of this class in order to make it immutable
         """
