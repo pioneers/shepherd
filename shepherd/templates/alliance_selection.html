@@ -6,7 +6,9 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Comic Sans MS, Comic Sans, cursive;
   }
+
   .container {
     display: block;
   }
@@ -24,7 +26,7 @@
   .right-container {
     display: block;
     flex-direction: column;
-    width: 30%;
+    width: 40%;
     height: 70vh;
     padding: 10px;
     border: 1px solid black;
@@ -110,8 +112,42 @@
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
+
+
+
+
+    function saveStateOfAlliance() {
+      localStorage.setItem("alliances", document.getElementById("inner-container").innerHTML);
+    }
+
+    function loadStateOfAlliance() {
+      if (localStorage.getItem("alliances")) {
+        document.getElementById("inner-container").innerHTML = localStorage.getItem("alliances");
+      } else {
+        console.log("No key found");
+      }
+
+    }
+
+    function clearSelection() {
+      if (localStorage.getItem("alliances")) {
+        localStorage.removeItem("alliances");
+        location.reload();
+      }
+    }
+    document.getElementById("clear").addEventListener("click", clearSelection);
+
+    // on reload this is called 
+    loadStateOfAlliance()
+
     const draggables = document.querySelectorAll('.draggable')
     const containers = document.querySelectorAll('.drop-here')
+
+
+
+
+
+
 
     draggables.forEach(draggable => {
       draggable.addEventListener('dragstart', () => {
@@ -119,21 +155,26 @@
       })
 
       draggable.addEventListener('dragend', () => {
-        draggable.classList.remove('dragging')
+        draggable.classList.remove('dragging');
+        saveStateOfAlliance();
       })
     })
+
+
 
     containers.forEach(container => {
       container.addEventListener('dragover', e => {
         e.preventDefault()
-        const afterElement = getDragAfterElement(container, e.clientY)
-        const draggable = document.querySelector('.dragging')
+        const afterElement = getDragAfterElement(container, e.clientY);
+        const draggable = document.querySelector('.dragging');
         if (afterElement == null) {
-          container.appendChild(draggable)
+          container.appendChild(draggable);
         } else {
-          container.insertBefore(draggable, afterElement)
+          container.insertBefore(draggable, afterElement);
         }
+
       })
+
     })
 
     function getDragAfterElement(container, y) {
@@ -141,14 +182,14 @@
 
       return draggableElements.reduce((closest, child) => {
         const box = child.getBoundingClientRect()
-        const offset = y - box.top - box.height / 2
+        const offset = y - box.top - box.height / 2;
         if (offset < 0 && offset > closest.offset) {
           return {
             offset: offset,
             element: child
           }
         } else {
-          return closest
+          return closest;
         }
       }, {
         offset: Number.NEGATIVE_INFINITY
@@ -158,14 +199,20 @@
 </script>
 {% endblock %}
 {% block html_content %}
-<div class="m-5" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
-  <img style="position: fixed; left: 8vw;" height="100px" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
+<div class="m-4" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+  <img style="margin-right: 2rem;" height="100px" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
   <h1 style="font-size: 40px;">
     Alliance Selection
   </h1>
 </div>
 
-<div class="inner-container">
+<button type="button" class="btn btn-primary my-2" id="sync">Sync Spreadsheet</button>
+
+<!-- Since there is nothing in place yet for saving the changes this could just reload page -->
+
+<button type="button" class="btn btn-primary my-2" id="clear">Clear Selections</button>
+
+<div class="inner-container" id="inner-container">
   <div class="left-container">
 
     <div class="alliance">
@@ -212,16 +259,18 @@
       </div>
     </div>
 
-    
+
   </div>
 
-  
+
+
+
 
 
 
   <div class="right-container drop-here">
-
-    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true"
+      style="justify-content: space-evenly;">
       <div class="col-md-8 bg-light rounded">
         San Mateo
       </div>
@@ -230,7 +279,8 @@
       </div>
     </div>
 
-    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true"
+      style="justify-content: space-evenly;">
       <div class="col-md-8 bg-light rounded">
         Berkeley
       </div>
@@ -239,7 +289,8 @@
       </div>
     </div>
 
-    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true"
+      style="justify-content: space-evenly;">
       <div class="col-md-8 bg-light rounded">
         Stanford
       </div>
@@ -248,7 +299,8 @@
       </div>
     </div>
 
-    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true" style="justify-content: space-evenly;">
+    <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true"
+      style="justify-content: space-evenly;">
       <div class="col-md-8 bg-light rounded">
         Subway
       </div>
@@ -258,68 +310,7 @@
     </div>
   </div>
 
+
+
 </div>
 {% endblock %}
-
-
-
-
-
-
-
-<!DOCTYPE HTML>
-
-<!-- For this to work:
-    1. the places where items are being dropped need to have:
-        a. ondrop="dragDrop(event)" ondragover="allowDrop(event)"
-    2. For the items that are going to be dropped, they need:
-        a. draggable="true" ondragstart="dragStart(event)"
-        b. a unique id -->
-<!-- 
-Todo:
-    1. make dynamic
-    2. maybe the ending state is loaded into the spreadsheet
-    3. still ugly at this point -->
-
-<html>
-
-<head>
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-
-  <title>
-    scoreboard
-  </title>
-
-
-
-
-
-
-
-
-</head>
-
-<body class="container">
-
-  </div>
-
-
-
-</body>
-
-<!-- Option 1: Bootstrap Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
-
-
-<script>
-
-</script>
-
-</html>
