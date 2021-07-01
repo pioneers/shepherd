@@ -3,7 +3,7 @@ import threading
 import socket
 from protos import run_mode_pb2
 from protos import start_pos_pb2
-from protos import game_state_pb2
+from protos import gamestate_pb2
 from utils import YDL_TARGETS, PROTOBUF_TYPES, UI_HEADER
 from ydl import ydl_send
 
@@ -68,7 +68,7 @@ class RuntimeClient:
         """
         Tells Runtime to use the game state, e.g. poison ivy or dehyrdration
         """
-        p = game_state_pb2.GameState()
+        p = gamestate_pb2.GameState()
         p.state = state
         self.__send_msg(PROTOBUF_TYPES.GAME_STATE, p)
 

@@ -5,7 +5,7 @@ from ydl import ydl_send, ydl_start_read
 from utils import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import Mode, TELEOP
-from protos.game_state_pb2 import State
+from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
 from challenge_results import CHALLENGE_RESULTS
