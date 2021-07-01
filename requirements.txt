@@ -10,3 +10,7 @@ google-auth-oauthlib
 flask-socketio
 gevent-websocket
 
+##### Type checking #####
+typeguard
+
+
