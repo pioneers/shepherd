@@ -12,7 +12,7 @@ import time
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
 CLIENT_THREAD = None
 
-def ydl_start_read(receive_channel, queue, put_json=False):
+def ydl_start_read(receive_channel:str, queue, put_json:bool=False):
     '''
     Takes in receiving channel name (string), queue (Python queue object).
     Takes whether to add received items to queue as JSON or Python dict.
@@ -28,15 +28,14 @@ def ydl_start_read(receive_channel, queue, put_json=False):
         # sending an empty string is a special message that means "subscribe to channel"
     CLIENT_THREAD.open_targets[receive_channel] = (queue, put_json)
 
-def ydl_send(target_channel, header, dic=None):
+def ydl_send(target_channel:str, header:str, dic:dict=None):
     '''
     Send header and dictionary to target channel (string)
     '''
     start_client_thread_if_not_alive()
     if dic is None:
         dic = {}
-    dic['header'] = header
-    json_str = json.dumps(dic)
+    json_str = json.dumps([header, dic])
     send_message(CLIENT_THREAD.conn, target_channel, json_str)
 
 
@@ -86,9 +85,7 @@ class ClientThread(threading.Thread):
         if put_json:
             queue.put(message)
         else:
-            dic = json.loads(message)
-            header = dic.pop('header')
-            queue.put((header, dic))
+            queue.put(tuple(json.loads(message)))
 
 def send_message(conn, target, msg):
     '''
