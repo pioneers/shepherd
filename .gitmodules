@@ -1,0 +1,3 @@
+[submodule "shepherd/protos_sources"]
+	path = shepherd/protos_sources
+	url = https://github.com/pioneers/protos.git
