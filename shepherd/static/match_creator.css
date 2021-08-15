@@ -115,6 +115,8 @@ input {
   transition: var(--transition);
 
   text-align: center;
+
+  box-shadow: var(--shadow1);
 }
 
 input:focus,
@@ -155,13 +157,14 @@ input:hover {
   grid-row: 2 / 3;
   grid-column: 10 / 13;
 
-  background-color: var(--grey300);
+  background-color: var(--grey800);
   border-radius: var(--borderRadius);
 
   display: grid;
   gap: 0.5rem;
   padding: 0.5rem;
   grid-template-rows: repeat(3, 1fr);
+  box-shadow: var(--darkShadow);
 }
 
 .match-number > input {
@@ -176,18 +179,20 @@ input:hover {
   grid-row: 3 / 5;
   grid-column: 10 / 13;
 
-  background-color: var(--grey300);
+  background-color: var(--grey800);
   border-radius: var(--borderRadius);
 
   display: grid;
   gap: 0.5rem;
   padding: 0.5rem;
+  box-shadow: var(--darkShadow);
 }
 
 .match-creator > h3 {
   margin: 0;
   text-align: center;
   align-self: center;
+  color: var(--white);
 }
 .match-creator > input {
   height: auto;
@@ -208,16 +213,17 @@ input:hover {
 
 /* team controls */
 .team-controls {
-  background-color: var(--grey300);
+  background-color: var(--grey800);
   border-radius: var(--borderRadius);
   padding: 0.5rem;
   grid-column: 1 / 11;
+  box-shadow: var(--darkShadow);
 }
 
 /* start and stop  */
 .start-stop {
   grid-column: 11 / 13;
-  background-color: var(--grey300);
+  background-color: var(--grey800);
   border-radius: var(--borderRadius);
 
   display: grid;
@@ -225,6 +231,8 @@ input:hover {
   text-align: center;
 
   padding: 0.5rem;
+  box-shadow: var(--darkShadow);
+  color: var(--white);
 }
 
 .start-stop > button {
@@ -232,6 +240,8 @@ input:hover {
 
 .start-stop > h3 {
   font-size: 1.5rem;
+  justify-self: center;
+  align-self: center;
 }
 
 .controls-grid {
@@ -258,10 +268,12 @@ input:hover {
 .blue-header {
   background-color: var(--blue500);
   color: var(--white);
+  box-shadow: var(--shadow1);
 }
 .gold-header {
   background-color: var(--gold500);
   color: var(--grey900);
+  box-shadow: var(--shadow1);
 }
 .team-controls > h5 {
   width: 100%;
@@ -329,7 +341,7 @@ input:hover {
 .latency > p {
   margin: 0;
   font-size: 0.9rem;
-  color: var(--grey900);
+  color: var(--white);
 }
 
 /* battery  */
@@ -373,7 +385,7 @@ input:hover {
   color: var(--white);
 }
 .green-btn:hover {
-  background-color: var(--green700);
+  background-color: var(--green300);
 }
 
 .red-btn {
@@ -382,7 +394,7 @@ input:hover {
   color: var(--white);
 }
 .red-btn:hover {
-  background-color: var(--red700);
+  background-color: var(--red300);
 }
 
 @media only screen and (max-width: 1200px) {
