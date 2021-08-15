@@ -1,0 +1,471 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+*:focus {
+  outline: none;
+}
+
+/* root styles  */
+:root {
+  --font: "Comic Sans MS", "Comic Sans", cursive;
+  --blue50: #e8f1fb;
+  --blue100: #d1e3f6;
+  --blue200: #a4c7ed;
+  --blue300: #76abe5;
+  --blue400: #498fdc;
+  --blue500: #1b73d3; /* pie blue */
+  --blue600: #165ca9;
+  --blue700: #10457f;
+  --blue800: #0b2e54;
+  --blue900: #05172a;
+
+  --gold50: #fef7eb;
+  --gold100: #fdefd7;
+  --gold200: #fbdfaf;
+  --gold300: #fad087;
+  --gold400: #f8c05f;
+  --gold500: #f6b037; /* pie gold */
+  --gold600: #c58d2c;
+  --gold700: #946a21;
+  --gold800: #624616;
+  --gold900: #31230b;
+
+  --grey50: #fafafa;
+  --grey100: #f4f4f5;
+  --grey200: #e4e4e7;
+  --grey300: #d4d4d8;
+  --grey400: #a1a1aa;
+  --grey500: #71717a;
+  --grey600: #52525b;
+  --grey700: #3f3f46;
+  --grey800: #27272a;
+  --grey900: #18181b;
+
+  --green100: #cce6cc;
+  --green200: #99cc99;
+  --green300: #66b366;
+  --green400: #339933;
+  --green500: #008000;
+  --green600: #006600;
+  --green700: #004d00;
+  --green800: #003300;
+  --green900: #001a00;
+
+  --red100: #ffcccc;
+  --red200: #ff9999;
+  --red300: #ff6666;
+  --red400: #ff3333;
+  --red500: #ff0000;
+  --red600: #cc0000;
+  --red700: #990000;
+  --red800: #660000;
+  --red900: #330000;
+
+  --black: #222;
+  --white: #fff;
+  --redLight: #f8d7da;
+  --redDark: #842029;
+  --greenLight: #d1e7dd;
+  --greenDark: #0f5132;
+
+  --shadow1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow2: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow3: 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow4: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --lightShadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --darkShadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+  --borderRadius: 0.25rem;
+  --transition: 0.25s ease-in-out all;
+}
+
+/* general styles */
+button {
+  cursor: pointer;
+  border: transparent;
+  border-radius: var(--borderRadius);
+  letter-spacing: 1px;
+  transition: var(--transition);
+  text-transform: capitalize;
+  display: inline-block;
+  box-shadow: var(--shadow1);
+}
+
+.button:hover {
+  box-shadow: var(--shadow3);
+}
+
+.button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+input {
+  border-radius: var(--borderRadius);
+  border: transparent;
+
+  display: inline-block;
+  height: 3rem;
+
+  transition: var(--transition);
+
+  text-align: center;
+}
+
+input:focus,
+input:hover {
+  background-color: var(--gold200);
+}
+
+/* container */
+.container {
+  height: 85vh;
+}
+.grid-container {
+  max-width: 1170px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 0.5rem;
+
+  height: 100%;
+  width: 100%;
+}
+
+/* positioning */
+.team-container {
+  grid-column: 1 / 10;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.5rem;
+}
+
+.shepherd-logo-holder {
+  grid-row: 1 / 2;
+  grid-column: 10 / 13;
+
+  display: grid;
+}
+.match-number {
+  grid-row: 2 / 3;
+  grid-column: 10 / 13;
+
+  background-color: var(--grey300);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.match-number > input {
+  height: auto;
+}
+
+.match-number > button {
+  height: auto;
+}
+
+.match-creator {
+  grid-row: 3 / 5;
+  grid-column: 10 / 13;
+
+  background-color: var(--grey300);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.match-creator > h3 {
+  margin: 0;
+  text-align: center;
+  align-self: center;
+}
+.match-creator > input {
+  height: auto;
+}
+
+.blue1-container {
+  grid-row: 1 / 2;
+}
+.blue2-container {
+  grid-row: 2 / 3;
+}
+.gold1-container {
+  grid-row: 3 / 4;
+}
+.gold2-container {
+  grid-row: 4 / 5;
+}
+
+/* team controls */
+.team-controls {
+  background-color: var(--grey300);
+  border-radius: var(--borderRadius);
+  padding: 0.5rem;
+  grid-column: 1 / 11;
+}
+
+/* start and stop  */
+.start-stop {
+  grid-column: 11 / 13;
+  background-color: var(--grey300);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  text-align: center;
+
+  padding: 0.5rem;
+}
+
+.start-stop > button {
+}
+
+.start-stop > h3 {
+  font-size: 1.5rem;
+}
+
+.controls-grid {
+  display: grid;
+  gap: 0.5rem;
+
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.team-num {
+  grid-column: 1 / 5;
+}
+
+.team-name {
+  grid-column: 5 / 13;
+}
+
+.robot-ip {
+  grid-column: 13 / 21;
+}
+
+/* header  */
+.blue-header {
+  background-color: var(--blue500);
+  color: var(--white);
+}
+.gold-header {
+  background-color: var(--gold500);
+  color: var(--grey900);
+}
+.team-controls > h5 {
+  width: 100%;
+  border-radius: var(--borderRadius);
+  text-align: center;
+  padding: 0.25rem;
+}
+
+/* buttons  */
+.connect {
+  text-align: center;
+  grid-column: 1 / 5;
+}
+
+.disconnect {
+  text-align: center;
+  grid-column: 5 / 9;
+}
+
+/* led */
+.led {
+  border-radius: 50%;
+  height: 3rem;
+  width: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  justify-self: center;
+}
+.s-led {
+  grid-column: 9 / 11;
+}
+.d-led {
+  grid-column: 11 / 13;
+}
+
+.led-green {
+  background-color: #abff00 !important;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
+    #89ff00 0 2px 12px !important;
+}
+
+.led-red {
+  background-color: #f00 !important;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px,
+    rgba(255, 0, 0, 0.5) 0 2px 12px !important;
+}
+
+#heartbeat-light {
+  background-color: lightgrey;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
+}
+
+/* battery */
+.temp-battery {
+  background-color: white;
+  grid-column: 13 / 15;
+}
+
+/* latency */
+.latency {
+  grid-column: 15 / 21;
+}
+.latency > p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--grey900);
+}
+
+/* battery  */
+.batteryContainer {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.batteryOuter {
+  border-radius: 1px;
+  border: 1px solid #444;
+  padding: 1px;
+  width: 25px;
+  height: 9px;
+}
+
+.batteryBump {
+  border-radius: 1px;
+  background-color: #444;
+  margin: 0px;
+  width: 1px;
+  height: 5px;
+}
+
+.batteryLevel {
+  border-radius: 1px;
+  background-color: #444;
+  width: calc(24px * calc(var(--level) / 100));
+  height: 9px;
+}
+
+/* buttons  */
+.green-btn {
+  background-color: var(--green500);
+  transition: var(--transition);
+  color: var(--white);
+}
+.green-btn:hover {
+  background-color: var(--green700);
+}
+
+.red-btn {
+  background-color: var(--red500);
+  transition: var(--transition);
+  color: var(--white);
+}
+.red-btn:hover {
+  background-color: var(--red700);
+}
+
+@media only screen and (max-width: 1200px) {
+  .grid-container {
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+  }
+
+  .team-container {
+    grid-column: 1 / 13;
+  }
+  .blue1-container {
+    grid-row: 2 / 3;
+  }
+  .blue2-container {
+    grid-row: 3 / 4;
+  }
+  .gold1-container {
+    grid-row: 4 / 5;
+  }
+  .gold2-container {
+    grid-row: 5 / 6;
+  }
+
+  .shepherd-logo-holder {
+    grid-column: 1 / 4;
+    grid-row: 1 / 2;
+  }
+  .match-number {
+    grid-column: 4 / 8;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator {
+    grid-column: 8 / 13;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator > h3 {
+    font-size: 1.5rem;
+  }
+  .start-stop > h3 {
+    margin: 0;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .grid-container {
+    position: absolute;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 100vw !important;
+    left: 0 !important;
+    row-gap: 2rem;
+  }
+
+  .team-container {
+    grid-column: 1 / 13;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+  .team-controls {
+    grid-column: 1 / 13;
+    grid-row: 1 / 2;
+  }
+  .start-stop {
+    grid-row: 2 / 3;
+    grid-column: 1 / 13;
+  }
+
+  .shepherd-logo-holder {
+    display: none;
+  }
+  .match-number {
+    grid-column: 1 / 5;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator {
+    grid-column: 5 / 13;
+    grid-row: 1 / 2;
+  }
+}
