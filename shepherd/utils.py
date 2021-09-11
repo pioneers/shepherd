@@ -105,6 +105,12 @@ class SHEPHERD_HEADER():
         source: UI. Takes in index and enables their robot.
         """
 
+    @header(YDL_TARGETS.SHEPHERD, "dehydration_button_press")
+    def DEHYDRATION_BUTTON_PRESS():
+        """
+        source: sensors. button
+        """
+
 class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.
@@ -154,6 +160,37 @@ class SENSOR_HEADER():
     #   """
     #   example header doc string
     #   """
+    @header(YDL_TARGETS.SENSORS, "turn_on_light")
+    def TURN_ON_LIGHT():
+        """
+        turn on a light
+        """
+    @header(YDL_TARGETS.SENSORS, "turn_on_fire_light")
+    def TURN_ON_FIRE_LIGHT():
+        """
+        turn on a light
+        """
+    @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
+    def TURN_ON_LASERS():
+        """
+        turn on a light
+        """
+    @header(YDL_TARGETS.SENSORS, "turn_off_light")
+    def TURN_OFF_LIGHT():
+        """
+        turn on a light
+        """
+    @header(YDL_TARGETS.SENSORS, "turn_off_fire_light")
+    def TURN_OFF_FIRE_LIGHT():
+        """
+        turn on a light
+        """
+    @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
+    def TURN_OFF_LASERS():
+        """
+        turn on a light
+        """
+
 
 # A dictionary of pages -> whether page is password protected
 # password.html should not be included in this list, since
