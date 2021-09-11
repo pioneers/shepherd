@@ -49,7 +49,7 @@ make clean && make
 Then, in another terminal, run the Shepherd code that interfaces with dev handler in another terminal.
 ```
 cd shepherd
-python3 sensors.py
+python3 sensor_interface.py
 ```
 
 ## Architecture
