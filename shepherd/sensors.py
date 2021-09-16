@@ -196,13 +196,13 @@ previous_debounced_value = {} # TODO: move this.
 
 class Light(Parameter):
     def value_from_header(self, header):
-        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT
-            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT
-            or header[0] == SENSOR_HEADER.TURN_ON_LASERS):
+        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT.name
+            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT.name
+            or header[0] == SENSOR_HEADER.TURN_ON_LASERS.name):
             return True
-        if (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT
-            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT
-            or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS):
+        if (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT.name
+            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT.name
+            or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS.name):
             return False
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
 
@@ -267,7 +267,7 @@ traffic_light = TrafficLight(name="traffic_light", should_poll=False)
 num_dehydration_buttons = 7
 
 dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, \
-    identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) \
+    identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS.name) \
         for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) \
     for i in range(num_dehydration_buttons)]
@@ -286,8 +286,8 @@ arduino_1 = Device(1, 1, lights + dehydration_buttons)
 ################################################
 
 HEADER_MAPPINGS = {
-    SENSOR_HEADER.TURN_ON_LIGHT : lights,
-    SENSOR_HEADER.TURN_OFF_LIGHT : lights,
+    SENSOR_HEADER.TURN_ON_LIGHT.name : lights,
+    SENSOR_HEADER.TURN_OFF_LIGHT.name : lights,
     # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
