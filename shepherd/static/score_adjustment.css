@@ -1,0 +1,18 @@
+@import url(styles.css);
+
+input {
+  border-radius: 0;
+  box-shadow: none;
+  width: 60%;
+}
+
+.score-adjust-container {
+  border-radius: var(--borderRadius);
+  background-color: var(--grey100);
+
+  margin: 1rem;
+}
+
+.score-adjust-container > div {
+  margin: 1rem 0;
+}
