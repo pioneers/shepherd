@@ -304,7 +304,6 @@ class STATE():
 class PROTOBUF_TYPES():
     RUN_MODE = 0
     START_POS = 1
-    CHALLENGE_DATA = 2  # text proto
-    LOG = 3  # text proto
-    DEVICE_DATA = 4
-    GAME_STATE = 5
+    LOG = 2  # text proto
+    DEVICE_DATA = 3
+    GAME_STATE = 4
