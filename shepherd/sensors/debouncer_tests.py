@@ -1,7 +1,7 @@
 import unittest
 import sys
 sys.path.insert(1, '../')
-from sensors import GenericButton
+from sensors_config import GenericButton
 from debouncer import Debouncer
 from utils import SHEPHERD_HEADER
 

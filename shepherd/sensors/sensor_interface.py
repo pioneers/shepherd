@@ -19,7 +19,7 @@ from ydl import (
     ydl_start_read
 )
 from typing import List, Union
-from sensors import (
+from sensors_config import (
     arduinos,
     translate_ydl_message,
     HEADER_MAPPINGS,
@@ -104,7 +104,6 @@ def thread_device_commander():
     events = queue.Queue()
     ydl_start_read(YDL_TARGETS.SENSORS, events)
     while True:
-        time.sleep(0.1)
         payload = events.get(True)
         print(payload)
         if payload[0] in HEADER_MAPPINGS:
@@ -133,6 +132,7 @@ def thread_device_sentinel(params_to_read):
     print("started sentinel thread")
     debouncer = Debouncer()
     while (True):
+        time.sleep(0.01)
         # iterate through all devices
         for device in params_to_read:
             params: List[Parameter] = params_to_read[device] # list of parameters

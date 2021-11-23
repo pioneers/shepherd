@@ -12,7 +12,7 @@ import time
 SERVER_ADDR = ('127.0.0.1', 5001) # doesn't need to be available on network
 CLIENT_THREAD = None
 
-def ydl_start_read(receive_channel:str, queue, put_json:bool=False):
+def ydl_start_read(receive_channel, queue, put_json=False):
     '''
     Takes in receiving channel name (string), queue (Python queue object).
     Takes whether to add received items to queue as JSON or Python dict.
@@ -28,7 +28,7 @@ def ydl_start_read(receive_channel:str, queue, put_json:bool=False):
         # sending an empty string is a special message that means "subscribe to channel"
     CLIENT_THREAD.open_targets[receive_channel] = (queue, put_json)
 
-def ydl_send(target_channel:str, header:str, dic:dict=None):
+def ydl_send(target_channel, header, dic=None):
     '''
     Send header and dictionary to target channel (string)
     '''
@@ -42,7 +42,7 @@ def ydl_send(target_channel:str, header:str, dic:dict=None):
 
 def start_client_thread_if_not_alive():
     '''
-    (internal use only) 
+    (internal use only)
     '''
     global CLIENT_THREAD
     if CLIENT_THREAD is None:
@@ -71,7 +71,11 @@ class ClientThread(threading.Thread):
 
     def run(self):
         while True:
-            data = self.conn.recv(1024)
+            try: # try statement needed because windows sucks and throws an 10054 
+                 # connection reset error rather than just returning a 0 byte.
+                data = self.conn.recv(1024)  # Should be ready
+            except ConnectionResetError:
+                data = []
             if len(data) == 0:
                 break
             else:
@@ -105,7 +109,7 @@ class ReadObject:
     '''
     (internal use only)
     An iterable object for receiving messages
-    Append incoming message bytes to self.inb, 
+    Append incoming message bytes to self.inb,
     and then you can loop through the object to get the messages
     '''
     def __init__(self):
@@ -144,7 +148,11 @@ def read(sel, subscriptions, conn, obj):
     When conn has bytes ready to read, read those bytes and
     forward messages to the correct subscribers
     '''
-    data = conn.recv(1024)  # Should be ready
+    try: # try statement needed because windows sucks and throws an 10054 
+         # connection reset error rather than just returning a 0 byte.
+        data = conn.recv(1024)  # Should be ready
+    except ConnectionResetError:
+        data = []
     if len(data) == 0:
         print('closing connection from socket')
         sel.unregister(conn)
@@ -179,7 +187,7 @@ def start_backend():
     sel = selectors.DefaultSelector()
     sel.register(sock, selectors.EVENT_READ, None)
     while True:
-        events = sel.select(timeout=None)
+        events = sel.select(timeout=1) #Windows is bad and needs a timeout here.
         for key, _mask in events:
             if key.data is None:
                 accept(sel, key.fileobj)

@@ -196,13 +196,13 @@ previous_debounced_value = {} # TODO: move this.
 
 class Light(Parameter):
     def value_from_header(self, header):
-        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT 
-            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT
-            or header[0] == SENSOR_HEADER.TURN_ON_LASERS):
+        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT.name 
+            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT.name
+            or header[0] == SENSOR_HEADER.TURN_ON_LASERS.name):
             return True
-        elif (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT 
-            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT
-            or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS):
+        elif (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT.name 
+            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT.name
+            or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS.name):
             return False
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
         
@@ -248,21 +248,21 @@ linebreak_debounce_threshold = 10 # samples
 
 # how fast are we polling? 100 Hz
 
-city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
-traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
-desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, ydl_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, ydl_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, ydl_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
-airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, ydl_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK.name, debounce_threshold=linebreak_debounce_threshold)
+traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.STOPLIGHT_CROSS.name, debounce_threshold=linebreak_debounce_threshold)
+desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, ydl_header=SHEPHERD_HEADER.DESERT_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
+dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, ydl_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
+hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, ydl_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
+airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, ydl_header=SHEPHERD_HEADER.FINAL_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
 
-fire_lever = GenericButton(name="fire_lever", should_poll=True, ydl_header=SHEPHERD_HEADER.FIRE_LEVER)
+fire_lever = GenericButton(name="fire_lever", should_poll=True, ydl_header=SHEPHERD_HEADER.FIRE_LEVER.name)
 
-traffic_button = GenericButton(name="traffic_button", should_poll=True, ydl_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
+traffic_button = GenericButton(name="traffic_button", should_poll=True, ydl_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS.name)
 traffic_light = TrafficLight(name="traffic_light", should_poll=False)
 
 num_dehydration_buttons = 7
 
-dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS) for i in range(num_dehydration_buttons)]
+dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS.name) for i in range(num_dehydration_buttons)]
 lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
 fire_light = Light(name="fire_light", should_poll=False)
 
@@ -279,14 +279,14 @@ arduino_4 = Device(4, 4, [lasers])
 ################################################
 
 HEADER_MAPPINGS = {
-    # SENSOR_HEADER.TURN_ON_LIGHT : lights,
-    # SENSOR_HEADER.TURN_OFF_LIGHT : lights,
-    # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
-    # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
-    # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
-    # SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light],
-    # SENSOR_HEADER.TURN_OFF_LASERS: [lasers],
-    # SENSOR_HEADER.TURN_ON_LASERS: [lasers],
+    # SENSOR_HEADER.TURN_ON_LIGHT.name : lights,
+    # SENSOR_HEADER.TURN_OFF_LIGHT.name : lights,
+    # SENSOR_HEADER.SET_TRAFFIC_LIGHT.name : [traffic_light],
+    # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT.name : [traffic_light],
+    # SENSOR_HEADER.TURN_ON_FIRE_LIGHT.name : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_FIRE_LIGHT.name : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_LASERS.name: [lasers],
+    # SENSOR_HEADER.TURN_ON_LASERS.name: [lasers],
 }
 
 #used to request values from lowcar (non-polled)

@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(1, '../')
 from typing import Union
-from sensors import Parameter
+from sensors_config import Parameter
 class Debouncer:
     def __init__(self):
         self.previous_parameter_values = {}
