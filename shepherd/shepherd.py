@@ -53,8 +53,11 @@ def start():
     events = queue.Queue()
     ydl_start_read(YDL_TARGETS.SHEPHERD, events)
     while True:
+        try:
+            payload = events.get(True, timeout=1) #this timeout is required because windows is really stupid and terrible.
+        except queue.Empty:
+            continue
         print("GAME STATE OUTSIDE: ", GAME_STATE)
-        payload = events.get(True)
         print(payload)
 
         if GAME_STATE in FUNCTION_MAPPINGS:
