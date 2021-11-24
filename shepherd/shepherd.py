@@ -235,24 +235,22 @@ def send_match_info_to_ui():
     '''
     Sends all match info to the UI
     '''
-    ydl_data = {"match_num": MATCH_NUMBER, "teams": [
+    ydl_send(*UI_HEADER.TEAMS_INFO(match_num=MATCH_NUMBER, teams=[
         ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_ip),
         ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_ip),
         ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_ip),
         ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(CLIENTS.clients[INDICES.GOLD_2].robot_ip),
-    ]}
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.TEAMS_INFO, ydl_data)
+    ]))
 
 
 def send_score_to_ui():
     '''
     Sends the current score to the UI
     '''
-    data = {
-        "blue_score": ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-        "gold_score": ALLIANCES[ALLIANCE_COLOR.GOLD].score,
-    }
-    ydl_send(YDL_TARGETS.UI, UI_HEADER.SCORES, data)
+    ydl_send(*UI_HEADER.SCORES(
+        blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+        gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    ))
 
 
 def send_state_to_ui():
@@ -265,9 +263,9 @@ def send_state_to_ui():
     }
     if GAME_STATE in stage_times:
         st = (GAME_TIMER.end_time - stage_times.get(GAME_STATE)) * 1000
-        ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE, "start_time": st})
+        ydl_send(*UI_HEADER.STATE(state=GAME_STATE, start_time=st))
     else:
-        ydl_send(YDL_TARGETS.UI, UI_HEADER.STATE, {"state": GAME_STATE})
+        ydl_send(*UI_HEADER.STATE(state=GAME_STATE))
 
 
 def send_connection_status_to_ui():

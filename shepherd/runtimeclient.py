@@ -91,12 +91,7 @@ class RuntimeClient:
 
 
     def send_connection_status_to_ui(self):
-        data = {
-            "ind": self.ind,
-            "connected": self.connected,
-            "robot_ip": self.robot_ip
-        }
-        ydl_send(YDL_TARGETS.UI, UI_HEADER.ROBOT_CONNECTION, data)
+        ydl_send(*UI_HEADER.ROBOT_CONNECTION(ind=self.ind, connected=self.connected, robot_ip=self.robot_ip))
 
 
     def __connect_tcp(self, silent=False) -> bool:

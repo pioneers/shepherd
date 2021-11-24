@@ -49,7 +49,7 @@ class Sheet:
                 teams[a]["team_num"] = int(lst[3*a]) if lst[3*a].isdigit() else -1
                 teams[a]["team_name"] = lst[3*a+1]
                 teams[a]["robot_ip"] = lst[3*a+2]
-            ydl_send(YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_TEAMS_INFO, {"teams": teams})
+            ydl_send(*SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
 
         threading.Thread(target=bg_thread_work).start()
 

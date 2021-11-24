@@ -116,15 +116,15 @@ class UI_HEADER():
         """
 
     @header(YDL_TARGETS.UI, "teams_info")
-    def TEAMS_INFO(match_num, round_num, team_num, team_name, custom_ip):
+    def TEAMS_INFO(match_num, teams):
         """
         info about teams
         """
 
     @header(YDL_TARGETS.UI, "scores")
-    def SCORES():
+    def SCORES(blue_score: int, gold_score: int):
         """
-        TODO: fill in the interface here
+        score for each alliance
         """
 
     @header(YDL_TARGETS.UI, "robot_connection")
@@ -194,7 +194,7 @@ class INDICES():
 
 
 class TIMER_TYPES():
-    MATCH = {"TYPE": "match", "FUNCTION": SHEPHERD_HEADER.STAGE_TIMER_END}
+    MATCH = {"TYPE": "match", "FUNCTION": SHEPHERD_HEADER.STAGE_TIMER_END.name}
 
 
 
