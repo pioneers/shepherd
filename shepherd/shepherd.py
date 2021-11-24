@@ -54,7 +54,8 @@ def start():
     ydl_start_read(YDL_TARGETS.SHEPHERD, events)
     while True:
         try:
-            payload = events.get(True, timeout=1) #this timeout is required because windows is really stupid and terrible.
+            #timeout is required because windows is really stupid and terrible.
+            payload = events.get(True, timeout=1)
         except queue.Empty:
             continue
         print("GAME STATE OUTSIDE: ", GAME_STATE)
@@ -329,42 +330,43 @@ def enable_robot(ind):
 # Event to Function Mappings for each Stage
 ###########################################
 
+# pylint: disable=no-member
 FUNCTION_MAPPINGS = {
     STATE.SETUP: {
-        SHEPHERD_HEADER.SET_MATCH_NUMBER: set_match_number,
-        SHEPHERD_HEADER.SET_TEAMS_INFO: set_teams_info,
-        SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-        SHEPHERD_HEADER.START_NEXT_STAGE: to_auto,
+        SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
+        SHEPHERD_HEADER.SET_TEAMS_INFO.name: set_teams_info,
+        SHEPHERD_HEADER.SETUP_MATCH.name: to_setup,
+        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_auto,
     },
     STATE.AUTO: {
-        SHEPHERD_HEADER.STAGE_TIMER_END: to_teleop,
-        SHEPHERD_HEADER.RESET_CURRENT_STAGE: to_auto,
-        SHEPHERD_HEADER.START_NEXT_STAGE: to_teleop,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop,
+        SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_auto,
+        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
     },
     STATE.TELEOP: {
-        SHEPHERD_HEADER.STAGE_TIMER_END: to_end,
-        SHEPHERD_HEADER.RESET_CURRENT_STAGE: to_teleop,
-        SHEPHERD_HEADER.START_NEXT_STAGE: to_end,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
+        SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_teleop,
+        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_end,
     },
     STATE.END: {
-        SHEPHERD_HEADER.SET_MATCH_NUMBER: set_match_number,
-        SHEPHERD_HEADER.SET_TEAMS_INFO: set_teams_info,
-        SHEPHERD_HEADER.SETUP_MATCH: to_setup,
-        SHEPHERD_HEADER.SET_SCORES: score_adjust,
+        SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
+        SHEPHERD_HEADER.SET_TEAMS_INFO.name: set_teams_info,
+        SHEPHERD_HEADER.SETUP_MATCH.name: to_setup,
+        SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
     }
 }
 
 EVERYWHERE_FUNCTIONS = {
-    SHEPHERD_HEADER.GET_MATCH_INFO: send_match_info_to_ui,
-    SHEPHERD_HEADER.GET_SCORES: send_score_to_ui,
-    SHEPHERD_HEADER.GET_STATE: send_state_to_ui,
-    SHEPHERD_HEADER.GET_CONNECTION_STATUS: send_connection_status_to_ui,
+    SHEPHERD_HEADER.GET_MATCH_INFO.name: send_match_info_to_ui,
+    SHEPHERD_HEADER.GET_SCORES.name: send_score_to_ui,
+    SHEPHERD_HEADER.GET_STATE.name: send_state_to_ui,
+    SHEPHERD_HEADER.GET_CONNECTION_STATUS.name: send_connection_status_to_ui,
 
-    SHEPHERD_HEADER.SET_STATE: go_to_state,
-    SHEPHERD_HEADER.ROBOT_OFF: disable_robot,
-    SHEPHERD_HEADER.ROBOT_ON: enable_robot,
-    SHEPHERD_HEADER.SET_ROBOT_IP: set_robot_ip,
-    SHEPHERD_HEADER.RESET_MATCH: reset_match,
+    SHEPHERD_HEADER.SET_STATE.name: go_to_state,
+    SHEPHERD_HEADER.ROBOT_OFF.name: disable_robot,
+    SHEPHERD_HEADER.ROBOT_ON.name: enable_robot,
+    SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
+    SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
 }
 
 if __name__ == '__main__':
