@@ -4,6 +4,7 @@
 """Generated protocol buffer code."""
 from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -14,50 +15,9 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='gamestate.proto',
-  package='',
-  syntax='proto3',
-  serialized_options=b'H\003',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0fgamestate.proto\"\"\n\tGameState\x12\x15\n\x05state\x18\x01 \x01(\x0e\x32\x06.State*T\n\x05State\x12\x0e\n\nPOISON_IVY\x10\x00\x12\x0f\n\x0b\x44\x45HYDRATION\x10\x01\x12\x15\n\x11HYPOTHERMIA_START\x10\x02\x12\x13\n\x0fHYPOTHERMIA_END\x10\x03\x42\x02H\x03\x62\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fgamestate.proto\"\"\n\tGameState\x12\x15\n\x05state\x18\x01 \x01(\x0e\x32\x06.State*T\n\x05State\x12\x0e\n\nPOISON_IVY\x10\x00\x12\x0f\n\x0b\x44\x45HYDRATION\x10\x01\x12\x15\n\x11HYPOTHERMIA_START\x10\x02\x12\x13\n\x0fHYPOTHERMIA_END\x10\x03\x42\x02H\x03\x62\x06proto3')
 
-_STATE = _descriptor.EnumDescriptor(
-  name='State',
-  full_name='State',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='POISON_IVY', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='DEHYDRATION', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='HYPOTHERMIA_START', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='HYPOTHERMIA_END', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=55,
-  serialized_end=139,
-)
-_sym_db.RegisterEnumDescriptor(_STATE)
-
+_STATE = DESCRIPTOR.enum_types_by_name['State']
 State = enum_type_wrapper.EnumTypeWrapper(_STATE)
 POISON_IVY = 0
 DEHYDRATION = 1
@@ -65,43 +25,7 @@ HYPOTHERMIA_START = 2
 HYPOTHERMIA_END = 3
 
 
-
-_GAMESTATE = _descriptor.Descriptor(
-  name='GameState',
-  full_name='GameState',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='state', full_name='GameState.state', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=19,
-  serialized_end=53,
-)
-
-_GAMESTATE.fields_by_name['state'].enum_type = _STATE
-DESCRIPTOR.message_types_by_name['GameState'] = _GAMESTATE
-DESCRIPTOR.enum_types_by_name['State'] = _STATE
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_GAMESTATE = DESCRIPTOR.message_types_by_name['GameState']
 GameState = _reflection.GeneratedProtocolMessageType('GameState', (_message.Message,), {
   'DESCRIPTOR' : _GAMESTATE,
   '__module__' : 'gamestate_pb2'
@@ -109,6 +33,12 @@ GameState = _reflection.GeneratedProtocolMessageType('GameState', (_message.Mess
   })
 _sym_db.RegisterMessage(GameState)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'H\003'
+  _STATE._serialized_start=55
+  _STATE._serialized_end=139
+  _GAMESTATE._serialized_start=19
+  _GAMESTATE._serialized_end=53
 # @@protoc_insertion_point(module_scope)

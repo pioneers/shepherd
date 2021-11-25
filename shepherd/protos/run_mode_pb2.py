@@ -4,6 +4,7 @@
 """Generated protocol buffer code."""
 from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -14,100 +15,17 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='run_mode.proto',
-  package='',
-  syntax='proto3',
-  serialized_options=b'H\003',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0erun_mode.proto\"\x1e\n\x07RunMode\x12\x13\n\x04mode\x18\x01 \x01(\x0e\x32\x05.Mode*@\n\x04Mode\x12\x08\n\x04IDLE\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\t\n\x05\x45STOP\x10\x03\x12\r\n\tCHALLENGE\x10\x04\x42\x02H\x03\x62\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0erun_mode.proto\"\x1e\n\x07RunMode\x12\x13\n\x04mode\x18\x01 \x01(\x0e\x32\x05.Mode*1\n\x04Mode\x12\x08\n\x04IDLE\x10\x00\x12\x08\n\x04\x41UTO\x10\x01\x12\n\n\x06TELEOP\x10\x02\x12\t\n\x05\x45STOP\x10\x03\x42\x02H\x03\x62\x06proto3')
 
-_MODE = _descriptor.EnumDescriptor(
-  name='Mode',
-  full_name='Mode',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='IDLE', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='AUTO', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='TELEOP', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='ESTOP', index=3, number=3,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='CHALLENGE', index=4, number=4,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=50,
-  serialized_end=114,
-)
-_sym_db.RegisterEnumDescriptor(_MODE)
-
+_MODE = DESCRIPTOR.enum_types_by_name['Mode']
 Mode = enum_type_wrapper.EnumTypeWrapper(_MODE)
 IDLE = 0
 AUTO = 1
 TELEOP = 2
 ESTOP = 3
-CHALLENGE = 4
 
 
-
-_RUNMODE = _descriptor.Descriptor(
-  name='RunMode',
-  full_name='RunMode',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='mode', full_name='RunMode.mode', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=18,
-  serialized_end=48,
-)
-
-_RUNMODE.fields_by_name['mode'].enum_type = _MODE
-DESCRIPTOR.message_types_by_name['RunMode'] = _RUNMODE
-DESCRIPTOR.enum_types_by_name['Mode'] = _MODE
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_RUNMODE = DESCRIPTOR.message_types_by_name['RunMode']
 RunMode = _reflection.GeneratedProtocolMessageType('RunMode', (_message.Message,), {
   'DESCRIPTOR' : _RUNMODE,
   '__module__' : 'run_mode_pb2'
@@ -115,6 +33,12 @@ RunMode = _reflection.GeneratedProtocolMessageType('RunMode', (_message.Message,
   })
 _sym_db.RegisterMessage(RunMode)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'H\003'
+  _MODE._serialized_start=50
+  _MODE._serialized_end=99
+  _RUNMODE._serialized_start=18
+  _RUNMODE._serialized_end=48
 # @@protoc_insertion_point(module_scope)
