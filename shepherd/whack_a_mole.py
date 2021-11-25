@@ -28,19 +28,24 @@ def start():
         
         while not event_queue.empty(): event_queue.get(True) # clear the queue 
         delay = random.random()
-        delay = delay if delay > .25 else .25
-        time.sleep(delay)
+        delay = delay if delay > .4 else .4
+        waited = 0
         pressed = False
-        while not event_queue.empty():
-            message = event_queue.get(True)
+        while not event_queue.empty() or (waited < delay and not pressed):
+            waited += 0.01
+            time.sleep(0.01)
+            try:
+                message = event_queue.get(False)
+            except queue.Empty:
+                continue
             if message[0] == SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS.name:
                 if int(message[1]["button"]) == button:
                     pressed = True
         if pressed:
-            print(f"got {button}", end=" ")
+            print(f"got {button} in {round(waited,2)} seconds", end=" ")
             score += 1
             turn_all_lights(on=True)
-            time.sleep(0.1)
+            time.sleep(0.2)
             turn_all_lights(on=False)
         else:
             print(f":( {button}", end=" ")
