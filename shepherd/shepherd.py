@@ -8,7 +8,6 @@ from protos.run_mode_pb2 import Mode, TELEOP
 from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
-from challenge_results import CHALLENGE_RESULTS
 
 
 
@@ -145,18 +144,7 @@ def to_auto():
     GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
     enable_robots(autonomous=True)
 
-    # score for each alliance is sum of passed coding challenges
-    robots = [
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1,
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2,
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1,
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2,
-    ]
-    for r in robots:
-        r.coding_challenge = CHALLENGE_RESULTS.get(r.number, r.coding_challenge)
-    for al in ALLIANCES.values():
-        al.score = al.robot1.coding_challenge.count(True) \
-                 + al.robot2.coding_challenge.count(True)
+    # TODO: set up auto stuff
 
     send_score_to_ui()
     send_state_to_ui()

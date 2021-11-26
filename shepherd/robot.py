@@ -11,11 +11,11 @@ class Robot:
     def __init__(self, name: str, number: int):
         self.name: str = name
         self.number: int = number
-        self.coding_challenge = [False] * 8
+        self.coding_challenge = []
         self.starting_position = None
 
     def reset(self):
-        self.coding_challenge = [False] * 8
+        self.coding_challenge = []
         self.starting_position = None
 
     def set_from_dict(self, dic: dict):
