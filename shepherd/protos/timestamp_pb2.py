@@ -3,6 +3,7 @@
 # source: timestamp.proto
 """Generated protocol buffer code."""
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -13,59 +14,11 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='timestamp.proto',
-  package='',
-  syntax='proto3',
-  serialized_options=b'H\003',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0ftimestamp.proto\"?\n\nTimeStamps\x12\x16\n\x0e\x64\x61wn_timestamp\x18\x01 \x01(\x06\x12\x19\n\x11runtime_timestamp\x18\x02 \x01(\x06\x42\x02H\x03\x62\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0ftimestamp.proto\"?\n\nTimeStamps\x12\x16\n\x0e\x64\x61wn_timestamp\x18\x01 \x01(\x06\x12\x19\n\x11runtime_timestamp\x18\x02 \x01(\x06\x42\x02H\x03\x62\x06proto3')
 
 
 
-
-_TIMESTAMPS = _descriptor.Descriptor(
-  name='TimeStamps',
-  full_name='TimeStamps',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='dawn_timestamp', full_name='TimeStamps.dawn_timestamp', index=0,
-      number=1, type=6, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='runtime_timestamp', full_name='TimeStamps.runtime_timestamp', index=1,
-      number=2, type=6, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=19,
-  serialized_end=82,
-)
-
-DESCRIPTOR.message_types_by_name['TimeStamps'] = _TIMESTAMPS
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_TIMESTAMPS = DESCRIPTOR.message_types_by_name['TimeStamps']
 TimeStamps = _reflection.GeneratedProtocolMessageType('TimeStamps', (_message.Message,), {
   'DESCRIPTOR' : _TIMESTAMPS,
   '__module__' : 'timestamp_pb2'
@@ -73,6 +26,10 @@ TimeStamps = _reflection.GeneratedProtocolMessageType('TimeStamps', (_message.Me
   })
 _sym_db.RegisterMessage(TimeStamps)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'H\003'
+  _TIMESTAMPS._serialized_start=19
+  _TIMESTAMPS._serialized_end=82
 # @@protoc_insertion_point(module_scope)

@@ -4,6 +4,7 @@
 """Generated protocol buffer code."""
 from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
@@ -14,137 +15,16 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor.FileDescriptor(
-  name='input.proto',
-  package='',
-  syntax='proto3',
-  serialized_options=b'H\003',
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0binput.proto\"R\n\x05Input\x12\x11\n\tconnected\x18\x01 \x01(\x08\x12\x0f\n\x07\x62uttons\x18\x02 \x01(\x06\x12\x0c\n\x04\x61xes\x18\x03 \x03(\x02\x12\x17\n\x06source\x18\x04 \x01(\x0e\x32\x07.Source\"$\n\nUserInputs\x12\x16\n\x06inputs\x18\x01 \x03(\x0b\x32\x06.Input*#\n\x06Source\x12\x0b\n\x07GAMEPAD\x10\x00\x12\x0c\n\x08KEYBOARD\x10\x01\x42\x02H\x03\x62\x06proto3'
-)
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0binput.proto\"R\n\x05Input\x12\x11\n\tconnected\x18\x01 \x01(\x08\x12\x0f\n\x07\x62uttons\x18\x02 \x01(\x06\x12\x0c\n\x04\x61xes\x18\x03 \x03(\x02\x12\x17\n\x06source\x18\x04 \x01(\x0e\x32\x07.Source\"$\n\nUserInputs\x12\x16\n\x06inputs\x18\x01 \x03(\x0b\x32\x06.Input*#\n\x06Source\x12\x0b\n\x07GAMEPAD\x10\x00\x12\x0c\n\x08KEYBOARD\x10\x01\x42\x02H\x03\x62\x06proto3')
 
-_SOURCE = _descriptor.EnumDescriptor(
-  name='Source',
-  full_name='Source',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='GAMEPAD', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='KEYBOARD', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=137,
-  serialized_end=172,
-)
-_sym_db.RegisterEnumDescriptor(_SOURCE)
-
+_SOURCE = DESCRIPTOR.enum_types_by_name['Source']
 Source = enum_type_wrapper.EnumTypeWrapper(_SOURCE)
 GAMEPAD = 0
 KEYBOARD = 1
 
 
-
-_INPUT = _descriptor.Descriptor(
-  name='Input',
-  full_name='Input',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='connected', full_name='Input.connected', index=0,
-      number=1, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='buttons', full_name='Input.buttons', index=1,
-      number=2, type=6, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='axes', full_name='Input.axes', index=2,
-      number=3, type=2, cpp_type=6, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='source', full_name='Input.source', index=3,
-      number=4, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=15,
-  serialized_end=97,
-)
-
-
-_USERINPUTS = _descriptor.Descriptor(
-  name='UserInputs',
-  full_name='UserInputs',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='inputs', full_name='UserInputs.inputs', index=0,
-      number=1, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=99,
-  serialized_end=135,
-)
-
-_INPUT.fields_by_name['source'].enum_type = _SOURCE
-_USERINPUTS.fields_by_name['inputs'].message_type = _INPUT
-DESCRIPTOR.message_types_by_name['Input'] = _INPUT
-DESCRIPTOR.message_types_by_name['UserInputs'] = _USERINPUTS
-DESCRIPTOR.enum_types_by_name['Source'] = _SOURCE
-_sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
+_INPUT = DESCRIPTOR.message_types_by_name['Input']
+_USERINPUTS = DESCRIPTOR.message_types_by_name['UserInputs']
 Input = _reflection.GeneratedProtocolMessageType('Input', (_message.Message,), {
   'DESCRIPTOR' : _INPUT,
   '__module__' : 'input_pb2'
@@ -159,6 +39,14 @@ UserInputs = _reflection.GeneratedProtocolMessageType('UserInputs', (_message.Me
   })
 _sym_db.RegisterMessage(UserInputs)
 
+if _descriptor._USE_C_DESCRIPTORS == False:
 
-DESCRIPTOR._options = None
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'H\003'
+  _SOURCE._serialized_start=137
+  _SOURCE._serialized_end=172
+  _INPUT._serialized_start=15
+  _INPUT._serialized_end=97
+  _USERINPUTS._serialized_start=99
+  _USERINPUTS._serialized_end=135
 # @@protoc_insertion_point(module_scope)
