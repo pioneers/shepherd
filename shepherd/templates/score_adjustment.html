@@ -1,162 +1,100 @@
-<html>
+{% extends 'base.html' %} {% block css_link %}
+<link rel="stylesheet" href="../static/score_adjustment.css" />
+{% endblock %} {% block head_content %}
+<title>Score Adjustment</title>
 
-<head>
-  <title>Score Adjustment</title>
-  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
-  <script type="text/javascript" src={{url_for( 'static', filename='jquery-1.12.3.min.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='tabletop.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='lcm_ws_bridge.js' )}}></script>
-  <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script>
-  <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script> -->
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    const teams_info_msg = $("#teams-info");
+    const blue_score_msg = $("#blue-score-msg");
+    const blue_score_input = $("#blue-score-input");
+    const blue_score_btn = $("#blue-score-btn");
+    const gold_score_msg = $("#gold-score-msg");
+    const gold_score_input = $("#gold-score-input");
+    const gold_score_btn = $("#gold-score-btn");
 
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
-
-  <!-- Styles -->
-  <style>
-    /*Disables spinning on number forms*/
-
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-
-    .blue-score {
-      border-radius: 15px;
-      border: 8px solid blue;
-    }
-
-    .gold-score {
-      border-radius: 15px;
-      border: 8px solid gold;
-    }
-
-    .bottom-padding {
-      margin-bottom: 15px;
-    }
-  </style>
-
-  <!-- Javascript -->
-  <script type="text/javascript" charset="utf-8">
-    $(document).ready(function() {
-
-      var blueScore = 0;
-      var goldScore = 0;
-      var socket = io('http://127.0.0.1:5000');
-
-
-      socket.on('connect', function(data) {
-        socket.emit('join', 'score_adjustment');
-        socket.emit('ui-to-server-score-request');
-      });
-
-      socket.on('server-to-ui-scores', function(scores) {
-        console.log(scores)
-        blueScore = JSON.parse(scores).blue_score
-        goldScore = JSON.parse(scores).gold_score
-        updateScores()
-      });
-
-      function updateScores() {
-        $("#blue-score").html(blueScore);
-        $("#gold-score").html(goldScore);
-      }
-
-      $("#blue-change").click(
-        function() {
-          blueScore = parseInt($("#blue-adjustment").val());
-          updateScores();
-        });
-
-      $("#gold-change").click(
-        function() {
-          goldScore = parseInt($("#gold-adjustment").val());
-          updateScores();
-        });
-
-      $("#reset-scores").click(
-      function() {
-        socket.emit('ui-to-server-score-request');
-      });
-
-      $("#send-scores").click(
-      function() {
-        data = {"blue_score" : blueScore, "gold_score" : goldScore}
-        socket.emit('ui-to-server-scores', JSON.stringify(data))
-      });
-
+    socket.on("connect", function (data) {
+      socket.emit("join", "score_adjustment");
+      send("get_match_info");
+      send("get_scores");
     });
-  </script>
-</head>
 
-<body>
-  <nav class="navbar navbar-expand-sm navbar-light bg-light">
-  <a class="navbar-brand" href="#">Staff UI</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="../staff_gui.html">Match Creator</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="../score_adjustment.html">Score Adjustment</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="../stage_control.html">Stage Control</a>
-      </li>
-    </ul>
-  </div>
-  </nav>
+    socket.on("teams_info", function (data) {
+      data = JSON.parse(data);
+      let names = data.teams.map((t) => "#" + t.team_num + " " + t.team_name);
+      let msg = `Match ${data.match_num}: ` + names.join(", ");
+      teams_info_msg.text(msg);
+    });
 
-  <div class="container">
-    <div class="row container">
-      <h1>Score Adjustment</h1>
-    </div>
+    socket.on("scores", function (data) {
+      data = JSON.parse(data);
+      blue_score_msg.text(data.blue_score);
+      gold_score_msg.text(data.gold_score);
+    });
 
-    <div class="row container">
-    <div class="col blue-score text-center bottom-padding">
-      <h1>Blue Score</h1>
-      <h1 id="blue-score">0</h1>
-    </div>
-    <div class="col gold-score text-center bottom-padding">
-      <h1>Gold Score</h1>
-      <h1 id="gold-score">0</h1>
-    </div>
-    </div>
+    blue_score_btn.click(() => {
+      let s = parseFloat(blue_score_input.val());
+      if (isNaN(s)) {
+        alert("invalid score");
+        return;
+      }
+      blue_score_input.val("");
+      send("set_scores", JSON.stringify({ blue_score: s }));
+    });
 
-    <div class="row bottom-padding">
-      <div class="col">
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="blue-change">Change</button>
-          </span>
-          <input type="number" class="form-control" value="0" id="blue-adjustment">
-        </div>
+    gold_score_btn.click(() => {
+      let s = parseFloat(gold_score_input.val());
+      if (isNaN(s)) {
+        alert("invalid score");
+        return;
+      }
+      gold_score_input.val("");
+      send("set_scores", JSON.stringify({ gold_score: s }));
+    });
+  }
+</script>
+{% endblock %} {% block html_content %}
+<br />
+<div class="row container">
+  <h1>Score Adjustment</h1>
+</div>
+
+<div class="text-center">
+  <h3 id="teams-info">[loading...]</h3>
+</div>
+
+<div class="row bottom-padding score-adjust-container">
+  <div class="col">
+    <h3 class="text-center" id="blue-score-msg">0</h3>
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text">Points</span>
       </div>
-      <div class="col">
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button class="btn btn-success" type="button" id="gold-change">Change</button>
-          </span>
-          <input type="number" class="form-control" value="0" id="gold-adjustment">
-        </div>
-      </div>
+      <input type="number" id="blue-score-input" />
+      <span class="input-group-btn">
+        <button class="btn green-btn" type="button" id="blue-score-btn">
+          Change
+        </button>
+      </span>
     </div>
-
-    <div class="text-center">
-      <button class="btn btn-secondary btn-lg" type="button" id="reset-scores">Reset</button>
-      <button class="btn btn-info btn-lg" type="button" id="send-scores">Confirm</button>
-    </div>
-
   </div>
+  <div class="col">
+    <h3 class="text-center" id="gold-score-msg">0</h3>
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text">Points</span>
+      </div>
+      <input type="number" id="gold-score-input" />
+      <span class="input-group-btn">
+        <button class="btn green-btn" type="button" id="gold-score-btn">
+          Change
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
 
-</body>
-
-</html>
+{% endblock %}

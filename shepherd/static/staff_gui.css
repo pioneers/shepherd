@@ -1,0 +1,31 @@
+/* @import url(styles.css); */
+
+.bottom-padding {
+  margin-bottom: 25px;
+}
+
+.form-inline {
+  flex-flow: row;
+}
+
+.spaced {
+  margin: 5px;
+}
+
+.heartbeat-light {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: lightgrey;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #444444 0 -1px 9px;
+}
+.led-green {
+  background-color: #abff00 !important;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
+    #89ff00 0 2px 12px !important;
+}
+.led-red {
+  background-color: #f00 !important;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #441313 0 -1px 9px,
+    rgba(255, 0, 0, 0.5) 0 2px 12px !important;
+}

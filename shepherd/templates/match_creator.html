@@ -1,0 +1,284 @@
+{% extends 'base.html' %} {% block head_content %}
+<title>Match Creator</title>
+<link rel="stylesheet" href="../static/match_creator.css" />
+
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    //add socket listeners and javascript stuff here
+  }
+</script>
+{% endblock %} {% block html_content %}
+<br />
+<div class="grid-container">
+  <div class="team-container blue1-container">
+    <div class="team-controls">
+      <h5 class="blue-header">Blue 1</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <div class="temp-battery">battery</div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3>
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container blue2-container">
+    <div class="team-controls">
+      <h5 class="blue-header">Blue 2</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <div class="temp-battery">battery</div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3>
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container gold1-container">
+    <div class="team-controls">
+      <h5 class="gold-header">Gold 1</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <div class="temp-battery">battery</div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3>
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container gold2-container">
+    <div class="team-controls">
+      <h5 class="gold-header">Gold 2</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <div class="temp-battery">battery</div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3>
+          TELEOP
+        </h3>
+    </div>
+    
+  </div>
+  <div class="shepherd-logo-holder">
+      <img style="width: 8rem;" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
+      <h4>Shepherd Match Creator</h4>
+  </div>
+  <div class="match-number">
+    <input
+      type=" text" placeholder="Match #" aria-label="Match #" aria-describedby="basic-addon2">
+  
+    <button class="green-btn" type="button">Populate</button>
+    <button class="green-btn" type="button">Next</button>
+  </div>
+  <div class="match-creator">
+    <h3>Match Control</h3>
+  <input
+
+    type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2">
+  <button class="green-btn" type="button"
+    >Create
+    Match</button>
+  <button class="green-btn" type="button"
+    >Start
+    Match</button>
+  <button class="red-btn" type="button"
+  >Reset
+    Match</button>
+  </div>
+
+
+{% endblock %}
+
+      <!-- Battery -->
+      <div>
+        <div class="batteryContainer" style="--level: 100">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+      <div>
+        <div class="batteryContainer" style="--level: 75">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="batteryContainer" style="--level: 50">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="batteryContainer" style="--level: 25">
+          <div class="batteryOuter">
+            <div class="batteryLevel warn"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+      <div>
+        <div class="batteryContainer" style="--level: 0">
+          <div class="batteryOuter">
+            <div class="batteryLevel warn"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
