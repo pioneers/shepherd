@@ -105,6 +105,12 @@ class SHEPHERD_HEADER():
         source: UI. Takes in index and enables their robot.
         """
 
+    @header(YDL_TARGETS.SHEPHERD, "sound_blizzard_warning")
+    def SOUND_BLIZZARD_WARNING():
+        """
+        source: Timer. Plays the blizzard warning sound.
+        """
+
 class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.
@@ -174,8 +180,7 @@ UI_PAGES = {
 
 
 class CONSTANTS():
-    AUTO_TIME = 10
-    TELEOP_TIME = 10
+    BLIZZARD_WARNING_TIME = 20
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
     SPREADSHEET_ID = "1JCtt_Iqyx15EOAZN6agqeeUKCFsrL6oOy3brKyAWjBM"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
@@ -194,16 +199,32 @@ class INDICES():
 
 
 class TIMER_TYPES():
-    MATCH = {"TYPE": "match", "FUNCTION": SHEPHERD_HEADER.STAGE_TIMER_END.name}
-
+    MATCH = {
+        "TYPE": "match", 
+        "FUNCTION": SHEPHERD_HEADER.STAGE_TIMER_END.name
+    }
+    BLIZZARD_WARNING = {
+        "TYPE": "yolo",
+        "FUNCTION": SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name
+    }
 
 
 class STATE():
     SETUP = "setup"
     AUTO = "auto"
-    TELEOP = "teleop"
+    TELEOP_1 = "teleop_1"
+    BLIZZARD = "blizzard"
+    TELEOP_2 = "teleop_2"
+    ENDGAME = "endgame"
     END = "end"
 
+STAGE_TIMES = {
+    STATE.AUTO_TIME: 30,
+    STATE.TELEOP_1_TIME: 30,
+    STATE.BLIZZARD_TIME: 15,
+    STATE.TELEOP_2_TIME: 75,
+    STATE.ENDGAME_TIME: 30
+}
 
 class PROTOBUF_TYPES():
     RUN_MODE = 0

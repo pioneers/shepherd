@@ -18,6 +18,7 @@ from robot import Robot
 MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
+BLIZZARD_WARNING_TIMER = Timer(TIMER_TYPES.BLIZZARD_WARNING)
 
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
@@ -103,6 +104,12 @@ def set_teams_info(teams):
     send_match_info_to_ui()
 
 
+
+###########################################
+# Transition Methods
+###########################################
+
+
 def to_setup(match_num, teams):
     '''
     loads the match information for the upcoming match, then
@@ -133,32 +140,40 @@ def reset_match():
     print("ENTERING SETUP STATE")
 
 
+def set_state(state):
+    global GAME_STATE
+    GAME_STATE = state
+    send_score_to_ui()
+    send_state_to_ui()
+    print(f"ENTERING {state} STATE")
+
 def to_auto():
     '''
     Move to the autonomous stage where robots should begin autonomously.
     By the end, should be in autonomous state, allowing any function from this
     stage to be called and autonomous match timer should have begun.
     '''
-    global GAME_STATE
-    GAME_STATE = STATE.AUTO
-    GAME_TIMER.start_timer(CONSTANTS.AUTO_TIME)
+    GAME_TIMER.start_timer(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
+    set_state(STATE.AUTO)
 
-    # TODO: set up auto stuff
-
-    send_score_to_ui()
-    send_state_to_ui()
-    print("ENTERING AUTO STATE")
-
-
-def to_teleop():
-    global GAME_STATE
-    GAME_STATE = STATE.TELEOP
-    GAME_TIMER.start_timer(CONSTANTS.TELEOP_TIME)
+def to_teleop_1():
+    GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_1])
+    BLIZZARD_WARNING_TIMER.start_timer(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
-    send_state_to_ui()
-    print("ENTERING TELEOP STATE")
+    set_state(STATE.TELEOP_1)
 
+def to_blizzard():
+    GAME_TIMER.start_timer(STAGE_TIMES[STATE.BLIZZARD])
+    set_state(STATE.BLIZZARD)
+
+def to_teleop_2():
+    GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_2])
+    set_state(STATE.TELEOP_2)
+
+def to_endgame():
+    GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
+    set_state(STATE.ENDGAME)
 
 def to_end():
     '''
@@ -179,7 +194,10 @@ def go_to_state(state):
     transitions = {
         STATE.SETUP: reset_match,
         STATE.AUTO: to_auto,
-        STATE.TELEOP: to_teleop,
+        STATE.TELEOP_1: to_teleop_1,
+        STATE.BLIZZARD: to_blizzard,
+        STATE.TELEOP_2: to_teleop_2,
+        STATE.ENDGAME: to_endgame,
         STATE.END: to_end
     }
     if state in transitions:
@@ -246,13 +264,12 @@ def send_state_to_ui():
     '''
     Sends the GAME_STATE to the UI
     '''
-    stage_times = {
-        STATE.AUTO: CONSTANTS.AUTO_TIME,
-        STATE.TELEOP: CONSTANTS.TELEOP_TIME
-    }
-    if GAME_STATE in stage_times:
-        st = (GAME_TIMER.end_time - stage_times.get(GAME_STATE)) * 1000
+    if GAME_STATE in STAGE_TIMES:
+        st = (GAME_TIMER.end_time - STAGE_TIMES.get(GAME_STATE)) * 1000
         ydl_send(*UI_HEADER.STATE(state=GAME_STATE, start_time=st))
+
+        # TODO: change this so time remaining in stage can be displayed instead
+
     else:
         ydl_send(*UI_HEADER.STATE(state=GAME_STATE))
 
@@ -310,7 +327,9 @@ def enable_robot(ind):
 ###########################################
 
 
-
+def sound_blizzard_warning():
+    # TODO: figure out audio
+    pass
 
 
 
@@ -327,14 +346,22 @@ FUNCTION_MAPPINGS = {
         SHEPHERD_HEADER.START_NEXT_STAGE.name: to_auto,
     },
     STATE.AUTO: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop,
-        SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_auto,
-        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_1,
+        # SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_auto,
+        # SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
     },
-    STATE.TELEOP: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
-        SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_teleop,
-        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_end,
+    STATE.TELEOP_1: {
+        SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard
+    },
+    STATE.BLIZZARD: {
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2
+    },
+    STATE.TELEOP_2: {
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame
+    },
+    STATE.ENDGAME: {
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
