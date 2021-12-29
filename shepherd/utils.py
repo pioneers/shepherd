@@ -136,8 +136,16 @@ class UI_HEADER():
     @header(YDL_TARGETS.UI, "robot_connection")
     def ROBOT_CONNECTION(ind: int, connected: bool, robot_ip: str):
         """
-        robot connection
+        source: runtimeclient. robot connection
         """
+
+    @header(YDL_TARGETS.UI, "runtime_status")
+    def RUNTIME_STATUS(shep_connected: bool, dawn_connected: bool, \
+        mode, battery: float, version: str):
+        """
+        source: runtimeclient. runtime status
+        """
+
     @header(YDL_TARGETS.UI, "state")
     def STATE(state, start_time=None):
         """
@@ -219,11 +227,11 @@ class STATE():
     END = "end"
 
 STAGE_TIMES = {
-    STATE.AUTO_TIME: 30,
-    STATE.TELEOP_1_TIME: 30,
-    STATE.BLIZZARD_TIME: 15,
-    STATE.TELEOP_2_TIME: 75,
-    STATE.ENDGAME_TIME: 30
+    STATE.AUTO: 30,
+    STATE.TELEOP_1: 30,
+    STATE.BLIZZARD: 15,
+    STATE.TELEOP_2: 75,
+    STATE.ENDGAME: 30
 }
 
 class PROTOBUF_TYPES():

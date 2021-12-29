@@ -1,13 +1,41 @@
 import time
 import threading
 import socket
+import sys
+sys.path.append("protos") # needed so protos can import each other
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import gamestate_pb2
-from utils import YDL_TARGETS, PROTOBUF_TYPES, UI_HEADER
+from protos import runtime_status_pb2
+from utils import PROTOBUF_TYPES, UI_HEADER
 from ydl import ydl_send
 
 PORT_RASPI = 8101
+
+
+class ReadObject:
+    '''
+    (internal use only)
+    An iterable object for receiving messages
+    Append incoming message bytes to self.inb,
+    and then you can loop through the object to get the messages
+    '''
+    def __init__(self):
+        self.inb = b''
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if len(self.inb) < 3:
+            raise StopIteration
+        msg_type = int.from_bytes(self.inb[0:1], "little")
+        msg_len = int.from_bytes(self.inb[1:3], "little")
+        if len(self.inb) < 3 + msg_len:
+            raise StopIteration
+        message = self.inb[3: msg_len + 3].decode("utf-8")
+        self.inb = self.inb[msg_len + 3:]
+        return (msg_type, message)
 
 
 class RuntimeClient:
@@ -24,6 +52,7 @@ class RuntimeClient:
         self.ind = ind
         self.robot_ip = robot_ip
         self.sock = None
+        self.readobj = ReadObject()
         self.connected = False
         self.manually_closed = False # whether Shepherd has manually closed this client
         # note that the first connect_tcp has to be in main thread,
@@ -127,11 +156,25 @@ class RuntimeClient:
         while True:
             try:
                 received = self.sock.recv(1024)
-                print(f"Received message from {self}: ", received)
+                print(f"Received message from {self}")
+                if len(received) > 0:
+                    self.readobj.inb += received
+                    for msg_type, msg in self.readobj:
+                        # assume all messages are runtime_status
+                        # TODO: add msg_type handling if needed
+                        runtime_status = runtime_status_pb2.RuntimeStatus()
+                        runtime_status.ParseFromString(msg)
+                        ydl_send(*UI_HEADER.RUNTIME_STATUS(
+                            shep_connected=runtime_status.shep_connected,
+                            dawn_connected=runtime_status.dawn_connected,
+                            mode=runtime_status.mode,
+                            battery=runtime_status.battery,
+                            version=runtime_status.version
+                        ))
             except (ConnectionError, OSError) as ex:
                 print(f"Error while reading from socket of {self}: {ex}")
                 received = False
-            if not received:
+            if not received: # either received 0 bytes, or error
                 self.connected = False
                 self.send_connection_status_to_ui()
                 if self.manually_closed:
