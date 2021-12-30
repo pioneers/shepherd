@@ -140,7 +140,7 @@ class UI_HEADER():
         """
 
     @header(YDL_TARGETS.UI, "runtime_status")
-    def RUNTIME_STATUS(shep_connected: bool, dawn_connected: bool, \
+    def RUNTIME_STATUS(ind: int, shep_connected: bool, dawn_connected: bool, \
         mode, battery: float, version: str):
         """
         source: runtimeclient. runtime status

@@ -33,7 +33,7 @@ class ReadObject:
         msg_len = int.from_bytes(self.inb[1:3], "little")
         if len(self.inb) < 3 + msg_len:
             raise StopIteration
-        message = self.inb[3: msg_len + 3].decode("utf-8")
+        message = self.inb[3: msg_len + 3]
         self.inb = self.inb[msg_len + 3:]
         return (msg_type, message)
 
@@ -117,10 +117,15 @@ class RuntimeClient:
                 if self.connected:
                     print(f"Error shutting down {self}: {ex}")
             self.sock.close() # deallocates
+            self.send_connection_status_to_ui()
 
 
     def send_connection_status_to_ui(self):
-        ydl_send(*UI_HEADER.ROBOT_CONNECTION(ind=self.ind, connected=self.connected, robot_ip=self.robot_ip))
+        ydl_send(*UI_HEADER.ROBOT_CONNECTION(
+            ind=self.ind, 
+            connected=self.connected and not self.manually_closed, 
+            robot_ip=self.robot_ip
+        ))
 
 
     def __connect_tcp(self, silent=False) -> bool:
@@ -156,31 +161,16 @@ class RuntimeClient:
         while True:
             try:
                 received = self.sock.recv(1024)
-                print(f"Received message from {self}")
-                if len(received) > 0:
-                    self.readobj.inb += received
-                    for msg_type, msg in self.readobj:
-                        # assume all messages are runtime_status
-                        # TODO: add msg_type handling if needed
-                        runtime_status = runtime_status_pb2.RuntimeStatus()
-                        runtime_status.ParseFromString(msg)
-                        ydl_send(*UI_HEADER.RUNTIME_STATUS(
-                            shep_connected=runtime_status.shep_connected,
-                            dawn_connected=runtime_status.dawn_connected,
-                            mode=runtime_status.mode,
-                            battery=runtime_status.battery,
-                            version=runtime_status.version
-                        ))
             except (ConnectionError, OSError) as ex:
                 print(f"Error while reading from socket of {self}: {ex}")
                 received = False
             if not received: # either received 0 bytes, or error
                 self.connected = False
-                self.send_connection_status_to_ui()
                 if self.manually_closed:
                     self.sock.close() # deallocate from this thread as well
                     return
-
+                # don't need to send if manually closed, alr sent from other thread
+                self.send_connection_status_to_ui()
                 print(f"Connection lost to {self}. Trying again...")
                 while not self.manually_closed:
                     self.__connect_tcp(silent=True)
@@ -192,7 +182,21 @@ class RuntimeClient:
             else:
                 # This is where one would process received data, ideally using some function mapping
                 # similar to the way it is done in Shepherd.
-                pass
+                print(f"Received message from {self}")
+                self.readobj.inb += received
+                for msg_type, msg in self.readobj:
+                    # assume all messages are runtime_status
+                    # TODO: add msg_type handling if needed
+                    runtime_status = runtime_status_pb2.RuntimeStatus()
+                    runtime_status.ParseFromString(msg)
+                    ydl_send(*UI_HEADER.RUNTIME_STATUS(
+                        ind=self.ind,
+                        shep_connected=runtime_status.shep_connected,
+                        dawn_connected=runtime_status.dawn_connected,
+                        mode=runtime_status.mode,
+                        battery=runtime_status.battery,
+                        version=runtime_status.version
+                    ))
 
 
 

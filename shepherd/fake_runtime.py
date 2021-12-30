@@ -1,8 +1,14 @@
 import socket
 import selectors
+import time
+import threading
+import random
+import sys
+sys.path.append("protos") # needed so protos can import each other
 from protos import run_mode_pb2
 from protos import start_pos_pb2
-from protos import game_state_pb2
+from protos import gamestate_pb2
+from protos import runtime_status_pb2
 from utils import PROTOBUF_TYPES
 
 SERVER_ADDR = ("127.0.0.1", 8101)
@@ -18,6 +24,15 @@ def send_message(conn, mode: int, protobuf_obj):
     except (ConnectionError, OSError) as ex:
         print(f"Error while sending message: {ex}")
 
+def send_periodic_messages(conn, period):
+    while True:
+        status = runtime_status_pb2.RuntimeStatus()
+        status.shep_connected = True
+        status.dawn_connected = random.random() > 0.5
+        status.battery = random.random()
+        status.version = "fake"
+        send_message(conn, 6, status)
+        time.sleep(period)
 
 
 class ReadObject:
@@ -56,7 +71,7 @@ class ReadObject:
             pb.ParseFromString(msg_bytes)
             return "received start pos: " + str(pb.pos)
         if msg_type == PROTOBUF_TYPES.GAME_STATE:
-            pb = game_state_pb2.GameState()
+            pb = gamestate_pb2.GameState()
             pb.ParseFromString(msg_bytes)
             return "received game state: " + str(pb.state)
         return "invalid protobuf type"
@@ -72,6 +87,7 @@ def accept(sel, sock):
     conn, addr = sock.accept()  # Should be ready
     print('accepted connection from', addr)
     sel.register(conn, selectors.EVENT_READ, ReadObject())
+    threading.Thread(target = send_periodic_messages, args = (conn, 10), daemon=True).start()
 
 def read(sel, conn, obj):
     '''
