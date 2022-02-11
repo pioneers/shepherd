@@ -86,7 +86,8 @@
 }
 
 body {
-  background-color: rgb(0, 0, 225);
+  /* background-color: rgb(0, 0, 225); */
+  background-image: url('../static/space-background.jpg');
   background-size: cover;
   font-family: var(--headingfont);
   /* height: 100vh;
@@ -131,7 +132,8 @@ p {
 .robotinfo,
 .time,
 .penalty,
-.stamps {
+.stamps,
+.stage {
   margin: 20px;
   background-color: white;
   text-align: center;
@@ -173,7 +175,8 @@ p {
 
 .time,
 .penalty,
-.stamps {
+.stamps,
+.stage {
   flex-direction: column;
   vertical-align: top;
   flex-grow: 1;
@@ -194,6 +197,10 @@ p {
 
 .stamps {
   color: green;
+}
+
+.stage {
+  color: black;
 }
 
 mark.black {
