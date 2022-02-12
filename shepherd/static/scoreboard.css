@@ -70,7 +70,10 @@
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --lightShadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   --darkShadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  --boxyGoldShadow: 5px 5px 0px 0px var(--gold500),
+
+  /* this is the background color */ 
+  --boxyGoldShadow: 5px 5px 0px 0px var(--red600),
+
     inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
   --boxyBlueShadow: 5px 5px 0px 0px var(--blue500),
     inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
@@ -129,7 +132,21 @@ p {
   height: calc(10vh);
 }
 
-.robotinfo,
+
+.robotinfo{
+  margin: 20px;
+  background-color: white;
+  text-align: center;
+  font-size: 2vw;
+  justify-content: center;
+  align-content: center;
+  display: flex;
+  flex-direction: column;
+
+  border: solid 3px firebrick ;
+  outline: solid 3px var(--black); 
+}
+
 .time,
 .penalty,
 .stamps,
@@ -137,14 +154,23 @@ p {
   margin: 20px;
   background-color: white;
   text-align: center;
-  font-size: 2.4vw;
+  font-size: 2vw;
   justify-content: center;
   align-content: center;
   display: flex;
   flex-direction: column;
-  border: var(--border);
 
-  box-shadow: var(--boxyGoldShadow);
+  border: solid 4px firebrick ;
+  outline: solid 4px var(--black); 
+  
+  
+  
+  
+  /*  this is the border colors 
+  border-width: 2px; 
+  box-shadow: var(--grey600); */
+
+       
 }
 
 .totalinfo {
@@ -158,9 +184,10 @@ p {
   flex-direction: column;
   justify-content: center;
   align-content: center;
-  border: var(--border);
 
-  box-shadow: var(--boxyGoldShadow);
+  border: solid 5px firebrick ;
+  outline: solid 5px var(--black); 
+
 }
 
 #total {

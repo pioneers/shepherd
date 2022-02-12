@@ -11,11 +11,19 @@ socket.on('connect', (data) => {
 socket.on('teams_info', (match_info) => {
   console.log(`received team header with info ${match_info}`);
   match_info = JSON.parse(match_info)
-  team_name = match_info.team_name
-  team_num = match_info.team_num
-  updateTeam(team_name, team_num)
-  setImageVisible('#total', false);
-  setImageVisible('.totalinfo', false);
+  match_num = match_info.match_num
+  team_name_b1 = match_info.teams[0]["team_name"]
+  team_num_b1 = match_info.teams[0]["team_num"]
+  team_name_b2 = match_info.teams[1]["team_name"]
+  team_num_b2 = match_info.teams[1]["team_num"]
+  team_name_g1 = match_info.teams[2]["team_name"]
+  team_num_g1 = match_info.teams[2]["team_num"]
+  team_name_g2 = match_info.teams[3]["team_name"]
+  team_num_g2 = match_info.teams[3]["team_num"]
+  updateTeam(team_name_b1, team_num_b1, team_name_b2, 
+    team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2)
+  // setImageVisible('#total', false);
+  // setImageVisible('.totalinfo', false);
 })
 
 /*
@@ -45,6 +53,7 @@ socket.on('stage', (stage_details) => {
   }
 })
 
+// i think this is not used for 2022 game?
 socket.on("reset_timers", () => {
   resetTimers();
 })
@@ -73,6 +82,7 @@ socket.on("scores", (scores) => {
   // }
 })
 
+// updates the stage 
 socket.on("sandstorm", (sandstorm) => {
   on = JSON.parse(sandstorm).on;
   if (on) {
@@ -118,11 +128,13 @@ function testScore(score) {
   $('#score').html(score);
 }
 
+// i think this is not used for 2022 game?
 function resetTimers() {
   stageTimer = false;
   timerA = false;
 }
 
+// these are the stages for the code 
 SETUP = "setup"
 AUTO_WAIT = "auto_wait"
 AUTO = "auto"
@@ -140,10 +152,17 @@ function setStageName(stage) {
   $('#stage').html(stage_names[stage])
 }
 
-function updateTeam(team_name, team_num) {
+function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
+  team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   //set the name and numbers of the school and the match number jk
-  $('#team-name').html(team_name)
-  $('#team-num').html("Team " + team_num)
+  $('#team-name-1').html(team_name_b1)
+  $('#team-num-1').html("Team " + team_num_b1)
+  $('#team-name-2').html(team_name_b2)
+  $('#team-num-2').html("Team " + team_num_b2)
+  $('#team-name-3').html(team_name_g1)
+  $('#team-num-3').html("Team " + team_num_g1)
+  $('#team-name-4').html(team_name_g2)
+  $('#team-num-4').html("Team " + team_num_g2)
 }
 
 function stageTimerStart(startTime) {
