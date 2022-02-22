@@ -5,10 +5,12 @@ var globaltime = 0;
 var startTime = 0;
 
 socket.on('connect', (data) => {
-  socket.emit('join', 'scoreboard');
+  console.log("Successful ydl message: connect")
+  socket.emit('join', 'scoreboard'); // not sure what this does
 });
 
 socket.on('teams_info', (match_info) => {
+  console.log("Successful ydl message: teams_info")
   console.log(`received team header with info ${match_info}`);
   match_info = JSON.parse(match_info)
   match_num = match_info.match_num
@@ -35,6 +37,7 @@ socket.on('stage_timer_start', (secondsInStage) => {
 
 // STAGE{stage, start_time}
 socket.on('stage', (stage_details) => {
+  console.log("Successful ydl message: stage")
   stage = JSON.parse(stage_details).stage
   start_time = JSON.parse(stage_details).start_time
   console.log("got stage header")
@@ -53,14 +56,25 @@ socket.on('stage', (stage_details) => {
   }
 })
 
+socket.on('state', (state_info) => {
+  console.log("Successful ydl message: state")
+  console.log(`received team header with info ${state_info}`);
+  state_info = JSON.parse(state_info)
+  state = state_info.state
+
+  $('#stage').html(state)
+})
+
 // i think this is not used for 2022 game?
 socket.on("reset_timers", () => {
+  console.log("Successful ydl message: reset_timers")
   resetTimers();
 })
 
 
 // SCORES{time, penalty, stamp_time, score, start_time}
 socket.on("scores", (scores) => {
+  console.log("Successful ydl message: scores")
   console.log("receiving score");
   scores = JSON.parse(scores);
   console.log(`scores are ${JSON.stringify(scores)}`);
@@ -84,6 +98,7 @@ socket.on("scores", (scores) => {
 
 // updates the stage 
 socket.on("sandstorm", (sandstorm) => {
+  console.log("Successful ydl message: sandstorm")
   on = JSON.parse(sandstorm).on;
   if (on) {
     console.log("Setting sandstorm");
@@ -155,14 +170,15 @@ function setStageName(stage) {
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   //set the name and numbers of the school and the match number jk
-  $('#team-name-1').html(team_name_b1)
-  $('#team-num-1').html("Team " + team_num_b1)
-  $('#team-name-2').html(team_name_b2)
-  $('#team-num-2').html("Team " + team_num_b2)
-  $('#team-name-3').html(team_name_g1)
-  $('#team-num-3').html("Team " + team_num_g1)
-  $('#team-name-4').html(team_name_g2)
-  $('#team-num-4').html("Team " + team_num_g2)
+  console.log("Inside function: updateTeam")
+  $('#team-name-b1').html(team_name_b1)
+  $('#team-num-b1').html("Team " + team_num_b1)
+  $('#team-name-b2').html(team_name_b2)
+  $('#team-num-b2').html("Team " + team_num_b2)
+  $('#team-name-g1').html(team_name_g1)
+  $('#team-num-g1').html("Team " + team_num_g1)
+  $('#team-name-g2').html(team_name_g2)
+  $('#team-num-g2').html("Team " + team_num_g2)
 }
 
 function stageTimerStart(startTime) {
