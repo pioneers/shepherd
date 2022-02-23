@@ -5,6 +5,7 @@ var stageTimer = true;
 // var startTime = 0;
 var myStageTimeout;
 var state_time;
+var prevStateBlizzard = false;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect")
@@ -37,26 +38,27 @@ socket.on('stage_timer_start', (secondsInStage) => {
 })
 */
 
+// not used???
 // STAGE{stage, start_time}
-socket.on('stage', (stage_details) => {
-  console.log("Successful ydl message: stage")
-  stage = JSON.parse(stage_details).stage
-  start_time = JSON.parse(stage_details).start_time
-  console.log("got stage header")
-  console.log(stage_details)
-  if (stage === "setup") {
-    setTime(0);
-    setStamp(0);
-    setPenalty(0);
-  } else if (stage === "end") {
-    stageTimer = false;
-  } else {
-    setStageName(stage);
-    if (start_time != null) {
-      setStartTime(start_time);
-    }
-  }
-})
+// socket.on('stage', (stage_details) => {
+//   console.log("Successful ydl message: stage")
+//   stage = JSON.parse(stage_details).stage
+//   start_time = JSON.parse(stage_details).start_time
+//   console.log("got stage header")
+//   console.log(stage_details)
+//   if (stage === "setup") {
+//     setTime(0);
+//     setStamp(0);
+//     setPenalty(0);
+//   } else if (stage === "end") {
+//     stageTimer = false;
+//   } else {
+//     setStageName(stage);
+//     if (start_time != null) {
+//       setStartTime(start_time);
+//     }
+//   }
+// })
 
 // USE STATE, NOT STAGE!!!
 socket.on('state', (state_info) => {
@@ -66,6 +68,10 @@ socket.on('state', (state_info) => {
   state = state_info.state
   state_time = state_info.state_time
 
+  if (prevStateBlizzard && !(state === "blizzard")) {
+    prevStateBlizzard = false;
+    setSpaceBackground();
+  }
 
   if (state === "setup") {
     setStageName(state);
@@ -73,6 +79,10 @@ socket.on('state', (state_info) => {
   } else if (state == "end") {
     stageTimer = false;
   } else {
+    if (state === "blizzard") {
+      prevStateBlizzard = true;
+      setBlizzardBackground();
+    }
     setStageName(state);
     clearTimeout(myStageTimeout);
     start_time = state_info.start_time;
@@ -82,57 +92,72 @@ socket.on('state', (state_info) => {
   }
 })
 
-// i think this is not used for 2022 game?
-socket.on("reset_timers", () => {
-  console.log("Successful ydl message: reset_timers")
-  resetTimers();
-})
-
-
-// SCORES{time, penalty, stamp_time, score, start_time}
 socket.on("scores", (scores) => {
   console.log("Successful ydl message: scores")
-  console.log("receiving score");
-  scores = JSON.parse(scores);
   console.log(`scores are ${JSON.stringify(scores)}`);
-  ({ time, penalty, stamp_time } = scores);
-
-  console.log("THIS SHOULD PRINT")
-  console.log(time)
-  if (time) {
-    console.log("Setting time")
-    setTime(time);
-    setTotal(time + stamp_time + penalty)
-  }
-  setStamp(stamp_time);
-  setPenalty(penalty);
-  console.log(time)
-  // if (time) {
-  //   console.log("Setting total")
-  //   setTotal(time - stamp_time + penalty)
-  // }
+  scores = JSON.parse(scores);
+  ({ blue_score, gold_score } = scores);
+  setBlueScore(blue_score);
+  setGoldScore(gold_score);
 })
 
+// not used???
+// i think this is not used for 2022 game?
+// socket.on("reset_timers", () => {
+//   console.log("Successful ydl message: reset_timers")
+//   resetTimers();
+// })
+
+
+// not used???
+// SCORES{time, penalty, stamp_time, score, start_time}
+// socket.on("scores", (scores) => {
+//   console.log("Successful ydl message: scores")
+//   console.log("receiving score");
+//   scores = JSON.parse(scores);
+//   console.log(`scores are ${JSON.stringify(scores)}`);
+//   ({ time, penalty, stamp_time } = scores);
+
+//   console.log("THIS SHOULD PRINT")
+//   console.log(time)
+//   if (time) {
+//     console.log("Setting time")
+//     setTime(time);
+//     setTotal(time + stamp_time + penalty)
+//   }
+//   setStamp(stamp_time);
+//   setPenalty(penalty);
+//   console.log(time)
+  
+//   // if (time) {
+//   //   console.log("Setting total")
+//   //   setTotal(time - stamp_time + penalty)
+//   // }
+// })
+
+// not used???
 // updates the stage 
-socket.on("sandstorm", (sandstorm) => {
-  console.log("Successful ydl message: sandstorm")
-  on = JSON.parse(sandstorm).on;
-  if (on) {
-    console.log("Setting sandstorm");
-    setSandstorm();
-  } else {
-    console.log("Removing sandstorm");
-    removeSandstorm();
-  }
-})
+// socket.on("sandstorm", (sandstorm) => {
+//   console.log("Successful ydl message: sandstorm")
+//   on = JSON.parse(sandstorm).on;
+//   if (on) {
+//     console.log("Setting sandstorm");
+//     setSandstorm();
+//   } else {
+//     console.log("Removing sandstorm");
+//     removeSandstorm();
+//   }
+// })
 
-function setSandstorm() {
-  $('body').css('background-image', 'url(../static/2.png)');
-}
+// not used???
+// function setSandstorm() {
+//   $('body').css('background-image', 'url(../static/2.png)');
+// }
 
-function removeSandstorm() {
-  $('body').css('background-image', 'url()');
-}
+// not used???
+// function removeSandstorm() {
+//   $('body').css('background-image', 'url()');
+// }
 
 function setTime(time) {
   stageTimer = false;
@@ -140,30 +165,51 @@ function setTime(time) {
   $('#stage-timer').html(secondsToTimeString(time));
 }
 
-function setStamp(stamp_time) {
-  $('#stamp_time').html("-" + secondsToTimeString(-1 * stamp_time));
+function setBlueScore(score) {
+  $('#score-blue').html(score);
 }
 
-function setPenalty(penalty) {
-  $('#penalty').html("+" + secondsToTimeString(penalty));
+function setGoldScore(score) {
+  $('#score-gold').html(score);
 }
 
-function setTotal(total) {
-  // Hypothetically make it visible here
-  console.log("Inside setTotal")
-  $('#total').html(secondsToTimeString(total));
-  setImageVisible('#total', true);
-  setImageVisible('.totalinfo', true);
+function setBlizzardBackground() {
+  $('body').css('background-image', 'url(../static/test-blizzard-background-2.jpg)');
 }
 
-function testScore(score) {
-  $('#score').html(score);
+function setSpaceBackground() {
+  $('body').css('background-image', 'url(../static/space-background.png)');
 }
 
-function resetTimers() {
-  stageTimer = false;
-  // timerA = false;
-}
+// not used???
+// function setStamp(stamp_time) {
+//   $('#stamp_time').html("-" + secondsToTimeString(-1 * stamp_time));
+// }
+
+// not used???
+// function setPenalty(penalty) {
+//   $('#penalty').html("+" + secondsToTimeString(penalty));
+// }
+
+// not used???
+// function setTotal(total) {
+//   // Hypothetically make it visible here
+//   console.log("Inside setTotal")
+//   $('#total').html(secondsToTimeString(total));
+//   setImageVisible('#total', true);
+//   setImageVisible('.totalinfo', true);
+// }
+
+// not used???
+// function testScore(score) {
+//   $('#score').html(score);
+// }
+
+// not used???
+// function resetTimers() {
+//   stageTimer = false;
+//   // timerA = false;
+// }
 
 // these are the stages for the code 
 SETUP = "setup"
@@ -217,7 +263,6 @@ function runStageTimer(startTime) {
     $('#stage-timer').html(secondsToTimeString(time));
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
   } else {
-    // supposedly do nothing
     clearTimeout(myStageTimeout);
   }
 }
@@ -228,6 +273,7 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
+// not used???
 function setImageVisible(id, visible) {
   console.log("Set visible/invisible")
   $(id).css("visibility", (visible ? 'visible' : 'hidden'));
