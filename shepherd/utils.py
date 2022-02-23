@@ -147,7 +147,7 @@ class UI_HEADER():
         """
 
     @header(YDL_TARGETS.UI, "state")
-    def STATE(state, start_time=None):
+    def STATE(state, start_time=None, state_time=None):
         """
         tells UI that Shepherd is now in this state
         TODO: is this redundant with teams_info?

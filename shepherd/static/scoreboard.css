@@ -237,6 +237,10 @@ body {
   color: black;
 }
 
+.stage-text {
+  font-size: 90%;
+}
+
 .score-container {
   /* for debugging */
   /* border: solid 2px yellow ;

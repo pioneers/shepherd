@@ -1,8 +1,10 @@
 var socket = io('/');
 var stageTimer = true;
-var timerA = true;
-var globaltime = 0;
-var startTime = 0;
+// var timerA = true;
+// var globaltime = 0;
+// var startTime = 0;
+var myStageTimeout;
+var state_time;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect")
@@ -56,13 +58,28 @@ socket.on('stage', (stage_details) => {
   }
 })
 
+// USE STATE, NOT STAGE!!!
 socket.on('state', (state_info) => {
   console.log("Successful ydl message: state")
-  console.log(`received team header with info ${state_info}`);
+  console.log(`received team header with info ${state_info}`)
   state_info = JSON.parse(state_info)
   state = state_info.state
+  state_time = state_info.state_time
 
-  $('#stage').html(state)
+
+  if (state === "setup") {
+    setStageName(state);
+    setTime(0);
+  } else if (state == "end") {
+    stageTimer = false;
+  } else {
+    setStageName(state);
+    clearTimeout(myStageTimeout);
+    start_time = state_info.start_time;
+    if (start_time != null) {
+      setStartTime(start_time); //uses new Date().getTime(); as start_time
+    }
+  }
 })
 
 // i think this is not used for 2022 game?
@@ -119,7 +136,7 @@ function removeSandstorm() {
 
 function setTime(time) {
   stageTimer = false;
-  globaltime = time;
+  // globaltime = time;
   $('#stage-timer').html(secondsToTimeString(time));
 }
 
@@ -143,10 +160,9 @@ function testScore(score) {
   $('#score').html(score);
 }
 
-// i think this is not used for 2022 game?
 function resetTimers() {
   stageTimer = false;
-  timerA = false;
+  // timerA = false;
 }
 
 // these are the stages for the code 
@@ -159,8 +175,13 @@ END = "end"
 
 stage_names = {
   "setup": "Setup",
-  "auto_wait": "Autonomous Wait", "auto": "Autonomous Period",
-  "teleop": "Teleop Period", "end": "Post-Match"
+  "auto_wait": "Autonomous Wait", 
+  "auto": "Autonomous Period",
+  "teleop_1": "Teleop (Pre-Blizzard)",
+  "blizzard": "Blizzard",
+  "teleop_2": "Teleop (Post-Blizzard)", 
+  "endgame": "Endgame Period",
+  "end": "Post-Match"
 }
 
 function setStageName(stage) {
@@ -189,12 +210,15 @@ function stageTimerStart(startTime) {
 function runStageTimer(startTime) {
   if (stageTimer) {
     const currTime = new Date().getTime() / 1000;
-    let time = (currTime - startTime);
+    let time = state_time - (currTime - startTime);
+    if (time < 0) {
+      time = 0;
+    }
     $('#stage-timer').html(secondsToTimeString(time));
-    setTimeout(runStageTimer, 200, startTime);
+    myStageTimeout = setTimeout(runStageTimer, 200, startTime);
   } else {
     // supposedly do nothing
-    return
+    clearTimeout(myStageTimeout);
   }
 }
 
@@ -306,7 +330,6 @@ function timer1() {
 
 }
 */
-
 
 function setStartTime(start_time) {
   // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
