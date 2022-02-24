@@ -27,6 +27,13 @@ class SHEPHERD_HEADER():
         source: Sheet. Sets the match info, which has been fetched from a spreadsheet
         """
 
+    @header(YDL_TARGETS.SHEPHERD, "send_scores")
+    def SEND_SCORES(scores):
+        """
+        scores = [blue, gold]
+        source: Sheet. 
+        """
+
     @header(YDL_TARGETS.SHEPHERD, "setup_match")
     def SETUP_MATCH(match_num, teams):
         """
@@ -190,7 +197,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 20
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1JCtt_Iqyx15EOAZN6agqeeUKCFsrL6oOy3brKyAWjBM"
+    SPREADSHEET_ID = "1FtbpxMN9mF1hbZNHS1_ASNrEOf5wIKpRxvI_hHL3gtk"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
