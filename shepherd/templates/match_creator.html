@@ -8,6 +8,180 @@
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
     //add socket listeners and javascript stuff here
+    var match_num = -1;
+    var teams = [
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+    ];
+    const INDEX_NAMES = [
+      "Blue Team 1",
+      "Blue Team 2",
+      "Gold Team 1",
+      "Gold Team 2",
+    ];
+    const match_num_input = $("#select-match-number");
+    const next_match_btn = $("#next-round");
+    const populate_btn = $("#select-round");
+    const team_num_inputs = individual($(".team-num"));
+    const team_name_inputs = individual($(".team-name"));
+    const team_sp_inputs = individual($(".team-starting-position-input")); // ?
+    const robot_ip_inputs = individual($(".robot-ip"));
+    const robot_connect_btns = individual($(".connect"));
+    const robot_disconnect_btns = individual($(".disconnect"));
+    const heartbeat_lights_green = individual($(".led-green"));
+    const heartbeat_lights_red = individual($(".led-red"));
+    // const heartbeat_msgs = individual($(".heartbeat-message"));
+    const state_msg = $("#state-msg"); // ?
+    const create_match_btn = $("#create-match");
+    const start_match_btn = $("#match-start");
+    const reset_match_btn = $("#match-reset");
+
+    function individual(jq_obj) {
+      let res = Array(jq_obj.length);
+      for (let a = 0; a < jq_obj.length; a++) {
+        res[a] = $(jq_obj[a]);
+      }
+      return res;
+    }
+
+    socket.on("connect", function (data) {
+      socket.emit("join", "staff_gui");
+      send("get_match_info");
+      send("get_state");
+      send("get_connection_status");
+    });
+
+    socket.on("teams_info", function (data) {
+      data = JSON.parse(data);
+      match_num = data.match_num;
+      teams = data.teams;
+      setDefaultTeamsInfo();
+    });
+
+    socket.on("state", function (data) {
+      data = JSON.parse(data);
+      state_msg.text(data.state);
+    });
+
+    socket.on("robot_connection", function (data) {
+      data = JSON.parse(data);
+      let msg = data.connected
+        ? `Connected to ${data.robot_ip}`
+        : data.robot_ip === ""
+        ? "Not connected"
+        : `Disconnected from ${data.robot_ip}`;
+      toggleHeartbeat(data.ind, data.connected, msg);
+    });
+
+    function setDefaultTeamsInfo() {
+      match_num_input.val(match_num);
+      for (let a = 0; a < 4; a++) {
+        team_num_inputs[a].val(teams[a].team_num);
+        team_name_inputs[a].val(teams[a].team_name);
+        team_sp_inputs[a].val(teams[a].starting_position);
+        robot_ip_inputs[a].val(teams[a].robot_ip);
+      }
+    }
+
+    function toggleHeartbeat(ind, connected, message) {
+      const hbl = heartbeat_lights[ind];
+      if (connected == null) {
+        hbl.toggleClass("led-green", false);
+        hbl.toggleClass("led-red", false);
+      } else {
+        hbl.toggleClass("led-green", connected);
+        hbl.toggleClass("led-red", !connected);
+      }
+      heartbeat_msgs[ind].text(message);
+    }
+
+    next_match_btn.click(() => {
+      match_num++;
+      match_num_input.val("");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    populate_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      if (isNaN(match_num)) {
+        alert("invalid match number");
+        return;
+      }
+      match_num_input.val("");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    create_match_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      for (let a = 0; a < 4; a++) {
+        teams[a].team_num = parseInt(team_num_inputs[a].val());
+        teams[a].team_name = team_name_inputs[a].val();
+        teams[a].starting_position = team_sp_inputs[a].val();
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+      }
+      send(
+        "setup_match",
+        JSON.stringify({ match_num: match_num, teams: teams })
+      );
+    });
+
+    start_match_btn.click(() => {
+      send("start_next_stage");
+    });
+
+    reset_match_btn.click(() => {
+      send("reset_match");
+    });
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+      ((a) => {
+        robot_connect_btns[a].click(() => {
+          teams[a].robot_ip = robot_ip_inputs[a].val();
+          toggleHeartbeat(a, null, "awaiting connection...");
+          send(
+            "set_robot_ip",
+            JSON.stringify({ ind: a, robot_ip: teams[a].robot_ip })
+          );
+        });
+      })(outer_a);
+
+    $("#custom-ip-change").click(function () {
+      let ip = $("#custom-ip-adjustment").val();
+      if (ip == "") {
+        alert("empty custom ip");
+        return;
+      }
+      send("set_custom_ip", JSON.stringify({ custom_ip: ip }));
+      toggleHeartbeat(null, "awaiting connection");
+    });
+
+    $("#stop-robot").click(function () {
+      if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
+        send("robot_off", JSON.stringify({ team_number: team_num }));
+      }
+    });
   }
 </script>
 {% endblock %} {% block html_content %}
@@ -45,7 +219,12 @@
         <div class="led-green s-led led">S</div>
         <div class="led-red d-led led">D</div>
 
-        <div class="temp-battery">battery</div>
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
 
         <div class="latency">
           <p>Shepherd latency: N/A</p>
@@ -93,7 +272,12 @@
         <div class="led-green s-led led">S</div>
         <div class="led-red d-led led">D</div>
 
-        <div class="temp-battery">battery</div>
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
 
         <div class="latency">
           <p>Shepherd latency: N/A</p>
@@ -141,7 +325,12 @@
         <div class="led-green s-led led">S</div>
         <div class="led-red d-led led">D</div>
 
-        <div class="temp-battery">battery</div>
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
 
         <div class="latency">
           <p>Shepherd latency: N/A</p>
@@ -189,7 +378,12 @@
         <div class="led-green s-led led">S</div>
         <div class="led-red d-led led">D</div>
 
-        <div class="temp-battery">battery</div>
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
 
         <div class="latency">
           <p>Shepherd latency: N/A</p>
@@ -211,24 +405,23 @@
       <h4>Shepherd Match Creator</h4>
   </div>
   <div class="match-number">
-    <input
-      type=" text" placeholder="Match #" aria-label="Match #" aria-describedby="basic-addon2">
+    <input type=" text" placeholder="Match #" aria-label="Match #" aria-describedby="basic-addon2" id="select-match-number">
   
-    <button class="green-btn" type="button">Populate</button>
-    <button class="green-btn" type="button">Next</button>
+    <button class="green-btn" type="button" id="select-round">Populate</button>
+    <button class="green-btn" type="button" id="next-round">Next</button>
   </div>
   <div class="match-creator">
     <h3>Match Control</h3>
   <input
 
     type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2">
-  <button class="green-btn" type="button"
+  <button class="green-btn" type="button" id="create-match"
     >Create
     Match</button>
-  <button class="green-btn" type="button"
+  <button class="green-btn" type="button" id="match-start"
     >Start
     Match</button>
-  <button class="red-btn" type="button"
+  <button class="red-btn" type="button" id="match-reset"
   >Reset
     Match</button>
   </div>
