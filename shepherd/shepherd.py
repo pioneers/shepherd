@@ -266,10 +266,7 @@ def send_state_to_ui():
     '''
     if GAME_STATE in STAGE_TIMES:
         st = (GAME_TIMER.end_time - STAGE_TIMES.get(GAME_STATE)) * 1000
-        ydl_send(*UI_HEADER.STATE(state=GAME_STATE, start_time=st))
-
-        # TODO: change this so time remaining in stage can be displayed instead
-
+        ydl_send(*UI_HEADER.STATE(state=GAME_STATE, start_time=st, state_time=STAGE_TIMES.get(GAME_STATE)))
     else:
         ydl_send(*UI_HEADER.STATE(state=GAME_STATE))
 
