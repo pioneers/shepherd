@@ -11,15 +11,208 @@
 </head>
 
 <body>
-    <!-- <img id="sandstorm" src="{{url_for('static', filename='sand1.png')}}" /> -->
-    <!-- <div class="container" id="stagename-container">
-        
-    </div> -->
     <div class="scoreboard-outer-container">
-        <div class="scoreboard-container">
-            <!-- <div class="stagename">
-                Autonomous
-            </div> -->
+        <div class="scoreboard-header-outer-container">
+            <div class="scoreboard-header-container">
+                <div class="alliance-container">
+                    <div class="robot-blue-container">
+                        <div class="robot-text" id="team-num-b1">Team 971 (b1)</div>
+                        <div class="robot-text" id="team-name-b1">UC Berkeley</div>
+                    </div>
+                    <div class="robot-blue-container">
+                        <div class="robot-text" id="team-num-b2">Robot b2</div>
+                        <div class="robot-text" id="team-name-b2">UC Berkeley</div>
+                    </div>
+                </div>
+                <div class="game-container">
+                    <div class="timer-container">
+                        <div class="timer-text" id="stage-timer">
+                            0:00
+                        </div>
+                    </div>
+                    <div class="stage-container">
+                        <div class="stage-text" id="stage">
+                            stage: blizzard
+                        </div>
+                    </div>
+                    <div class="score-container">
+                        <div class="score-blue-container" id="score-blue">
+                            0 score
+                        </div>
+                        <div class="score-gold-container" id="score-gold">
+                            0 score
+                        </div>
+                    </div>
+                </div>
+                <div class="alliance-container">
+                    <div class="robot-gold-container">
+                        <div class="robot-text" id="team-num-g1">Robot g1</div>
+                        <div class="robot-text" id="team-name-g1">UC Berkeley</div>
+                    </div>
+                    <div class="robot-gold-container">
+                        <div class="robot-text" id="team-num-g2">Robot g2</div>
+                        <div class="robot-text" id="team-name-g2">UC Berkeley</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scoreboard-bottom-container">
+            <div class="bottom-leftside-blue-container">
+                <div class="endgame-pioneer-grid-blue-container">
+                    <div class="endgame-pioneer-blue-container">
+                        <div class="endgame-pioneer-blue-icon" id="endgame-pioneer-blue-1"></div>
+                    </div>
+                    <div class="endgame-pioneer-blue-container">
+                        <div class="endgame-pioneer-blue-icon" id="endgame-pioneer-blue-2"></div>
+                    </div>
+                    <div class="endgame-pioneer-blue-container">
+                        <div class="endgame-pioneer-blue-icon" id="endgame-pioneer-blue-3"></div>
+                    </div>
+                    <div class="endgame-pioneer-blue-container">
+                        <div class="endgame-pioneer-blue-icon" id="endgame-pioneer-blue-4"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-middle-container">
+                <div class="campsite-container">
+                    <div class="campsite-left-container">
+                        <div class="campsite-left-grid-container">
+                            <div class="campsite-icon-container">
+                                <div class="campsite-pioneer-icon" id="campsite-pioneer-top-left"></div>
+                                <div class="campsite-icon-bottom-container">
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-left-leftside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-top-left-leftside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-left-leftside-3"></div>
+                                    </div>
+                                    <div class="campsite-satellite-icon-circle-border">
+                                        <div class="campsite-satellite-icon" id="campsite-satellite-top-left"></div>
+                                    </div>
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-left-rightside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-top-left-rightside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-left-rightside-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="campsite-icon-container">
+                                <div class="campsite-pioneer-icon" id="campsite-pioneer-bottom-left"></div>
+                                <div class="campsite-icon-bottom-container">
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-left-leftside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-left-leftside-1"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-left-leftside-1"></div>
+                                    </div>
+                                    <div class="campsite-satellite-icon-circle-border">
+                                        <div class="campsite-satellite-icon" id="campsite-satellite-bottom-left"></div>
+                                    </div>
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-left-rightside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-left-rightside-1"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-left-rightside-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="campsite-middle-grid-container">
+                        <div class="campsite-icon-container">
+                            <div class="campsite-pioneer-icon" id="campsite-pioneer-top-middle"></div>
+                            <div class="campsite-icon-bottom-container">
+                                <div class="campsite-resource-icon-grid-container">
+                                    <div class="campsite-resource-icon" id="campsite-resource-top-middle-leftside-1"></div>
+                                    <div class="campsite-resource-middle-icon" id="campsite-resource-top-middle-leftside-2"></div>
+                                    <div class="campsite-resource-icon" id="campsite-resource-top-middle-leftside-3"></div>
+                                </div>
+                                <div class="campsite-satellite-icon-circle-border">
+                                    <div class="campsite-satellite-icon" id="campsite-satellite-top-middle"></div>
+                                </div>
+                                <div class="campsite-resource-icon-grid-container">
+                                    <div class="campsite-resource-icon" id="campsite-resource-top-middle-rightside-1"></div>
+                                    <div class="campsite-resource-middle-icon" id="campsite-resource-top-middle-rightside-2"></div>
+                                    <div class="campsite-resource-icon" id="campsite-resource-top-middle-rightside-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="campsite-icon-container">
+                            <div class="campsite-pioneer-icon" id="campsite-pioneer-bottom-middle"></div>
+                            <div class="campsite-icon-bottom-container">
+                                <div class="campsite-resource-icon-grid-container">
+                                    <div class="campsite-resource-icon" id="campsite-resource-bottom-middle-leftside-1"></div>
+                                    <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-middle-leftside-2"></div>
+                                    <div class="campsite-resource-icon" id="campsite-resource-bottom-middle-leftside-3"></div>
+                                </div>
+                                <div class="campsite-satellite-icon-circle-border">
+                                    <div class="campsite-satellite-icon" id="campsite-satellite-bottom-middle"></div>
+                                </div>
+                                <div class="campsite-resource-icon-grid-container">
+                                    <div class="campsite-resource-icon" id="campsite-resource-bottom-middle-rightside-1"></div>
+                                    <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-middle-rightside-2"></div>
+                                    <div class="campsite-resource-icon" id="campsite-resource-bottom-middle-rightside-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="campsite-right-container">
+                        <div class="campsite-right-grid-container">
+                            <div class="campsite-icon-container">
+                                <div class="campsite-pioneer-icon" id="campsite-pioneer-top-right"></div>
+                                <div class="campsite-icon-bottom-container">
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-right-leftside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-top-right-leftside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-right-leftside-3"></div>
+                                    </div>
+                                    <div class="campsite-satellite-icon-circle-border">
+                                        <div class="campsite-satellite-icon" id="campsite-satellite-top-right"></div>
+                                    </div>
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-right-rightside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-top-right-rightside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-top-right-rightside-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="campsite-icon-container">
+                                <div class="campsite-pioneer-icon" id="campsite-pioneer-bottom-right"></div>
+                                <div class="campsite-icon-bottom-container">
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-right-leftside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-right-leftside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-right-leftside-3"></div>
+                                    </div>
+                                    <div class="campsite-satellite-icon-circle-border">
+                                        <div class="campsite-satellite-icon" id="campsite-satellite-bottom-right"></div>
+                                    </div>
+                                    <div class="campsite-resource-icon-grid-container">
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-right-rightside-1"></div>
+                                        <div class="campsite-resource-middle-icon" id="campsite-resource-bottom-right-rightside-2"></div>
+                                        <div class="campsite-resource-icon" id="campsite-resource-bottom-right-rightside-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-rightside-gold-container">
+                <div class="endgame-pioneer-grid-gold-container">
+                    <div class="endgame-pioneer-gold-container">
+                        <div class="endgame-pioneer-gold-icon" id="endgame-pioneer-gold-1"></div>
+                    </div>
+                    <div class="endgame-pioneer-gold-container">
+                        <div class="endgame-pioneer-gold-icon" id="endgame-pioneer-gold-2"></div>
+                    </div>
+                    <div class="endgame-pioneer-gold-container">
+                        <div class="endgame-pioneer-gold-icon" id="endgame-pioneer-gold-3"></div>
+                    </div>
+                    <div class="endgame-pioneer-gold-container">
+                        <div class="endgame-pioneer-gold-icon" id="endgame-pioneer-gold-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="scoreboard-container">
 
             <div class="robotinfo">
                 <mark class="black" id="team-num-1">Team 123</mark>
@@ -63,7 +256,7 @@
                 <div> <mark class="black">Stage</mark></div>
                 <div id="stage">Blizzard</div>
             </div>
-        </div>
+        </div> -->
     </div>
 </body>
 

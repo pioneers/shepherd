@@ -10,14 +10,32 @@
     const teams_info_msg = $("#teams-info");
     const score_info_msg = $("#score-info");
     const timer_info_msg = $("#timer-time");
-    const btn_1 = $("#button-1");
-    const btn_2 = $("#button-2");
-    const estop_btn = $("#stop-robots");
-    const estart_btn = $("#start-robots");
+
     const state_msg = $("#state");
+
+    const estop_all_btn = $("#stop-robots");
+    const estart_all_btn = $("#start-robots");
     const auto_btn = $("#auto-btn");
-    const teleop_btn = $("#teleop-btn");
+    const teleop_1_btn = $("#teleop-1-btn");
+    const teleop_2_btn = $("#teleop-2-btn");
+    const blizzard_btn = $("#blizzard-btn");
     const end_btn = $("#end-btn");
+
+    // lights
+    const l_blizzard_light_btn = $("#l-blizzard-light-btn");
+    const r_blizzard_light_btn = $("#r-blizzard-light-btn");
+    const beacon_1_btn = $("#beacon-1-btn");
+    const beacon_2_btn = $("#beacon-2-btn");
+
+    const pause_btn = $("#pause-btn");
+    const resume_btn = $("#resume-btn");
+
+    const time_btn = $("#time-btn");
+
+    const team_score_0_btn = $("#team-score-0-btn");
+    const team_score_1_btn = $("#team-score-1-btn");
+    const team_score_2_btn = $("#team-score-2-btn");
+    const team_score_3_btn = $("#team-score-3-btn");
 
     socket.on("connect", function (data) {
       socket.emit("join", "ref_gui");
@@ -28,14 +46,25 @@
 
     socket.on("teams_info", function (data) {
       data = JSON.parse(data);
+
+      // assume data.teams is a list of names
       let names = data.teams.map((t) => "#" + t.team_num + " " + t.team_name);
-      let msg = `Match ${data.match_num}: ` + names.join(", ");
-      teams_info_msg.text(msg);
+
+      // let msg = `Match ${data.match_num}: ` + names.join(", ");
+      // teams_info_msg.text(msg);
+
+      for (let i = 0; i < 4; i++) {
+        let msg = `Match ${data.match_num}: ` + names[i].join(", ");
+        let team_info_msg = $(`#teams-${i}-info`);
+        team_info_msg.text(msg);
+      }
     });
 
     socket.on("scores", function (data) {
       data = JSON.parse(data);
-      score_info_msg.text(`Blue: ${data.blue_score}, Gold: ${data.gold_score}`);
+      score_info_msg.text(
+        `Blue1: ${data.blue1_score}, Blue2: ${data.blue2_score}, Gold1: ${data.gold1_score}, Gold2: ${data.gold2_score}`
+      );
     });
 
     socket.on("state", function (data) {
@@ -58,32 +87,91 @@
       requestAnimationFrame(displayTime);
     })();
 
-    btn_1.click(() => {
-      send("button_1_pressed");
-    });
-
-    btn_2.click(() => {
-      send("button_2_pressed");
-    });
-
-    estop_btn.click(() => {
+    // stop all
+    estop_all_btn.click(() => {
       for (let a = 0; a < 4; a++) send("robot_off", JSON.stringify({ ind: a }));
     });
-
-    estart_btn.click(() => {
+    estart_all_btn.click(() => {
       for (let a = 0; a < 4; a++) send("robot_on", JSON.stringify({ ind: a }));
+    });
+
+    // stop one robot
+    estop_blue1_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 0 }));
+    });
+    estop_blue2_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 1 }));
+    });
+    estop_gold1_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 2 }));
+    });
+    estop_gold2_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 3 }));
+    });
+
+    // start one robot
+    estart_blue1_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 0 }));
+    });
+    estart_blue2_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 1 }));
+    });
+    estart_gold1_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 2 }));
+    });
+    estart_gold2_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 3 }));
     });
 
     auto_btn.click(() => {
       send("set_state", JSON.stringify({ state: "auto" }));
     });
-
-    teleop_btn.click(() => {
-      send("set_state", JSON.stringify({ state: "teleop" }));
+    teleop_1_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "teleop-1" }));
     });
-
+    teleop_2_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "teleop-2" }));
+    });
+    blizzard_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "blizzard" }));
+    });
     end_btn.click(() => {
       send("set_state", JSON.stringify({ state: "end" }));
+    });
+
+    // these are new functions that need to know what to appropiately send
+    pause_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "pause" }));
+    });
+    resume_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "resume" }));
+    });
+    // for some of these, they are grabbing info from input so that needs to be done
+    // need to add a line to send the info
+    time_btn.click(() => {
+      const time_input = document.getElementById("time-input");
+      let new_time = time_input.value;
+      send("set_time", JSON.stringify({ time: new_time }));
+    });
+    team_score_0_btn.click(() => {
+      const team_score_0_input = document.getElementById("team-score-0-input");
+      let score = team_score_0_input.value;
+      send("set_team_0_score", JSON.stringify({ score: score }));
+    });
+    team_score_1_btn.click(() => {
+      const team_score_1_input = document.getElementById("team-score-1-input");
+      let score = team_score_1_input.value;
+      send("set_team_1_score", JSON.stringify({ score: score }));
+    });
+    team_score_2_btn.click(() => {
+      const team_score_2_input = document.getElementById("team-score-2-input");
+      let score = team_score_2_input.value;
+      send("set_team_2_score", JSON.stringify({ score: score }));
+    });
+    team_score_3_btn.click(() => {
+      const team_score_3_input = document.getElementById("team-score-3-input");
+      let score = team_score_3_input.value;
+      send("set_team_3_score", JSON.stringify({ score: score }));
     });
   }
 </script>
@@ -92,28 +180,138 @@
 <div class="row container">
   <h1>Ref GUI</h1>
 </div>
-
-<div class="text-center">
-  <h3 id="teams-info">[loading...]</h3>
-  <h3 id="score-info">[loading...]</h3>
-  <h3 id="timer-time">[loading...]</h3>
-</div>
-
 <div class="row bottom-padding">
   <div class="col">
     <div class="input-group">
       <span class="input-group-btn">
-        <button class="btn btn-info" type="button" id="button-1">
-          Button 1
+        <button class="btn btn-danger" type="button" id="estop-all-btn">
+          ESTOP All
         </button>
-        <button class="btn btn-info" type="button" id="button-2">
-          Button 2
+        <button class="btn btn-success" type="button" id="estart-all-btn">
+          ESTOP All
         </button>
-        <button class="btn btn-danger" type="button" id="stop-robots">
-          ESTOP Robots
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+  <!-- <h3 id="teams-info">[loading...]</h3> -->
+  <!-- <h3 id="score-info">[loading...]</h3> -->
+  <h3 id="timer-time">[loading...]</h3>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Blue 1</h4>
+    <h4>Team: <span id="teams-0-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-0-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-0-score-btn">
+          Change
         </button>
-        <button class="btn btn-success" type="button" id="start-robots">
-          ESTART Robots
+      </span>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-0-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-0-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Blue 2</h4>
+    <h4>Team: <span id="teams-1-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-1-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-1-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-1-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-1-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Gold 1</h4>
+    <h4>Team: <span id="teams-2-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-2-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-2-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-2-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-2-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Gold 2</h4>
+    <h4>Team: <span id="teams-3-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-3-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-3-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-3-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-3-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<hr />
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <h4>Lights:</h4>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-info" type="button" id="l-blizzard-light-btn">
+          L Blizzard Light
+        </button>
+        <button class="btn btn-info" type="button" id="r-blizzard-light-btn">
+          R Blizzard Light
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-1-btn">
+          Beacon #1
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-2-btn">
+          Beacon #2
         </button>
       </span>
     </div>
@@ -122,11 +320,37 @@
 <div class="row bottom-padding">
   <div class="col">
     <div class="input-group">
-      <h3>State: <span id="state">None</span></h3>
+      <h4>Time:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="time-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="time-btn">Submit</button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="pause-btn">
+          Pause
+        </button>
+        <button class="btn btn-success" type="button" id="resume-btn">
+          Resume
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <h4>State: <span id="state">None</span></h4>
       <span class="input-group-btn ml-3">
         <button class="btn btn-info" type="button" id="auto-btn">Auto</button>
-        <button class="btn btn-info" type="button" id="teleop-btn">
-          Teleop
+        <button class="btn btn-info" type="button" id="teleop-1-btn">
+          Teleop-1
+        </button>
+        <button class="btn btn-info" type="button" id="blizzard-btn">
+          Blizzard
+        </button>
+        <button class="btn btn-info" type="button" id="teleop-2-btn">
+          Teleop-2
         </button>
         <button class="btn btn-info" type="button" id="end-btn">End</button>
       </span>

@@ -1,5 +1,9 @@
 @import url("styles.css");
 
+:root {
+  --level: 50;
+}
+
 /* outer container */
 .container {
   height: 85vh;
@@ -190,6 +194,9 @@
 /* latency */
 .latency {
   grid-column: 15 / 21;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .latency > p {
   margin: 0;
@@ -199,6 +206,11 @@
 
 /* battery  */
 .batteryContainer {
+  /* border: solid 1px red; */
+  background-color: white;
+
+  grid-column: 13 / 15;
+
   display: -webkit-box;
   display: -moz-box;
   display: -ms-flexbox;
@@ -206,29 +218,37 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: center;
 }
 
 .batteryOuter {
-  border-radius: 1px;
-  border: 1px solid #444;
-  padding: 1px;
-  width: 25px;
-  height: 9px;
+  border: solid 1px black;
+  border-width: 1px 0px 1px 1px;
+  /* border-radius: 1px; */
+  /* border: 1px solid #444; */
+  /* padding: 1px; */
+  width: calc(40px * calc(1 - calc(var(--level) / 100)));
+  height: 15px;
 }
 
 .batteryBump {
-  border-radius: 1px;
+  border: solid 1px black;
+  /* border-radius: 1px; */
   background-color: #444;
   margin: 0px;
   width: 1px;
-  height: 5px;
+  height: 7px;
 }
 
 .batteryLevel {
-  border-radius: 1px;
+  border: solid 1px black;
+  border-width: 1px 1px 1px 0px;
+  /* border-radius: 1px; */
   background-color: #444;
-  width: calc(24px * calc(var(--level) / 100));
-  height: 9px;
+  background-color: rgb(31, 255, 15);
+  width: calc(40px * calc(var(--level) / 100));
+  /* width: calc(24px * calc(50 / 100)); */
+  height: 15px;
 }
 
 @media only screen and (max-width: 1200px) {

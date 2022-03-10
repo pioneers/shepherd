@@ -18,6 +18,9 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'sheets/client_secret.json'
 USER_TOKEN_FILE = "sheets/user_token.json" # user token; do not upload to github (.gitignore it)
 
+"""
+Sheet structure: [match #, blue 1 #, blue 1 name, blue 1 ip, blue 2 #, ...]
+"""
 
 class Sheet:
     @staticmethod
@@ -31,14 +34,14 @@ class Sheet:
             try:
                 spreadsheet = Sheet.__get_authorized_sheet()
                 game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                    range="Match Database!A2:M").execute()['values']
+                    range="Match Database!A2:N").execute()['values']
             except: # pylint: disable=bare-except
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Fetching data from offline csv file")
                 with open(CONSTANTS.CSV_FILE_NAME) as csv_file:
                     game_data = list(csv.reader(csv_file, delimiter=','))[1:]
 
-            return_len = 12
+            return_len = 14
             lst = [""] * return_len
             for row in game_data:
                 if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
@@ -46,11 +49,21 @@ class Sheet:
                     break
             teams = [{},{},{},{}]
             for a in range(4):
-                teams[a]["team_num"] = int(lst[3*a]) if lst[3*a].isdigit() else -1
-                teams[a]["team_name"] = lst[3*a+1]
-                teams[a]["robot_ip"] = lst[3*a+2]
+                teams[a]["team_num"] = int(lst[3*a+1]) if lst[3*a+1].isdigit() else -1
+                teams[a]["team_name"] = lst[3*a+2]
+                teams[a]["robot_ip"] = lst[3*a+3]
             ydl_send(*SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
 
+        threading.Thread(target=bg_thread_work).start()
+
+    @staticmethod
+    def read_scores(match_number):
+        def bg_thread_work():
+            try:
+                Sheet.__read_online_scores(match_number)
+            except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -89,6 +102,29 @@ class Sheet:
         service = build('sheets', 'v4', credentials=creds)
         return service.spreadsheets() # pylint: disable=no-member
 
+    @staticmethod
+    def __read_online_scores(match_number):
+        """
+        Sends (blue score, gold score)
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Ref Scoring!A3:C").execute()['values']
+
+        blue = None
+        gold = None
+        for _, row in enumerate(game_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                if row[1] == "Blue":
+                    blue = row[2]
+                    if blue is not None and gold is not None:
+                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        return
+                elif row[1] == "Gold":
+                    gold = row[2]
+                    if blue is not None and gold is not None:
+                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        return
 
     @staticmethod
     def __write_online_scores(match_number, blue_score, gold_score):
