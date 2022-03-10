@@ -70,6 +70,7 @@ class Timer:
 
     @classmethod
     def pause(cls):
+        """Pause timer and get when it was paused"""
         cls.queueLock.acquire()
         if cls.paused:
             print("Already paused")
@@ -80,6 +81,8 @@ class Timer:
 
     @classmethod
     def resume(cls):
+        """Unpause timer and add difference of current time and when timer was paused
+        to all timers."""
         cls.queueLock.acquire()
         if not cls.paused:
             print("Not paused yet")
