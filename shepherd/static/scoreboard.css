@@ -1,4 +1,4 @@
-/* root styles  */
+/* root styles */
 :root {
   --font: "Comic Sans MS", "Comic Sans", cursive;
   --blue50: #e8f1fb;
@@ -487,4 +487,10 @@ body {
   visibility: visible;
   margin-bottom: 5px;
   padding: 0px;
+}
+
+/* Used to preload the blizzard background */
+body::after{
+  position:absolute; width:0; height:0; overflow:hidden; z-index:-1;
+  content:url('../static/test-blizzard-background-2.jpg');
 }

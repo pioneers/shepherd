@@ -181,36 +181,6 @@ function setSpaceBackground() {
   $('body').css('background-image', 'url(../static/space-background.png)');
 }
 
-// not used???
-// function setStamp(stamp_time) {
-//   $('#stamp_time').html("-" + secondsToTimeString(-1 * stamp_time));
-// }
-
-// not used???
-// function setPenalty(penalty) {
-//   $('#penalty').html("+" + secondsToTimeString(penalty));
-// }
-
-// not used???
-// function setTotal(total) {
-//   // Hypothetically make it visible here
-//   console.log("Inside setTotal")
-//   $('#total').html(secondsToTimeString(total));
-//   setImageVisible('#total', true);
-//   setImageVisible('.totalinfo', true);
-// }
-
-// not used???
-// function testScore(score) {
-//   $('#score').html(score);
-// }
-
-// not used???
-// function resetTimers() {
-//   stageTimer = false;
-//   // timerA = false;
-// }
-
 // these are the stages for the code 
 SETUP = "setup"
 AUTO_WAIT = "auto_wait"
@@ -396,3 +366,35 @@ function setStartTime(start_time) {
 // document.getElementsByTagName('head')[0].appendChild(jq);
 // // ... give time for script to load, then type (or see below for non wait option)
 // jQuery.noConflict();
+
+/*
+// not used???
+function setStamp(stamp_time) {
+  $('#stamp_time').html("-" + secondsToTimeString(-1 * stamp_time));
+}
+
+// not used???
+function setPenalty(penalty) {
+  $('#penalty').html("+" + secondsToTimeString(penalty));
+}
+
+// not used???
+function setTotal(total) {
+  // Hypothetically make it visible here
+  console.log("Inside setTotal")
+  $('#total').html(secondsToTimeString(total));
+  setImageVisible('#total', true);
+  setImageVisible('.totalinfo', true);
+}
+
+// not used???
+function testScore(score) {
+  $('#score').html(score);
+}
+
+// not used???
+function resetTimers() {
+  stageTimer = false;
+  // timerA = false;
+}
+*/
