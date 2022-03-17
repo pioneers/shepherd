@@ -8,6 +8,7 @@
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
     //add socket listeners and javascript stuff here
+    console.log("Inside function: main_js_content")
     var match_num = -1;
     var teams = [
       {
@@ -46,19 +47,20 @@
     const populate_btn = $("#select-round");
     const team_num_inputs = individual($(".team-num"));
     const team_name_inputs = individual($(".team-name"));
-    const team_sp_inputs = individual($(".team-starting-position-input")); // ?
+    // const team_sp_inputs = individual($(".team-starting-position-input")); // ?
     const robot_ip_inputs = individual($(".robot-ip"));
     const robot_connect_btns = individual($(".connect"));
     const robot_disconnect_btns = individual($(".disconnect"));
     const heartbeat_lights_green = individual($(".led-green"));
     const heartbeat_lights_red = individual($(".led-red"));
     // const heartbeat_msgs = individual($(".heartbeat-message"));
-    const state_msg = $("#state-msg"); // ?
+    const state_msg = $(".state-msg"); // ?
     const create_match_btn = $("#create-match");
     const start_match_btn = $("#match-start");
     const reset_match_btn = $("#match-reset");
 
     function individual(jq_obj) {
+      console.log("Inside function: individual")
       let res = Array(jq_obj.length);
       for (let a = 0; a < jq_obj.length; a++) {
         res[a] = $(jq_obj[a]);
@@ -67,6 +69,7 @@
     }
 
     socket.on("connect", function (data) {
+      console.log("Inside function: connect")
       socket.emit("join", "staff_gui");
       send("get_match_info");
       send("get_state");
@@ -74,6 +77,7 @@
     });
 
     socket.on("teams_info", function (data) {
+      console.log("Inside function: teams_info")
       data = JSON.parse(data);
       match_num = data.match_num;
       teams = data.teams;
@@ -81,11 +85,13 @@
     });
 
     socket.on("state", function (data) {
+      console.log("Inside function: state")
       data = JSON.parse(data);
       state_msg.text(data.state);
     });
 
     socket.on("robot_connection", function (data) {
+      console.log("Inside function: robot_connection")
       data = JSON.parse(data);
       let msg = data.connected
         ? `Connected to ${data.robot_ip}`
@@ -96,34 +102,42 @@
     });
 
     function setDefaultTeamsInfo() {
+      console.log("Inside function: setDefaultTeamsInfo")
       match_num_input.val(match_num);
       for (let a = 0; a < 4; a++) {
         team_num_inputs[a].val(teams[a].team_num);
         team_name_inputs[a].val(teams[a].team_name);
-        team_sp_inputs[a].val(teams[a].starting_position);
+        // team_sp_inputs[a].val(teams[a].starting_position);
         robot_ip_inputs[a].val(teams[a].robot_ip);
       }
     }
 
     function toggleHeartbeat(ind, connected, message) {
-      const hbl = heartbeat_lights[ind];
+      console.log("Inside function: toggleHeartbeat")
+      
       if (connected == null) {
-        hbl.toggleClass("led-green", false);
-        hbl.toggleClass("led-red", false);
+        heartbeat_lights_green[ind].toggleClass("led-green", false);
+        heartbeat_lights_green[ind].toggleClass("led-green-off", true);
+        heartbeat_lights_red[ind].toggleClass("led-red", false);
+        heartbeat_lights_red[ind].toggleClass("led-red-off", true);          
       } else {
-        hbl.toggleClass("led-green", connected);
-        hbl.toggleClass("led-red", !connected);
+        heartbeat_lights_green[ind].toggleClass("led-green", connected);
+        heartbeat_lights_green[ind].toggleClass("led-green-off", !connected);
+        heartbeat_lights_red[ind].toggleClass("led-red", !connected);
+        heartbeat_lights_red[ind].toggleClass("led-red-off", connected);
       }
-      heartbeat_msgs[ind].text(message);
+      
     }
 
     next_match_btn.click(() => {
+      console.log("Inside onClick function: next_match_btn")
       match_num++;
       match_num_input.val("");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
     populate_btn.click(() => {
+      console.log("Inside onClick function: populate_btn")
       match_num = parseInt(match_num_input.val());
       if (isNaN(match_num)) {
         alert("invalid match number");
@@ -134,11 +148,12 @@
     });
 
     create_match_btn.click(() => {
+      console.log("Inside onClick function: create_match_btn")
       match_num = parseInt(match_num_input.val());
       for (let a = 0; a < 4; a++) {
         teams[a].team_num = parseInt(team_num_inputs[a].val());
         teams[a].team_name = team_name_inputs[a].val();
-        teams[a].starting_position = team_sp_inputs[a].val();
+        // teams[a].starting_position = team_sp_inputs[a].val();
         teams[a].robot_ip = robot_ip_inputs[a].val();
       }
       send(
@@ -148,10 +163,12 @@
     });
 
     start_match_btn.click(() => {
+      console.log("Inside onClick function: start_match_btn")
       send("start_next_stage");
     });
 
     reset_match_btn.click(() => {
+      console.log("Inside onClick function: reset_match_btn")
       send("reset_match");
     });
 
@@ -167,7 +184,9 @@
         });
       })(outer_a);
 
+    /* not used??? */
     $("#custom-ip-change").click(function () {
+      console.log("Inside onClick function: custom-ip-change")
       let ip = $("#custom-ip-adjustment").val();
       if (ip == "") {
         alert("empty custom ip");
@@ -177,7 +196,9 @@
       toggleHeartbeat(null, "awaiting connection");
     });
 
+    /* not used??? */
     $("#stop-robot").click(function () {
+      console.log("Inside onClick function: stop-robot")
       if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
         send("robot_off", JSON.stringify({ team_number: team_num }));
       }

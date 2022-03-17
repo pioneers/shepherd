@@ -178,6 +178,21 @@
   text-align: center;
   justify-self: center;
 }
+
+.led-green-off {
+  background-color: #2a4000 !important;
+  /* box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
+    blue 0 2px 12px !important; */
+  /* color: transparent; */
+}
+
+.led-red-off {
+  background-color: #400000 !important;
+  /* box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
+    blue 0 2px 12px !important; */
+  /* color: transparent; */
+}
+
 .s-led {
   grid-column: 9 / 11;
 }
