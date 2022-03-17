@@ -16,7 +16,9 @@ class TimerThread(threading.Thread):
     def run(self):
         """When started, thread will run and process Timers in queue until the queue is empty."""
         while Timer.eventQueue:
-            if not Timer.paused:
+            if Timer.paused:
+                break
+            else:
                 time_to_wait = Timer.update_all()
                 if time_to_wait > 0:
                     time.sleep(0.99 * time_to_wait)
@@ -71,27 +73,32 @@ class Timer:
     @classmethod
     def pause(cls):
         """Pause timer and get when it was paused"""
-        cls.queueLock.acquire()
         if cls.paused:
             print("Already paused")
         else:
+            cls.queueLock.acquire()
             cls.pauseStart = time.time()    
             cls.paused = True
-        cls.queueLock.release()
+            print("Pause status: " + cls.paused)
+            cls.queueLock.release()
+
 
     @classmethod
     def resume(cls):
         """Unpause timer and add difference of current time and when timer was paused
         to all timers."""
-        cls.queueLock.acquire()
         if not cls.paused:
             print("Not paused yet")
         else:
+            cls.queueLock.acquire()
             pauseEnd = time.time()
             for t in cls.eventQueue:
-                t.end_time = t.end_time + pauseEnd - cls.pauseStart
+                t.end_time += (pauseEnd - cls.pauseStart)
             cls.paused = False
-        cls.queueLock.release()
+            print("Pause status: " + cls.paused)
+            cls.queueLock.release()
+            Timer.thread.run()
+
 
     def __init__(self, timer_type):
         """
