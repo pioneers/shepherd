@@ -8,28 +8,28 @@ var state_time;
 var prevStateBlizzard = false;
 
 socket.on('connect', (data) => {
-  console.log("Successful ydl message: connect")
+  console.log("Successful ydl message: connect");
   socket.emit('join', 'scoreboard'); // not sure what this does
 });
 
 socket.on('teams_info', (match_info) => {
-  console.log("Successful ydl message: teams_info")
+  console.log("Successful ydl message: teams_info");
   console.log(`received team header with info ${match_info}`);
-  match_info = JSON.parse(match_info)
-  match_num = match_info.match_num
-  team_name_b1 = match_info.teams[0]["team_name"]
-  team_num_b1 = match_info.teams[0]["team_num"]
-  team_name_b2 = match_info.teams[1]["team_name"]
-  team_num_b2 = match_info.teams[1]["team_num"]
-  team_name_g1 = match_info.teams[2]["team_name"]
-  team_num_g1 = match_info.teams[2]["team_num"]
-  team_name_g2 = match_info.teams[3]["team_name"]
-  team_num_g2 = match_info.teams[3]["team_num"]
+  match_info = JSON.parse(match_info);
+  match_num = match_info.match_num;
+  team_name_b1 = match_info.teams[0]["team_name"];
+  team_num_b1 = match_info.teams[0]["team_num"];
+  team_name_b2 = match_info.teams[1]["team_name"];
+  team_num_b2 = match_info.teams[1]["team_num"];
+  team_name_g1 = match_info.teams[2]["team_name"];
+  team_num_g1 = match_info.teams[2]["team_num"];
+  team_name_g2 = match_info.teams[3]["team_name"];
+  team_num_g2 = match_info.teams[3]["team_num"];
   updateTeam(team_name_b1, team_num_b1, team_name_b2, 
-    team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2)
+    team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2);
   // setImageVisible('#total', false);
   // setImageVisible('.totalinfo', false);
-})
+});
 
 /*
 socket.on('stage_timer_start', (secondsInStage) => {
@@ -62,11 +62,11 @@ socket.on('stage_timer_start', (secondsInStage) => {
 
 // USE STATE, NOT STAGE!!!
 socket.on('state', (state_info) => {
-  console.log("Successful ydl message: state")
-  console.log(`received team header with info ${state_info}`)
-  state_info = JSON.parse(state_info)
-  state = state_info.state
-  state_time = state_info.state_time
+  console.log("Successful ydl message: state");
+  console.log(`received team header with info ${state_info}`);
+  state_info = JSON.parse(state_info);
+  state = state_info.state;
+  state_time = state_info.state_time;
 
   if (prevStateBlizzard && !(state === "blizzard")) {
     prevStateBlizzard = false;
@@ -90,16 +90,16 @@ socket.on('state', (state_info) => {
       setStartTime(start_time); //uses new Date().getTime(); as start_time
     }
   }
-})
+});
 
 socket.on("scores", (scores) => {
-  console.log("Successful ydl message: scores")
+  console.log("Successful ydl message: scores");
   console.log(`scores are ${JSON.stringify(scores)}`);
   scores = JSON.parse(scores);
   ({ blue_score, gold_score } = scores);
   setBlueScore(blue_score);
   setGoldScore(gold_score);
-})
+});
 
 // not used???
 // i think this is not used for 2022 game?
@@ -201,21 +201,21 @@ stage_names = {
 }
 
 function setStageName(stage) {
-  $('#stage').html(stage_names[stage])
+  $('#stage').html(stage_names[stage]);
 }
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   //set the name and numbers of the school and the match number jk
-  console.log("Inside function: updateTeam")
-  $('#team-name-b1').html(team_name_b1)
-  $('#team-num-b1').html("Team " + team_num_b1)
-  $('#team-name-b2').html(team_name_b2)
-  $('#team-num-b2').html("Team " + team_num_b2)
-  $('#team-name-g1').html(team_name_g1)
-  $('#team-num-g1').html("Team " + team_num_g1)
-  $('#team-name-g2').html(team_name_g2)
-  $('#team-num-g2').html("Team " + team_num_g2)
+  console.log("Inside function: updateTeam");
+  $('#team-name-b1').html(team_name_b1);
+  $('#team-num-b1').html("Team " + team_num_b1);
+  $('#team-name-b2').html(team_name_b2);
+  $('#team-num-b2').html("Team " + team_num_b2);
+  $('#team-name-g1').html(team_name_g1);
+  $('#team-num-g1').html("Team " + team_num_g1);
+  $('#team-name-g2').html(team_name_g2);
+  $('#team-num-g2').html("Team " + team_num_g2);
 }
 
 function stageTimerStart(startTime) {
@@ -245,7 +245,7 @@ function secondsToTimeString(seconds) {
 
 // not used???
 function setImageVisible(id, visible) {
-  console.log("Set visible/invisible")
+  console.log("Set visible/invisible");
   $(id).css("visibility", (visible ? 'visible' : 'hidden'));
 }
 

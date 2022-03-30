@@ -8,7 +8,7 @@
   // send: a function that sends a header through the socket, and also logs it
   function main_js_content(socket, send) {
     //add socket listeners and javascript stuff here
-    console.log("Inside function: main_js_content")
+    console.log("Inside function: main_js_content");
     var match_num = -1;
     var teams = [
       {
@@ -60,7 +60,7 @@
     const reset_match_btn = $("#match-reset");
 
     function individual(jq_obj) {
-      console.log("Inside function: individual")
+      console.log("Inside function: individual");
       let res = Array(jq_obj.length);
       for (let a = 0; a < jq_obj.length; a++) {
         res[a] = $(jq_obj[a]);
@@ -69,7 +69,7 @@
     }
 
     socket.on("connect", function (data) {
-      console.log("Inside function: connect")
+      console.log("Inside function: connect");
       socket.emit("join", "staff_gui");
       send("get_match_info");
       send("get_state");
@@ -77,7 +77,7 @@
     });
 
     socket.on("teams_info", function (data) {
-      console.log("Inside function: teams_info")
+      console.log("Inside function: teams_info");
       data = JSON.parse(data);
       match_num = data.match_num;
       teams = data.teams;
@@ -85,13 +85,13 @@
     });
 
     socket.on("state", function (data) {
-      console.log("Inside function: state")
+      console.log("Inside function: state");
       data = JSON.parse(data);
       state_msg.text(data.state);
     });
 
     socket.on("robot_connection", function (data) {
-      console.log("Inside function: robot_connection")
+      console.log("Inside function: robot_connection");
       data = JSON.parse(data);
       let msg = data.connected
         ? `Connected to ${data.robot_ip}`
@@ -102,7 +102,8 @@
     });
 
     function setDefaultTeamsInfo() {
-      console.log("Inside function: setDefaultTeamsInfo")
+      console.log("Inside function: setDefaultTeamsInfo");
+      // why is this function being called so often when it sets default values?
       match_num_input.val(match_num);
       for (let a = 0; a < 4; a++) {
         team_num_inputs[a].val(teams[a].team_num);
@@ -113,8 +114,8 @@
     }
 
     function toggleHeartbeat(ind, connected, message) {
-      console.log("Inside function: toggleHeartbeat")
-      
+      console.log("Inside function: toggleHeartbeat");
+      // should change connected based on robot index
       if (connected == null) {
         heartbeat_lights_green[ind].toggleClass("led-green", false);
         heartbeat_lights_green[ind].toggleClass("led-green-off", true);
@@ -126,18 +127,17 @@
         heartbeat_lights_red[ind].toggleClass("led-red", !connected);
         heartbeat_lights_red[ind].toggleClass("led-red-off", connected);
       }
-      
     }
 
     next_match_btn.click(() => {
-      console.log("Inside onClick function: next_match_btn")
+      console.log("Inside onClick function: next_match_btn");
       match_num++;
       match_num_input.val("");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
     populate_btn.click(() => {
-      console.log("Inside onClick function: populate_btn")
+      console.log("Inside onClick function: populate_btn");
       match_num = parseInt(match_num_input.val());
       if (isNaN(match_num)) {
         alert("invalid match number");
@@ -148,7 +148,7 @@
     });
 
     create_match_btn.click(() => {
-      console.log("Inside onClick function: create_match_btn")
+      console.log("Inside onClick function: create_match_btn");
       match_num = parseInt(match_num_input.val());
       for (let a = 0; a < 4; a++) {
         teams[a].team_num = parseInt(team_num_inputs[a].val());
@@ -163,12 +163,12 @@
     });
 
     start_match_btn.click(() => {
-      console.log("Inside onClick function: start_match_btn")
+      console.log("Inside onClick function: start_match_btn");
       send("start_next_stage");
     });
 
     reset_match_btn.click(() => {
-      console.log("Inside onClick function: reset_match_btn")
+      console.log("Inside onClick function: reset_match_btn");
       send("reset_match");
     });
 
@@ -186,7 +186,7 @@
 
     /* not used??? */
     $("#custom-ip-change").click(function () {
-      console.log("Inside onClick function: custom-ip-change")
+      console.log("Inside onClick function: custom-ip-change");
       let ip = $("#custom-ip-adjustment").val();
       if (ip == "") {
         alert("empty custom ip");
@@ -198,7 +198,7 @@
 
     /* not used??? */
     $("#stop-robot").click(function () {
-      console.log("Inside onClick function: stop-robot")
+      console.log("Inside onClick function: stop-robot");
       if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
         send("robot_off", JSON.stringify({ team_number: team_num }));
       }
