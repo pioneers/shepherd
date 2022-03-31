@@ -103,6 +103,8 @@ def set_teams_info(teams):
     # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
 
+def pause_timers():
+    Timer.pause()
 
 
 ###########################################
@@ -379,6 +381,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_ON.name: enable_robot,
     SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
+    SHEPHERD_HEADER.PAUSE_TIMERS.name: pause_timers,
 }
 
 if __name__ == '__main__':

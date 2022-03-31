@@ -55,6 +55,7 @@
     const create_match_btn = $("#create-match");
     const start_match_btn = $("#match-start");
     const reset_match_btn = $("#match-reset");
+    const pause_timers_btn = $("#pause-timers")
 
     function individual(jq_obj) {
       let res = Array(jq_obj.length);
@@ -152,6 +153,10 @@
     reset_match_btn.click(() => {
       send("reset_match");
     });
+
+    pause_timers_btn.click(() => {
+      send("pause_timers")
+    })
 
     for (let outer_a = 0; outer_a < 4; outer_a++)
       ((a) => {
@@ -367,6 +372,10 @@
     <button type="button" class="btn btn-danger spaced" id="match-reset">
       <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span
       >Reset Match
+    </button>
+    <button type="button" class="btn btn-danger spaced" id="pause-timers">
+      <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span
+      >Pause Timers
     </button>
   </div>
 </div>

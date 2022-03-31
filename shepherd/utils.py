@@ -118,6 +118,13 @@ class SHEPHERD_HEADER():
         source: Timer. Plays the blizzard warning sound.
         """
 
+    @header(YDL_TARGETS.SHEPHERD, "pause_timers")
+    def PAUSE_TIMERS():
+        """
+        source: UI. Pauses all timers; used in the event that the game
+        needs to be paused and continued from the state it was paused at.
+        """
+
 class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.
