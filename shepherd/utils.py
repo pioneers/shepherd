@@ -124,6 +124,13 @@ class SHEPHERD_HEADER():
         source: UI. Pauses all timers; used in the event that the game
         needs to be paused and continued from the state it was paused at.
         """
+    
+    @header(YDL_TARGETS.SHEPHERD, "resume_timers")
+    def RESUME_TIMERS():
+        """
+        source: UI. Resumes all timers; used to resume the game after it has
+        been paused using PAUSE_TIMERS.
+        """
 
 class UI_HEADER():
     """

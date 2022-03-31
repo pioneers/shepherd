@@ -58,6 +58,8 @@
     const create_match_btn = $("#create-match");
     const start_match_btn = $("#match-start");
     const reset_match_btn = $("#match-reset");
+    const pause_timers_btn = $("#pause-timers")
+    const resume_timers_btn = $("#resume-timers")
 
     function individual(jq_obj) {
       console.log("Inside function: individual");
@@ -81,6 +83,10 @@
       data = JSON.parse(data);
       match_num = data.match_num;
       teams = data.teams;
+      // console.log("teams from data team_name         :" + data.teams[0].team_name);
+      // console.log("teams from data team_num          :" + data.teams[0].team_num);
+      // console.log("teams from data robot_ip          :" + data.teams[0].robot_ip);
+      // console.log("teams from data starting_position :" + data.teams[0].starting_position);
       setDefaultTeamsInfo();
     });
 
@@ -88,6 +94,7 @@
       console.log("Inside function: state");
       data = JSON.parse(data);
       state_msg.text(data.state);
+      console.log("data.state: " + data.state);
     });
 
     socket.on("robot_connection", function (data) {
@@ -103,13 +110,13 @@
 
     function setDefaultTeamsInfo() {
       console.log("Inside function: setDefaultTeamsInfo");
-      // why is this function being called so often when it sets default values?
       match_num_input.val(match_num);
       for (let a = 0; a < 4; a++) {
         team_num_inputs[a].val(teams[a].team_num);
         team_name_inputs[a].val(teams[a].team_name);
         // team_sp_inputs[a].val(teams[a].starting_position);
         robot_ip_inputs[a].val(teams[a].robot_ip);
+        // console.log("Robot " + (a + 1) + ": " + teams[a].team_num + ", " + teams[a].team_name + ", " + teams[a].robot_ip);
       }
     }
 
@@ -172,6 +179,14 @@
       send("reset_match");
     });
 
+    pause_timers_btn.click(() => {
+      send("pause_timers")
+    })
+
+    resume_timers_btn.click(() => {
+      send("resume_timers")
+    })
+
     for (let outer_a = 0; outer_a < 4; outer_a++)
       ((a) => {
         robot_connect_btns[a].click(() => {
@@ -203,6 +218,8 @@
         send("robot_off", JSON.stringify({ team_number: team_num }));
       }
     });
+
+
   }
 </script>
 {% endblock %} {% block html_content %}
@@ -445,6 +462,14 @@
   <button class="red-btn" type="button" id="match-reset"
   >Reset
     Match</button>
+  </div>
+  <button class="red-btn" type="button" id="pause-timers"
+  >Pause
+    Timer</button>
+  </div>
+  <button class="red-btn" type="button" id="resume-timers"
+  >Resume
+    Timer</button>
   </div>
 
 

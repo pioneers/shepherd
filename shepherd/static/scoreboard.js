@@ -66,7 +66,7 @@ socket.on('state', (state_info) => {
   console.log(`received team header with info ${state_info}`);
   state_info = JSON.parse(state_info);
   state = state_info.state;
-  state_time = state_info.state_time;
+  state_time = state_info.state_time; //not used?
 
   if (prevStateBlizzard && !(state === "blizzard")) {
     prevStateBlizzard = false;
@@ -77,6 +77,7 @@ socket.on('state', (state_info) => {
     setStageName(state);
     setTime(0);
   } else if (state == "end") {
+    setStageName(state);
     stageTimer = false;
   } else {
     if (state === "blizzard") {

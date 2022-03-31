@@ -79,7 +79,7 @@ class Timer:
             cls.queueLock.acquire()
             cls.pauseStart = time.time()    
             cls.paused = True
-            print("Pause status: " + cls.paused)
+            print(f"Pause status: {cls.paused}")
             cls.queueLock.release()
 
 
@@ -95,7 +95,7 @@ class Timer:
             for t in cls.eventQueue:
                 t.end_time += (pauseEnd - cls.pauseStart)
             cls.paused = False
-            print("Pause status: " + cls.paused)
+            print(f"Pause status: {cls.paused}")
             cls.queueLock.release()
             Timer.thread.run()
 

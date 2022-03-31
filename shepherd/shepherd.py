@@ -106,6 +106,9 @@ def set_teams_info(teams):
 def pause_timers():
     Timer.pause()
 
+def resume_timers():
+    Timer.resume()
+
 
 ###########################################
 # Transition Methods
@@ -382,6 +385,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
     SHEPHERD_HEADER.PAUSE_TIMERS.name: pause_timers,
+    SHEPHERD_HEADER.RESUME_TIMERS.name: resume_timers,
 }
 
 if __name__ == '__main__':
