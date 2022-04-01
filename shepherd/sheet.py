@@ -109,7 +109,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A3:C").execute()['values']
+            range="Ref Scoring!A4:C").execute()['values']
 
         blue = None
         gold = None
