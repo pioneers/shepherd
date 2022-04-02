@@ -99,6 +99,12 @@ class SHEPHERD_HEADER():
         """
         source: UI. Attempts to connect team to robot with given ip.
         """
+    
+    @header(YDL_TARGETS.SHEPHERD, "disconnect_robot")
+    def DISCONNECT_ROBOT(ind):
+        """
+        source: UI. Takes in index and disconnects their robot.
+        """
 
     @header(YDL_TARGETS.SHEPHERD, "robot_off")
     def ROBOT_OFF(ind):

@@ -170,14 +170,17 @@ def to_teleop_1():
 
 def to_blizzard():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.BLIZZARD])
+    enable_robots(autonomous=False)
     set_state(STATE.BLIZZARD)
 
 def to_teleop_2():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_2])
+    enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
 
 def to_endgame():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
+    enable_robots(autonomous=False)
     set_state(STATE.ENDGAME)
 
 def to_end():
@@ -298,6 +301,14 @@ def enable_robots(autonomous):
     CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
 
 
+def enable_robot(ind):
+    '''
+    Send message to Runtime to enable the robot of team
+    '''
+    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    CLIENTS.clients[ind].send_mode(mode)
+
+
 def disable_robots():
     '''
     Sends message to Runtime to disable all robots
@@ -312,15 +323,11 @@ def disable_robot(ind):
     CLIENTS.clients[ind].send_mode(Mode.IDLE)
 
 
-def enable_robot(ind):
+def disconnect_robot(ind):
     '''
-    Send message to Runtime to enable the robot of team
+    Send message to Runtime to disconnect the robot of team
     '''
-    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
-    CLIENTS.clients[ind].send_mode(mode)
-
-
-
+    CLIENTS.clients[ind].close_connection()
 
 
 
@@ -383,6 +390,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF.name: disable_robot,
     SHEPHERD_HEADER.ROBOT_ON.name: enable_robot,
     SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
+    SHEPHERD_HEADER.DISCONNECT_ROBOT.name: disconnect_robot,
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
     SHEPHERD_HEADER.PAUSE_TIMERS.name: pause_timers,
     SHEPHERD_HEADER.RESUME_TIMERS.name: resume_timers,

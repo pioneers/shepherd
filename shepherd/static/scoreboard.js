@@ -9,7 +9,7 @@ var prevStateBlizzard = false;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
-  socket.emit('join', 'scoreboard'); // not sure what this does
+  socket.emit('join', 'scoreboard');
 });
 
 socket.on('teams_info', (match_info) => {
@@ -66,7 +66,7 @@ socket.on('state', (state_info) => {
   console.log(`received team header with info ${state_info}`);
   state_info = JSON.parse(state_info);
   state = state_info.state;
-  state_time = state_info.state_time; //not used?
+  state_time = state_info.state_time;
 
   if (prevStateBlizzard && !(state === "blizzard")) {
     prevStateBlizzard = false;
@@ -88,7 +88,7 @@ socket.on('state', (state_info) => {
     clearTimeout(myStageTimeout);
     start_time = state_info.start_time;
     if (start_time != null) {
-      setStartTime(start_time); //uses new Date().getTime(); as start_time
+      setStartTime(start_time);
     }
   }
 });
@@ -207,7 +207,6 @@ function setStageName(stage) {
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
-  //set the name and numbers of the school and the match number jk
   console.log("Inside function: updateTeam");
   $('#team-name-b1').html(team_name_b1);
   $('#team-num-b1').html("Team " + team_num_b1);

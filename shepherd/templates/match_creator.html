@@ -47,14 +47,16 @@
     const populate_btn = $("#select-round");
     const team_num_inputs = individual($(".team-num"));
     const team_name_inputs = individual($(".team-name"));
-    // const team_sp_inputs = individual($(".team-starting-position-input")); // ?
+    // const team_sp_inputs = individual($(".team-starting-position-input"));
     const robot_ip_inputs = individual($(".robot-ip"));
     const robot_connect_btns = individual($(".connect"));
     const robot_disconnect_btns = individual($(".disconnect"));
     const heartbeat_lights_green = individual($(".led-green"));
     const heartbeat_lights_red = individual($(".led-red"));
-    // const heartbeat_msgs = individual($(".heartbeat-message"));
-    const state_msg = $(".state-msg"); // ?
+    const robot_start_btns = individual($(".start"));
+    const robot_stop_btns = individual($(".stop"));
+    const state_msg = individual($(".state-msg"));
+    const match_phase_input = $("#select-match-phase");
     const create_match_btn = $("#create-match");
     const start_match_btn = $("#match-start");
     const reset_match_btn = $("#match-reset");
@@ -83,18 +85,22 @@
       data = JSON.parse(data);
       match_num = data.match_num;
       teams = data.teams;
-      // console.log("teams from data team_name         :" + data.teams[0].team_name);
-      // console.log("teams from data team_num          :" + data.teams[0].team_num);
-      // console.log("teams from data robot_ip          :" + data.teams[0].robot_ip);
-      // console.log("teams from data starting_position :" + data.teams[0].starting_position);
       setDefaultTeamsInfo();
+      next_match_btn.prop("disabled", false);
+      next_match_btn.removeClass("disabled-btn");
+      next_match_btn.addClass("green-btn");
+      populate_btn.prop("disabled", false);
+      populate_btn.removeClass("disabled-btn");
+      populate_btn.addClass("green-btn");
+
     });
 
     socket.on("state", function (data) {
       console.log("Inside function: state");
       data = JSON.parse(data);
-      state_msg.text(data.state);
-      console.log("data.state: " + data.state);
+      for (let a = 0; a < 4; a++) {
+        state_msg[a].text(data.state);
+      }
     });
 
     socket.on("robot_connection", function (data) {
@@ -116,18 +122,16 @@
         team_name_inputs[a].val(teams[a].team_name);
         // team_sp_inputs[a].val(teams[a].starting_position);
         robot_ip_inputs[a].val(teams[a].robot_ip);
-        // console.log("Robot " + (a + 1) + ": " + teams[a].team_num + ", " + teams[a].team_name + ", " + teams[a].robot_ip);
       }
     }
 
     function toggleHeartbeat(ind, connected, message) {
       console.log("Inside function: toggleHeartbeat");
-      // should change connected based on robot index
       if (connected == null) {
         heartbeat_lights_green[ind].toggleClass("led-green", false);
         heartbeat_lights_green[ind].toggleClass("led-green-off", true);
         heartbeat_lights_red[ind].toggleClass("led-red", false);
-        heartbeat_lights_red[ind].toggleClass("led-red-off", true);          
+        heartbeat_lights_red[ind].toggleClass("led-red-off", true);
       } else {
         heartbeat_lights_green[ind].toggleClass("led-green", connected);
         heartbeat_lights_green[ind].toggleClass("led-green-off", !connected);
@@ -140,6 +144,12 @@
       console.log("Inside onClick function: next_match_btn");
       match_num++;
       match_num_input.val("");
+      next_match_btn.prop("disabled", true);
+      next_match_btn.removeClass("green-btn");
+      next_match_btn.addClass("disabled-btn");
+      populate_btn.prop("disabled", true);
+      populate_btn.removeClass("green-btn");
+      populate_btn.addClass("disabled-btn");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
@@ -151,12 +161,30 @@
         return;
       }
       match_num_input.val("");
+      next_match_btn.prop("disabled", true);
+      next_match_btn.removeClass("green-btn");
+      next_match_btn.addClass("disabled-btn");
+      populate_btn.prop("disabled", true);
+      populate_btn.removeClass("green-btn");
+      populate_btn.addClass("disabled-btn");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
     create_match_btn.click(() => {
       console.log("Inside onClick function: create_match_btn");
       match_num = parseInt(match_num_input.val());
+      if (isNaN(match_num)) {
+        alert("invalid match number");
+        return;
+      }
+      for (let a = 0; a < 4; a++) {
+        if (isNaN(parseInt(team_num_inputs[a].val()))) {
+          let error_message = "Invalid team number for robot ";
+          error_message += ((a == 0 || a == 1) ? "Blue" : "Gold") + " " + (a % 2 + 1);
+          alert(error_message);
+          return;
+        }
+      }
       for (let a = 0; a < 4; a++) {
         teams[a].team_num = parseInt(team_num_inputs[a].val());
         teams[a].team_name = team_name_inputs[a].val();
@@ -170,8 +198,16 @@
     });
 
     start_match_btn.click(() => {
-      console.log("Inside onClick function: start_match_btn");
-      send("start_next_stage");
+      console.log("Inside onClick function: start_match_btn");      
+      let match_phase = match_phase_input.val();
+      if (match_phase == "") {
+        send("start_next_stage");
+      } else {
+        send(
+          "set_state",
+          JSON.stringify({ state: match_phase })
+        );
+      }
     });
 
     reset_match_btn.click(() => {
@@ -180,6 +216,7 @@
     });
 
     pause_timers_btn.click(() => {
+      console.log("Inside onClick function: pause_timers_btn");
       send("pause_timers")
     })
 
@@ -190,6 +227,7 @@
     for (let outer_a = 0; outer_a < 4; outer_a++)
       ((a) => {
         robot_connect_btns[a].click(() => {
+          console.log("Inside onClick function: robot_connect_btns");
           teams[a].robot_ip = robot_ip_inputs[a].val();
           toggleHeartbeat(a, null, "awaiting connection...");
           send(
@@ -199,7 +237,51 @@
         });
       })(outer_a);
 
-    /* not used??? */
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+    ((a) => {
+      robot_disconnect_btns[a].click(() => {
+        console.log("Inside onClick function: robot_disconnect_btns");
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+        toggleHeartbeat(a, null, "awaiting connection...");
+        send(
+          "disconnect_robot",
+          JSON.stringify({ ind: a })
+        );
+      });
+    })(outer_a);
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+      ((a) => {
+        robot_start_btns[a].click(() => {
+          console.log("Inside onClick function: robot_start_btns");
+          teams[a].robot_ip = robot_ip_inputs[a].val();
+
+
+          toggleHeartbeat(a, null, "awaiting connection...");
+          send(
+            "robot_on",
+            JSON.stringify({ ind: a })
+          );
+        });
+      })(outer_a);
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+    ((a) => {
+      robot_stop_btns[a].click(() => {
+        console.log("Inside onClick function: robot_stop_btns");
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+
+
+        toggleHeartbeat(a, null, "awaiting connection...");
+          send(
+            "robot_off",
+            JSON.stringify({ ind: a })
+          );
+      });
+    })(outer_a);
+
+    /* not used */
+    /*
     $("#custom-ip-change").click(function () {
       console.log("Inside onClick function: custom-ip-change");
       let ip = $("#custom-ip-adjustment").val();
@@ -211,14 +293,13 @@
       toggleHeartbeat(null, "awaiting connection");
     });
 
-    /* not used??? */
     $("#stop-robot").click(function () {
       console.log("Inside onClick function: stop-robot");
       if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
         send("robot_off", JSON.stringify({ team_number: team_num }));
       }
     });
-
+    */
 
   }
 </script>
@@ -273,7 +354,7 @@
     <div class="start-stop">
       <button class="start green-btn" type="button">start</button>
         <button class="stop red-btn" type="button">stop</button>
-        <h3>
+        <h3 class="state-msg">
           TELEOP
         </h3>
     </div>
@@ -326,7 +407,7 @@
     <div class="start-stop">
       <button class="start green-btn" type="button">start</button>
         <button class="stop red-btn" type="button">stop</button>
-        <h3>
+        <h3 class="state-msg">
           TELEOP
         </h3>
     </div>
@@ -379,7 +460,7 @@
     <div class="start-stop">
       <button class="start green-btn" type="button">start</button>
         <button class="stop red-btn" type="button">stop</button>
-        <h3>
+        <h3 class="state-msg">
           TELEOP
         </h3>
     </div>
@@ -432,7 +513,7 @@
     <div class="start-stop">
       <button class="start green-btn" type="button">start</button>
         <button class="stop red-btn" type="button">stop</button>
-        <h3>
+        <h3 class="state-msg">
           TELEOP
         </h3>
     </div>
@@ -452,7 +533,7 @@
     <h3>Match Control</h3>
   <input
 
-    type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2">
+    type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2" id="select-match-phase">
   <button class="green-btn" type="button" id="create-match"
     >Create
     Match</button>

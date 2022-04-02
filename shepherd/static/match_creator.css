@@ -181,16 +181,10 @@
 
 .led-green-off {
   background-color: #2a4000 !important;
-  /* box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
-    blue 0 2px 12px !important; */
-  /* color: transparent; */
 }
 
 .led-red-off {
   background-color: #400000 !important;
-  /* box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px,
-    blue 0 2px 12px !important; */
-  /* color: transparent; */
 }
 
 .s-led {
@@ -264,6 +258,13 @@
   width: calc(40px * calc(var(--level) / 100));
   /* width: calc(24px * calc(50 / 100)); */
   height: 15px;
+}
+
+.disabled-btn {
+  background-color: #2a4000;
+  transition: var(--transition);
+  color: var(--white);
+  cursor: default;
 }
 
 @media only screen and (max-width: 1200px) {
