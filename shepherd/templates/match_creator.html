@@ -255,9 +255,6 @@
         robot_start_btns[a].click(() => {
           console.log("Inside onClick function: robot_start_btns");
           teams[a].robot_ip = robot_ip_inputs[a].val();
-
-
-          toggleHeartbeat(a, null, "awaiting connection...");
           send(
             "robot_on",
             JSON.stringify({ ind: a })
@@ -270,9 +267,6 @@
       robot_stop_btns[a].click(() => {
         console.log("Inside onClick function: robot_stop_btns");
         teams[a].robot_ip = robot_ip_inputs[a].val();
-
-
-        toggleHeartbeat(a, null, "awaiting connection...");
           send(
             "robot_off",
             JSON.stringify({ ind: a })
