@@ -6,10 +6,11 @@ var stageTimer = true;
 var myStageTimeout;
 var state_time;
 var prevStateBlizzard = false;
+var prev_start_time;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
-  socket.emit('join', 'scoreboard'); // not sure what this does
+  socket.emit('join', 'scoreboard');
 });
 
 socket.on('teams_info', (match_info) => {
@@ -77,6 +78,7 @@ socket.on('state', (state_info) => {
     setStageName(state);
     setTime(0);
   } else if (state == "end") {
+    setStageName(state);
     stageTimer = false;
   } else {
     if (state === "blizzard") {
@@ -87,7 +89,8 @@ socket.on('state', (state_info) => {
     clearTimeout(myStageTimeout);
     start_time = state_info.start_time;
     if (start_time != null) {
-      setStartTime(start_time); //uses new Date().getTime(); as start_time
+      prev_start_time = start_time;
+      setStartTime(start_time);
     }
   }
 });
@@ -99,6 +102,20 @@ socket.on("scores", (scores) => {
   ({ blue_score, gold_score } = scores);
   setBlueScore(blue_score);
   setGoldScore(gold_score);
+});
+
+socket.on("pause_timer", () => {
+  console.log("Successful ydl message: pause_timer");
+  clearTimeout(myStageTimeout);
+  stageTimer = false;
+});
+
+socket.on("resume_timer", (start_time) => {
+  console.log("Successful ydl message: resume_timer");
+  start_time_info = JSON.parse(start_time);
+
+  stageTimer = true;
+  runStageTimer((new Date().getTime() / 1000) - (start_time_info.start_time - prev_start_time / 1000));
 });
 
 // not used???
@@ -206,7 +223,6 @@ function setStageName(stage) {
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
-  //set the name and numbers of the school and the match number jk
   console.log("Inside function: updateTeam");
   $('#team-name-b1').html(team_name_b1);
   $('#team-num-b1').html("Team " + team_num_b1);
@@ -227,7 +243,7 @@ function runStageTimer(startTime) {
   if (stageTimer) {
     const currTime = new Date().getTime() / 1000;
     let time = state_time - (currTime - startTime);
-    if (time < 0) {
+    if (time < 0 || isNaN(time)) {
       time = 0;
     }
     $('#stage-timer').html(secondsToTimeString(time));

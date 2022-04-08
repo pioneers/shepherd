@@ -118,12 +118,12 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return
 
     @staticmethod
