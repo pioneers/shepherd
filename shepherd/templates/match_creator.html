@@ -217,11 +217,12 @@
 
     pause_timers_btn.click(() => {
       console.log("Inside onClick function: pause_timers_btn");
-      send("pause_timers")
+      send("pause_timer")
     })
 
     resume_timers_btn.click(() => {
-      send("resume_timers")
+      console.log("Inside onClick function: resume_timers_btn");
+      send("resume_timer")
     })
 
     for (let outer_a = 0; outer_a < 4; outer_a++)
@@ -524,27 +525,27 @@
     <button class="green-btn" type="button" id="next-round">Next</button>
   </div>
   <div class="match-creator">
-    <h3>Match Control</h3>
-  <input
+    <h4>Match Control</h4>
+    <input
 
-    type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2" id="select-match-phase">
-  <button class="green-btn" type="button" id="create-match"
-    >Create
-    Match</button>
-  <button class="green-btn" type="button" id="match-start"
-    >Start
-    Match</button>
-  <button class="red-btn" type="button" id="match-reset"
-  >Reset
-    Match</button>
-  </div>
-  <button class="red-btn" type="button" id="pause-timers"
-  >Pause
-    Timer</button>
-  </div>
-  <button class="red-btn" type="button" id="resume-timers"
-  >Resume
-    Timer</button>
+      type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2" id="select-match-phase">
+    <button class="green-btn" type="button" id="create-match"
+      >Create
+      Match</button>
+    <button class="green-btn" type="button" id="match-start"
+      >Start
+      Match</button>
+    <button class="red-btn" type="button" id="match-reset"
+    >Reset
+      Match</button>
+    <div class="timer-controls">
+      <button class="red-btn" type="button" id="pause-timers"
+      >Pause
+        Timer</button>
+      <button class="red-btn" type="button" id="resume-timers"
+      >Resume
+        Timer</button>
+    </div>
   </div>
 
 

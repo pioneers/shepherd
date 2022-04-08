@@ -8,6 +8,7 @@ from protos.run_mode_pb2 import Mode, TELEOP
 from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
+import time
 
 
 
@@ -103,11 +104,16 @@ def set_teams_info(teams):
     # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
 
-def pause_timers():
+def pause_timer():
     Timer.pause()
+    ydl_send(*UI_HEADER.PAUSE_TIMER())
 
-def resume_timers():
+def resume_timer():
+    ydl_send(*UI_HEADER.RESUME_TIMER(start_time=(GAME_TIMER.pauseStart)))
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ")
     Timer.resume()
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB: ")
+
 
 
 ###########################################
@@ -392,8 +398,8 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
     SHEPHERD_HEADER.DISCONNECT_ROBOT.name: disconnect_robot,
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
-    SHEPHERD_HEADER.PAUSE_TIMERS.name: pause_timers,
-    SHEPHERD_HEADER.RESUME_TIMERS.name: resume_timers,
+    SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
+    SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
 }
 
 if __name__ == '__main__':

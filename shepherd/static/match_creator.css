@@ -73,7 +73,7 @@
   box-shadow: var(--darkShadow);
 }
 
-.match-creator > h3 {
+.match-creator > h4 {
   margin: 0;
   text-align: center;
   align-self: center;
@@ -81,6 +81,13 @@
 }
 .match-creator > input {
   height: auto;
+}
+
+.timer-controls {
+  display: grid;
+  gap: 0.5rem;
+  box-shadow: var(--darkShadow);
+  grid-template-columns: repeat(2, 1fr);
 }
 
 /* blue1 blue2 gold1 gold2 cells */
@@ -303,7 +310,7 @@
     grid-row: 1 / 2;
   }
 
-  .match-creator > h3 {
+  .match-creator > h4 {
     font-size: 1.5rem;
   }
   .start-stop > h3 {

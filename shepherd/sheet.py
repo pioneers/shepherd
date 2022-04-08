@@ -34,14 +34,14 @@ class Sheet:
             try:
                 spreadsheet = Sheet.__get_authorized_sheet()
                 game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                    range="Match Database!A2:N").execute()['values']
+                    range="Match Database!A2:M").execute()['values']
             except: # pylint: disable=bare-except
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Fetching data from offline csv file")
                 with open(CONSTANTS.CSV_FILE_NAME) as csv_file:
                     game_data = list(csv.reader(csv_file, delimiter=','))[1:]
 
-            return_len = 14
+            return_len = 13
             lst = [""] * return_len
             for row in game_data:
                 if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
@@ -49,9 +49,9 @@ class Sheet:
                     break
             teams = [{},{},{},{}]
             for a in range(4):
-                teams[a]["team_num"] = int(lst[3*a+1]) if lst[3*a+1].isdigit() else -1
-                teams[a]["team_name"] = lst[3*a+2]
-                teams[a]["robot_ip"] = lst[3*a+3]
+                teams[a]["team_num"] = int(lst[3*a]) if lst[3*a].isdigit() else -1
+                teams[a]["team_name"] = lst[3*a+1]
+                teams[a]["robot_ip"] = lst[3*a+2]
             ydl_send(*SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
 
         threading.Thread(target=bg_thread_work).start()
@@ -109,7 +109,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A3:C").execute()['values']
+            range="Ref Scoring!A4:C").execute()['values']
 
         blue = None
         gold = None
@@ -118,12 +118,12 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SEND_SCORES(scores=[blue, gold]))
+                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return
 
     @staticmethod
