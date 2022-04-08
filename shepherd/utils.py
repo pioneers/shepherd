@@ -7,6 +7,16 @@ class YDL_TARGETS():
     SENSORS = "ydl_target_sensors"
 
 class SHEPHERD_HEADER():
+    @header(YDL_TARGETS.SHEPHERD, "button_press")
+    def BUTTON_PRESS():
+        """
+        """
+
+    @header(YDL_TARGETS.SHEPHERD, "turn_button_light_ui")
+    def TURN_BUTTON_LIGHT_FROM_UI(num, on):
+        """
+        """
+
     @header(YDL_TARGETS.SHEPHERD, "get_match_info")
     def GET_MATCH_INFO():
         """
@@ -175,6 +185,45 @@ class SENSOR_HEADER():
     #   """
     #   example header doc string
     #   """
+
+    
+    @header(YDL_TARGETS.SENSORS, "turn_on_button_light")
+    def TURN_ON_BUTTON_LIGHT(id: int):
+      """
+      example header doc string
+      """
+
+    @header(YDL_TARGETS.SENSORS, "turn_off_button_light")
+    def TURN_OFF_BUTTON_LIGHT(id: int):
+      """
+      example header doc string
+      """
+
+    @header(YDL_TARGETS.SENSORS, "turn_on_midline")
+    def TURN_ON_MIDLINE(id: int):
+      """
+      example header doc string
+      """
+
+    @header(YDL_TARGETS.SENSORS, "turn_off_midline")
+    def TURN_OFF_MIDLINE(id: int):
+      """
+      example header doc string
+      """
+    
+    @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
+    def TURN_ON_LASERS():
+      """
+      example header doc string
+      """
+
+    @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
+    def TURN_OFF_LASERS():
+      """
+      example header doc string
+      """
+    
+
 
 # A dictionary of pages -> whether page is password protected
 # password.html should not be included in this list, since
