@@ -24,8 +24,10 @@
     // lights
     const l_blizzard_light_btn = $("#l-blizzard-light-btn");
     const r_blizzard_light_btn = $("#r-blizzard-light-btn");
-    const beacon_1_btn = $("#beacon-1-btn");
-    const beacon_2_btn = $("#beacon-2-btn");
+    const beacon_1_btn_on = $("#beacon-1-btn-on");
+    const beacon_1_btn_off = $("#beacon-1-btn-off");
+    const beacon_2_btn_on = $("#beacon-2-btn-on");
+    const beacon_2_btn_off = $("#beacon-2-btn-off");
 
     const pause_btn = $("#pause-btn");
     const resume_btn = $("#resume-btn");
@@ -95,6 +97,7 @@
       for (let a = 0; a < 4; a++) send("robot_on", JSON.stringify({ ind: a }));
     });
 
+    /*
     // stop one robot
     estop_blue1_btn.click(() => {
       send("robot_off", JSON.stringify({ ind: 0 }));
@@ -122,6 +125,7 @@
     estart_gold2_btn.click(() => {
       send("robot_on", JSON.stringify({ ind: 3 }));
     });
+    */
 
     auto_btn.click(() => {
       send("set_state", JSON.stringify({ state: "auto" }));
@@ -138,6 +142,23 @@
     end_btn.click(() => {
       send("set_state", JSON.stringify({ state: "end" }));
     });
+
+    beacon_1_btn_on.click(() => {
+      send("turn_button_light_ui", JSON.stringify({num: 0, on: true}))
+    })
+
+    beacon_1_btn_off.click(() => {
+      send("turn_button_light_ui", JSON.stringify({num: 0, on: false}))
+    })
+
+    beacon_2_btn_on.click(() => {
+      send("turn_button_light_ui", JSON.stringify({num: 1, on: true}))
+    })
+
+    beacon_2_btn_off.click(() => {
+      send("turn_button_light_ui", JSON.stringify({num: 1, on: false}))
+    })
+
 
     // these are new functions that need to know what to appropiately send
     pause_btn.click(() => {
@@ -307,11 +328,17 @@
         <button class="btn btn-info" type="button" id="r-blizzard-light-btn">
           R Blizzard Light
         </button>
-        <button class="btn btn-info" type="button" id="beacon-1-btn">
-          Beacon #1
+        <button class="btn btn-info" type="button" id="beacon-1-btn-on">
+          Beacon #1 on
         </button>
-        <button class="btn btn-info" type="button" id="beacon-2-btn">
-          Beacon #2
+        <button class="btn btn-info" type="button" id="beacon-1-btn-off">
+          Beacon #1 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-2-btn-on">
+          Beacon #2 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-2-btn-off">
+          Beacon #2 off
         </button>
       </span>
     </div>

@@ -185,7 +185,7 @@ previous_debounced_value = {} # TODO: move this.
 # Game Specific Variables
 ################################################
 
-"""
+
 
 # This is what sensors looked like in Spring 2021
 # Feel free to take inspiration from this code
@@ -196,16 +196,16 @@ previous_debounced_value = {} # TODO: move this.
 
 class Light(Parameter):
     def value_from_header(self, header):
-        if (header[0] == SENSOR_HEADER.TURN_ON_LIGHT.name 
-            or header[0] == SENSOR_HEADER.TURN_ON_FIRE_LIGHT.name
+        if (header[0] == SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name
+            or header[0] == SENSOR_HEADER.TURN_ON_MIDLINE.name
             or header[0] == SENSOR_HEADER.TURN_ON_LASERS.name):
             return True
-        elif (header[0] == SENSOR_HEADER.TURN_OFF_LIGHT.name 
-            or header[0]  == SENSOR_HEADER.TURN_OFF_FIRE_LIGHT.name
+        if (header[0] == SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name
+            or header[0]  == SENSOR_HEADER.TURN_OFF_MIDLINE.name
             or header[0]  == SENSOR_HEADER.TURN_OFF_LASERS.name):
             return False
         raise Exception(f"Attempting to get value of light, but header[0] is {header[0]}")
-        
+
 class DehydrationButton(Parameter):
     def is_state_change_significant(self, value: bool, previous_value: bool):
         return value == True and previous_value == False
@@ -217,7 +217,8 @@ class DehydrationButton(Parameter):
         }
         return args
         # self.identifier is which button
-    
+"""
+
 class GenericButton(Parameter):
     def is_state_change_significant(self, value: bool, previous_value: bool):
         return value == True and previous_value == False
@@ -243,50 +244,64 @@ class TrafficLight(Parameter):
             else:
                 raise Exception("Traffic light can only be red or green.")
         raise Exception(f"Attempting to get value of traffic light but header[0] is {header[0]}")
+"""
 
-linebreak_debounce_threshold = 10 # samples
+#linebreak_debounce_threshold = 10 # samples
 
 # how fast are we polling? 100 Hz
-
-city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK.name, debounce_threshold=linebreak_debounce_threshold)
-traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.STOPLIGHT_CROSS.name, debounce_threshold=linebreak_debounce_threshold)
-desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, ydl_header=SHEPHERD_HEADER.DESERT_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
-dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, ydl_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
-hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, ydl_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
-airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, ydl_header=SHEPHERD_HEADER.FINAL_ENTRY.name, debounce_threshold=linebreak_debounce_threshold)
-
-fire_lever = GenericButton(name="fire_lever", should_poll=True, ydl_header=SHEPHERD_HEADER.FIRE_LEVER.name)
-
-traffic_button = GenericButton(name="traffic_button", should_poll=True, ydl_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS.name)
-traffic_light = TrafficLight(name="traffic_light", should_poll=False)
-
-num_dehydration_buttons = 7
-
-dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, identifier=i, ydl_header=SHEPHERD_HEADER.DEHYDRATION_BUTTON_PRESS.name) for i in range(num_dehydration_buttons)]
-lights = [Light(name=f"light{i}", should_poll=False, identifier=i) for i in range(num_dehydration_buttons)]
-fire_light = Light(name="fire_light", should_poll=False)
-
-lasers = Light(name="lasers", should_poll=False)
-
-arduino_1 = Device(1, 1, lights + dehydration_buttons)
-arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
-arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
-arduino_4 = Device(4, 4, [lasers])
 """
+city_linebreak = GenericButton(name="city_linebreak", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.CITY_LINEBREAK, debounce_threshold=linebreak_debounce_threshold)
+traffic_linebreak = GenericButton(name="traffic_linebreak", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.STOPLIGHT_CROSS, debounce_threshold=linebreak_debounce_threshold)
+desert_linebreak = GenericButton(name="desert_linebreak", should_poll=True, identifier=2, ydl_header=SHEPHERD_HEADER.DESERT_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+dehydration_linebreak = GenericButton(name="dehydration_linebreak", should_poll=True, identifier=3, ydl_header=SHEPHERD_HEADER.DEHYDRATION_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+hypothermia_linebreak = GenericButton(name="hypothermia_linebreak", should_poll=True, identifier=4, ydl_header=SHEPHERD_HEADER.HYPOTHERMIA_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+airport_linebreak = GenericButton(name="airport_linebreak", should_poll=True, identifier=5, ydl_header=SHEPHERD_HEADER.FINAL_ENTRY, debounce_threshold=linebreak_debounce_threshold)
+
+fire_lever = GenericButton(name="fire_lever", should_poll=True, ydl_header=SHEPHERD_HEADER.FIRE_LEVER)
+
+traffic_button = GenericButton(name="traffic_button", should_poll=True, ydl_header=SHEPHERD_HEADER.STOPLIGHT_BUTTON_PRESS)
+traffic_light = TrafficLight(name="traffic_light", should_poll=False)
+"""
+
+
+#num_dehydration_buttons = 7
+
+#dehydration_buttons = [DehydrationButton(name=f"button{i}", should_poll=True, \
+#    identifier=i, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name) \
+#        for i in range(num_dehydration_buttons)]
+#lights = [Light(name=f"light{i}", should_poll=False, identifier=i) \
+#    for i in range(num_dehydration_buttons)]
+#fire_light = Light(name="fire_light", should_poll=False)
+
+#lasers = Light(name="lasers", should_poll=False)
+
+
+button_0 = DehydrationButton(name="button0", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+button_1 = DehydrationButton(name="button1", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+blight_0 = Light(name="light0", should_poll=False, identifier=0)
+blight_1 = Light(name="light1", should_poll=False, identifier=0)
+
+
+arduino_1 = Device(1, 1, [button_0, blight_0])
+arduino_2 = Device(2, 2, [button_1, blight_1])
+#arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
+#arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
+#arduino_4 = Device(4, 4, [lasers])
+
 
 ################################################
 # Evergreen Variables (may still need to be updated)
 ################################################
 
 HEADER_MAPPINGS = {
-    # SENSOR_HEADER.TURN_ON_LIGHT.name : lights,
-    # SENSOR_HEADER.TURN_OFF_LIGHT.name : lights,
-    # SENSOR_HEADER.SET_TRAFFIC_LIGHT.name : [traffic_light],
-    # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT.name : [traffic_light],
-    # SENSOR_HEADER.TURN_ON_FIRE_LIGHT.name : [fire_light],
-    # SENSOR_HEADER.TURN_OFF_FIRE_LIGHT.name : [fire_light],
-    # SENSOR_HEADER.TURN_OFF_LASERS.name: [lasers],
-    # SENSOR_HEADER.TURN_ON_LASERS.name: [lasers],
+    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name : [blight_0, blight_1],
+    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name : [blight_0, blight_1],
+    # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
+    # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
+    # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_FIRE_LIGHT : [fire_light],
+    # SENSOR_HEADER.TURN_OFF_LASERS: [lasers],
+    # SENSOR_HEADER.TURN_ON_LASERS: [lasers],
 }
 
 #used to request values from lowcar (non-polled)
@@ -295,7 +310,7 @@ HEADER_COMMAND_MAPPINGS = {
 }
 
 arduinos = {
-    # arduino_1.get_identifier(): arduino_1, 
+    arduino_1.get_identifier(): arduino_1, 
     # arduino_2.get_identifier(): arduino_2,
     # arduino_3.get_identifier(): arduino_3,
     # arduino_4.get_identifier(): arduino_4,

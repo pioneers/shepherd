@@ -346,6 +346,12 @@ def sound_blizzard_warning():
     # TODO: figure out audio
     pass
 
+def forward_button_light(num, on):
+    if on:
+        ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=num))
+    else:
+        ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=num))
+
 
 
 ###########################################
@@ -400,6 +406,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
     SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
     SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
+    SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,
 }
 
 if __name__ == '__main__':
