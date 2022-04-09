@@ -109,6 +109,12 @@ class SHEPHERD_HEADER():
         """
         source: UI. Attempts to connect team to robot with given ip.
         """
+    
+    @header(YDL_TARGETS.SHEPHERD, "disconnect_robot")
+    def DISCONNECT_ROBOT(ind):
+        """
+        source: UI. Takes in index and disconnects their robot.
+        """
 
     @header(YDL_TARGETS.SHEPHERD, "robot_off")
     def ROBOT_OFF(ind):
@@ -126,6 +132,28 @@ class SHEPHERD_HEADER():
     def SOUND_BLIZZARD_WARNING():
         """
         source: Timer. Plays the blizzard warning sound.
+        """
+
+    @header(YDL_TARGETS.SHEPHERD, "pause_timer")
+    def PAUSE_TIMER():
+        """
+        source: UI. Pauses GAME_TIMER in Shepherd; used in the event that the game
+        needs to be paused and continued from the state it was paused at.
+        """
+    
+    @header(YDL_TARGETS.SHEPHERD, "resume_timer")
+    def RESUME_TIMER():
+        """
+        source: UI. Resume GAME_TIMER in Shepherd; used to resume the game after it has
+        been paused using PAUSE_TIMERS.
+        """
+    
+    @header(YDL_TARGETS.SHEPHERD, "resume_timer_finished")
+    def RESUME_TIMER_FINISHED():
+        """
+        source: Timer. Resumes and finishes the work of the resume_timer header. 
+        This was added only because Timer.resume() takes some time to finish running. 
+        This extra header allows the timer to actually resume on time
         """
 
 class UI_HEADER():
@@ -172,7 +200,23 @@ class UI_HEADER():
     @header(YDL_TARGETS.UI, "reset_timers")
     def RESET_TIMERS():
         """
-        reset all timers
+        reset all timers. (not used anymore)
+        """
+    
+    @header(YDL_TARGETS.UI, "pause_timer")
+    def PAUSE_TIMER():
+        """
+        source: Shepherd. Pauses the game timer in scoreboard by clearing the timeout created in runStageTimer;
+        Used in the event that the game
+        needs to be paused and continued from the state it was paused at.
+        """
+    
+    @header(YDL_TARGETS.UI, "resume_timer")
+    def RESUME_TIMER(start_time):
+        """
+        source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout with the new end time
+        Used to resume the game after it has
+        been paused using PAUSE_TIMERS.
         """
 
 
@@ -185,7 +229,6 @@ class SENSOR_HEADER():
     #   """
     #   example header doc string
     #   """
-
     
     @header(YDL_TARGETS.SENSORS, "turn_on_button_light")
     def TURN_ON_BUTTON_LIGHT(id: int):
@@ -222,7 +265,6 @@ class SENSOR_HEADER():
       """
       example header doc string
       """
-    
 
 
 # A dictionary of pages -> whether page is password protected
@@ -288,12 +330,6 @@ STAGE_TIMES = {
     STATE.BLIZZARD: 15,
     STATE.TELEOP_2: 75,
     STATE.ENDGAME: 30
-
-    # STATE.AUTO: 3,
-    # STATE.TELEOP_1: 3,
-    # STATE.BLIZZARD: 15,
-    # STATE.TELEOP_2: 3,
-    # STATE.ENDGAME: 3
 }
 
 class PROTOBUF_TYPES():

@@ -4,10 +4,11 @@ from timer import Timer
 from ydl import ydl_send, ydl_start_read
 from utils import *
 from runtimeclient import RuntimeClientManager
-from protos.run_mode_pb2 import Mode, TELEOP
+from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
+import time
 
 
 
@@ -74,8 +75,6 @@ def start():
 
 
 
-
-
 def set_match_number(match_num):
     '''
     Retrieves all match info based on match number and sends this information to the UI.
@@ -102,6 +101,16 @@ def set_teams_info(teams):
         CLIENTS.connect_client(i, teams[i]["robot_ip"])
     # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
+
+def pause_timer():
+    Timer.pause()
+    ydl_send(*UI_HEADER.PAUSE_TIMER())
+
+def resume_timer():
+    ydl_send(*UI_HEADER.RESUME_TIMER(start_time=(GAME_TIMER.pauseStart)))
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ")
+    Timer.resume()
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB: ")
 
 
 
@@ -165,14 +174,17 @@ def to_teleop_1():
 
 def to_blizzard():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.BLIZZARD])
+    enable_robots(autonomous=False)
     set_state(STATE.BLIZZARD)
 
 def to_teleop_2():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_2])
+    enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
 
 def to_endgame():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
+    enable_robots(autonomous=False)
     set_state(STATE.ENDGAME)
 
 def to_end():
@@ -290,32 +302,36 @@ def enable_robots(autonomous):
     Sends message to Runtime to enable all robots. The argument should be a boolean
     which is true if we are entering autonomous mode
     '''
-    CLIENTS.send_mode(Mode.AUTO if autonomous else Mode.TELEOP)
-
-
-def disable_robots():
-    '''
-    Sends message to Runtime to disable all robots
-    '''
-    CLIENTS.send_mode(Mode.IDLE)
-
-
-def disable_robot(ind):
-    '''
-    Send message to Runtime to disable the robot of team
-    '''
-    CLIENTS.clients[ind].send_mode(Mode.IDLE)
+    CLIENTS.send_mode(AUTO if autonomous else TELEOP)
 
 
 def enable_robot(ind):
     '''
     Send message to Runtime to enable the robot of team
     '''
-    mode = Mode.AUTO if GAME_STATE == STATE.AUTO else Mode.TELEOP
+    mode = AUTO if GAME_STATE == STATE.AUTO else TELEOP
     CLIENTS.clients[ind].send_mode(mode)
 
 
+def disable_robots():
+    '''
+    Sends message to Runtime to disable all robots
+    '''
+    CLIENTS.send_mode(IDLE)
 
+
+def disable_robot(ind):
+    '''
+    Send message to Runtime to disable the robot of team
+    '''
+    CLIENTS.clients[ind].send_mode(IDLE)
+
+
+def disconnect_robot(ind):
+    '''
+    Send message to Runtime to disconnect the robot of team
+    '''
+    CLIENTS.clients[ind].close_connection()
 
 
 
@@ -389,9 +405,12 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.ROBOT_OFF.name: disable_robot,
     SHEPHERD_HEADER.ROBOT_ON.name: enable_robot,
     SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
+    SHEPHERD_HEADER.DISCONNECT_ROBOT.name: disconnect_robot,
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
 
     SHEPHERD_HEADER.TURN_LIGHT_FROM_UI.name: forward_button_light,
+    SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
+    SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
 }
 
 if __name__ == '__main__':
