@@ -1,5 +1,5 @@
 var socket = io('/');
-var stageTimer = true;
+var stageTimer = false;
 // var timerA = true;
 // var globaltime = 0;
 // var startTime = 0;

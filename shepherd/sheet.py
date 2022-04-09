@@ -75,6 +75,16 @@ class Sheet:
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
+    
+    @staticmethod
+    def send_scores(match_number):
+        def bg_thread_work():
+            try:
+                Sheet.__send_online_scores(match_number)
+            except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
     def __get_authorized_sheet():
@@ -148,4 +158,29 @@ class Sheet:
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range=range_name, body=body, valueInputOption="RAW").execute()
 
-Sheet.get_match(1)
+    @staticmethod
+    def __send_online_scores(match_number):
+        """
+        Sends all types of scores to ui
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Ref Scoring!A4:BE").execute()['values']
+        print(game_data)
+        # blue = None
+        # gold = None
+        # for _, row in enumerate(game_data):
+        #     if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+        #         if row[1] == "Blue":
+        #             blue = row[2]
+        #             if blue is not None and gold is not None:
+        #                 ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+        #                 return
+        #         elif row[1] == "Gold":
+        #             gold = row[2]
+        #             if blue is not None and gold is not None:
+        #                 ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+        #                 return
+
+
+
