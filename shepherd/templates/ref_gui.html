@@ -28,6 +28,12 @@
     const beacon_1_btn_off = $("#beacon-1-btn-off");
     const beacon_2_btn_on = $("#beacon-2-btn-on");
     const beacon_2_btn_off = $("#beacon-2-btn-off");
+    const beacon_3_btn_on = $("#beacon-3-btn-on");
+    const beacon_3_btn_off = $("#beacon-3-btn-off");
+    const beacon_4_btn_on = $("#beacon-4-btn-on");
+    const beacon_4_btn_off = $("#beacon-4-btn-off");
+    const beacon_24_btn_on = $("#beacon-24-btn-on");
+    const beacon_24_btn_off = $("#beacon-24-btn-off");
 
     const pause_btn = $("#pause-btn");
     const resume_btn = $("#resume-btn");
@@ -144,19 +150,50 @@
     });
 
     beacon_1_btn_on.click(() => {
-      send("turn_button_light_ui", JSON.stringify({num: 0, on: true}))
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}))
     })
 
     beacon_1_btn_off.click(() => {
-      send("turn_button_light_ui", JSON.stringify({num: 0, on: false}))
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}))
     })
 
     beacon_2_btn_on.click(() => {
-      send("turn_button_light_ui", JSON.stringify({num: 1, on: true}))
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}))
     })
 
     beacon_2_btn_off.click(() => {
-      send("turn_button_light_ui", JSON.stringify({num: 1, on: false}))
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}))
+    })
+
+    beacon_3_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}))
+    })
+
+    beacon_3_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}))
+    })
+
+    beacon_4_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}))
+    })
+
+    beacon_4_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}))
+    })
+
+
+    beacon_24_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}))
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}))
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}))
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}))
+    })
+
+    beacon_24_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}))
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}))
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}))
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}))
     })
 
 
@@ -339,6 +376,24 @@
         </button>
         <button class="btn btn-info" type="button" id="beacon-2-btn-off">
           Beacon #2 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-3-btn-on">
+          Beacon #3 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-3-btn-off">
+          Beacon #3 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-4-btn-on">
+          Beacon #4 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-4-btn-off">
+          Beacon #4 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-24-btn-on">
+          Corners on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-24-btn-off">
+          Corners off
         </button>
       </span>
     </div>

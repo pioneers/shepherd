@@ -1,138 +1,110 @@
 #include "Arduino2.h"
 
-const int Arduino2::NUM_LINEBREAKS = 4; // params 0-4
-const int Arduino2::NUM_BUTTONS = 1;
-const int Arduino2::NUM_LIGHTS = 1;
-
-#define S0 2
-#define S1 3
-#define S2 4
-#define S3 5
-
-#define LINEBREAK_THRESHOLD 100
-
+// number of switches on a limit switch (how many input pins)
+const int Arduino2::NUM_LIGHTS = 2;
+/*
+button1: 2
+light1: 3
+button2: 4
+light2: 5
+button3: 6
+light3: 7
+button4: 8
+light4: 9
+button5: 10
+light5: A0
+button6: 14
+light6: A1
+button7: 15
+light7: A2
+*/
 const uint8_t Arduino2::pins[] = {
-    6,  // desert_linebreak
-    7,  // dehydration_linebreak
-    8,  // hypothermia_linebreak
-    9,  // airport_linebreak
-    11, // fire_lever
-    12, // fire_light
+    // lights 1 - 7
+    3,
+    5,
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
-Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13)
-{
-    for(int i = 0; i < 4; i++) {
-	this->prev_red_frequencies[i] = 6000;
-    }
+Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13) {
 }
 
-size_t Arduino2::device_read(uint8_t param, uint8_t *data_buf)
-{   
-    // return 1;
-    // this->msngr->lowcar_printf("hullo wurld\n");
-    // this->msngr->lowcar_printf("param is %d\n", param);
-    // put pin value into data_buf
-    if (param < Arduino2::NUM_LINEBREAKS)
-    {
-        // Reading the output frequency
-        // so i guess this is only gonna work once everything is plugged in
-        // rn it only works for pin 9. all: Arduino2::pins[param]
-        int redFrequency = pulseIn(Arduino2::pins[param], LOW, 20000);
-        
-        // we should ignore red frequency == 0 because it is a bug
-        if (redFrequency == 0) {
-            redFrequency = this->prev_red_frequencies[param];
-        }
-        if (redFrequency <= LINEBREAK_THRESHOLD && redFrequency > 0)
-        {
-            data_buf[0] = 0;
-        }
-        else
-        {
-            data_buf[0] = 1;
-        }
-        this->prev_red_frequencies[param] = redFrequency;
-    }
-    else if (param < Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS)
-    {
-        data_buf[0] = (digitalRead(Arduino2::pins[param]) == HIGH) ? 1 : 0;
-    }
-    else
-    {
-        this->msngr->lowcar_printf("Should not be reading from a light. param is %d", param);
+size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
+    // put pin value into data_buf and return the amount of bytes written
+    /*
+    if (param >= Arduino2::NUM_BUTTONS) {
+        // this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
         return 0;
     }
+    data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? TRUE : FALSE;
 
-    /*
-    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0};
+    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
     uint64_t curr = millis();
 
     // log each button every 500ms
     if (curr - last_update_time[param] > 500) {
-        this->msngr->lowcar_printf("param %d is %s", param, data_buf[0] == 1 ? "true" : "false");
+        // this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
         last_update_time[param] = curr;
     }
     */
 
     return sizeof(uint8_t);
 }
-
-size_t Arduino2::device_write(uint8_t param, uint8_t *data_buf)
-{
-    int min_index = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
-    if (param < min_index ||
-        param >= min_index + Arduino2::NUM_LIGHTS)
-    {
-        this->msngr->lowcar_printf("Trying to write to something that is not fire light.");
-        return 0;
+// writable, not readable. should just call device_write id hope.
+size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
+    if (data_buf[0] == 1) {
+        digitalWrite(Arduino2::pins[param], HIGH);
+        this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino2::pins[param]);
     }
-
-    if (data_buf[0] > 1)
-    {
-        this->msngr->lowcar_printf("data_buf[0] is %d, but can only be 0 or 1.", data_buf[0]);
+    else {
+        digitalWrite(Arduino2::pins[param], LOW);
+        this->msngr->lowcar_printf("Wrote %s to %d", "LOW", Arduino2::pins[param]);
     }
-
-    digitalWrite(Arduino2::pins[param], data_buf[0] == 1 ? HIGH : LOW);
-
     return sizeof(uint8_t);
 }
 
-void Arduino2::device_enable()
-{
+void Arduino2::device_enable() {
+    // todo: ask ben what is diff between device enable and constructor
     this->msngr->lowcar_printf("ARDUINO 2 ENABLING");
-    // set all pins to INPUT mode
-    int num_inputs = Arduino2::NUM_LINEBREAKS + Arduino2::NUM_BUTTONS;
-    for (int i = 0; i < num_inputs; i++)
-    {
-        pinMode(Arduino2::pins[i], INPUT);
-    }
 
-    for (int i = 0; i < Arduino2::NUM_LIGHTS; i++)
-    {
-        pinMode(Arduino2::pins[i + num_inputs], OUTPUT);
+    for (int i = 0; i < Arduino2::NUM_LIGHTS; i++) {
+        pinMode(Arduino2::pins[i], OUTPUT);
     }
-
-    // Setting the outputs
-    pinMode(S0, OUTPUT);
-    pinMode(S1, OUTPUT);
-    pinMode(S2, OUTPUT);
-    pinMode(S3, OUTPUT);
-    // Setting each linebreak sensor as an input
-    pinMode(Arduino2::pins[0], INPUT);
-    pinMode(Arduino2::pins[1], INPUT);
-    pinMode(Arduino2::pins[2], INPUT);
-    pinMode(Arduino2::pins[3], INPUT);
-    // Setting frequency scaling to 20%
-    digitalWrite(S0, HIGH);
-    digitalWrite(S1, LOW);
-    // Setting RED (R) filtered photodiodes to be read
-    digitalWrite(S2, LOW);
-    digitalWrite(S3, LOW);
 }
 
-void Arduino2::device_disable()
-{
+void Arduino2::device_disable() {
     this->msngr->lowcar_printf("ARDUINO 2 DISABLED");
+}
+
+void Arduino2::device_actions() {
+    /*
+    static uint64_t last_update_time = 0;
+    // static uint64_t last_count_time = 0;
+    uint64_t curr = millis();
+
+    // Simulate read-only params changing
+    if (curr - last_update_time > 500) {
+        this->runtime += 2;
+        this->shepherd += 1.9;
+        this->dawn = !this->dawn;
+
+        this->devops++;
+        this->atlas += 0.9;
+        this->infra = TRUE;
+
+        // this->msngr->lowcar_print_float("funtime", this->funtime);
+        // this->msngr->lowcar_print_float("atlas", this->atlas);
+        // this->msngr->lowcar_print_float("pdb", this->pdb);
+
+        last_update_time = curr;
+    }
+
+    // this->dusk++;
+    //
+    // 	//use dusk as a counter to see how fast this loop is going
+    // 	if (curr - last_count_time > 1000) {
+    // 		last_count_time = curr;
+    // 		this->msngr->lowcar_printf("loops in past second: %d", this->dusk);
+    // 		this->dusk = 0;
+    // 	}
+    */
 }

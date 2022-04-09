@@ -63,22 +63,8 @@ device_t Arduino2 = {
     .name = "Arduino2",
     .num_params = 6,
     .params = {
-        // temporarily disabled linebreak sensors
-        {.name = "desert_linebreak", .type = BOOL, .read = 1, .write = 0},
-        {.name = "dehydration_linebreak", .type = BOOL, .read = 1, .write = 0},
-        {.name = "hypothermia_linebreak", .type = BOOL, .read = 1, .write = 0},
-        {.name = "airport_linebreak", .type = BOOL, .read = 1, .write = 0},
-
-        {.name = "fire_lever", .type = BOOL, .read = 1, .write = 0},
-
-        {.name = "fire_light", .type = BOOL, .read = 0, .write = 1},
-        // Read-able and write-able
-        /*
-        {.name = "PIEF", .type = INT, .read = 1, .write = 1},
-        {.name = "FUNTIME", .type = FLOAT, .read = 1, .write = 1},
-        {.name = "SHEEP", .type = BOOL, .read = 1, .write = 1},
-        {.name = "DUSK", .type = INT, .read = 1, .write = 1},
-        */
+        {.name = "light2", .type = BOOL, .read = 1, .write = 1},
+        {.name = "light3", .type = BOOL, .read = 1, .write = 1},
     }
 };
 

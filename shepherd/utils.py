@@ -12,8 +12,8 @@ class SHEPHERD_HEADER():
         """
         """
 
-    @header(YDL_TARGETS.SHEPHERD, "turn_button_light_ui")
-    def TURN_BUTTON_LIGHT_FROM_UI(num, on):
+    @header(YDL_TARGETS.SHEPHERD, "turn_light_ui")
+    def TURN_LIGHT_FROM_UI(num, type, on):
         """
         """
 

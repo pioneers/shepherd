@@ -69,7 +69,7 @@ size_t Arduino1::device_write(uint8_t param, uint8_t* data_buf) {
     }
     if (data_buf[0] == 1) {
         digitalWrite(Arduino1::pins[param], HIGH);
-        // this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
+        this->msngr->lowcar_printf("Wrote %s to %d", "HIGH", Arduino1::pins[param]);
     }
     else {
         digitalWrite(Arduino1::pins[param], LOW);

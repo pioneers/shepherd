@@ -276,14 +276,16 @@ traffic_light = TrafficLight(name="traffic_light", should_poll=False)
 #lasers = Light(name="lasers", should_poll=False)
 
 
-button_0 = DehydrationButton(name="button0", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
-button_1 = DehydrationButton(name="button1", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+# button_0 = DehydrationButton(name="button0", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+# button_1 = DehydrationButton(name="button1", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
 blight_0 = Light(name="light0", should_poll=False, identifier=0)
-blight_1 = Light(name="light1", should_poll=False, identifier=0)
+blight_1 = Light(name="light1", should_poll=False, identifier=1)
+blight_2 = Light(name="light2", should_poll=False, identifier=2)
+blight_3 = Light(name="light3", should_poll=False, identifier=3)
 
 
-arduino_1 = Device(1, 1, [button_0, blight_0])
-arduino_2 = Device(2, 2, [button_1, blight_1])
+arduino_1 = Device(1, 1, [blight_0, blight_1])
+arduino_2 = Device(2, 2, [blight_2, blight_3])
 #arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
 #arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
 #arduino_4 = Device(4, 4, [lasers])
@@ -294,8 +296,8 @@ arduino_2 = Device(2, 2, [button_1, blight_1])
 ################################################
 
 HEADER_MAPPINGS = {
-    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name : [blight_0, blight_1],
-    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name : [blight_0, blight_1],
+    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3],
+    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3],
     # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],
@@ -311,7 +313,7 @@ HEADER_COMMAND_MAPPINGS = {
 
 arduinos = {
     arduino_1.get_identifier(): arduino_1, 
-    # arduino_2.get_identifier(): arduino_2,
+    arduino_2.get_identifier(): arduino_2,
     # arduino_3.get_identifier(): arduino_3,
     # arduino_4.get_identifier(): arduino_4,
 }
