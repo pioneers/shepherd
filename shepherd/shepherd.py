@@ -8,6 +8,7 @@ from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
+import threading
 import time
 
 
@@ -72,7 +73,19 @@ def start():
         else:
             print(f"Invalid State: {GAME_STATE}")
 
+def pull_from_sheets():
+    while True:
+        if GAME_STATE not in [STATE.END, STATE.SETUP]:
+            Sheet.read_scores(MATCH_NUMBER)
 
+        # if (GAME_STATE == STATE.AUTO or 
+        # GAME_STATE == STATE.TELEOP_1 or 
+        # GAME_STATE == STATE.BLIZZARD or 
+        # GAME_STATE == STATE.TELEOP_2 or 
+        # GAME_STATE == STATE.ENDGAME):
+        #     Sheet.read_scores(MATCH_NUMBER)
+
+        time.sleep(2.0)
 
 
 def set_match_number(match_num):
@@ -148,6 +161,12 @@ def reset_match():
     send_state_to_ui()
     print("ENTERING SETUP STATE")
 
+    # temporary code for exhibition, remove later
+    ydl_send(*UI_HEADER.SCORES(
+        blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+        gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    ))
+
 
 def set_state(state):
     global GAME_STATE
@@ -176,11 +195,15 @@ def to_blizzard():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.BLIZZARD])
     enable_robots(autonomous=False)
     set_state(STATE.BLIZZARD)
+    ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=4))
+    ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=5))
 
 def to_teleop_2():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_2])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
+    ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=4))
+    ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=5))
 
 def to_endgame():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
@@ -232,22 +255,29 @@ def score_adjust(blue_score=None, gold_score=None):
     Allow for score to be changed based on referee decisions
     '''
     if blue_score is not None:
-        ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(blue_score)
+        ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(int(blue_score))
     if gold_score is not None:
-        ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(gold_score)
+        ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(int(gold_score))
     send_score_to_ui()
     flush_scores()
+
+    # temporary code for exhibition, remove later
+    ydl_send(*UI_HEADER.SCORES(
+        blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+        gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    ))
 
 
 def flush_scores():
     '''
     Sends the most recent match score to the spreadsheet if connected to the internet
     '''
-    Sheet.write_scores(
-        MATCH_NUMBER,
-        ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-        ALLIANCES[ALLIANCE_COLOR.GOLD].score
-    )
+    # temporary code for exhibition, uncomment later
+    # Sheet.write_scores(
+    #     MATCH_NUMBER,
+    #     ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+    #     ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    # )
 
 
 def send_match_info_to_ui():
@@ -266,10 +296,11 @@ def send_score_to_ui():
     '''
     Sends the current score to the UI
     '''
-    ydl_send(*UI_HEADER.SCORES(
-        blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-        gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
-    ))
+    # temporary code for exhibition, uncomment later
+    # ydl_send(*UI_HEADER.SCORES(
+    #     blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+    #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+    # ))
 
 
 def send_state_to_ui():
@@ -288,6 +319,14 @@ def send_connection_status_to_ui():
     Sends the connection status of all runtime clients to the UI
     '''
     CLIENTS.send_connection_status_to_ui()
+
+
+# def update_score():
+#     '''
+#     ToDo: add here
+#     '''
+
+#     Sheet.send_scores(MATCH_NUMBER)
 
 
 
@@ -350,10 +389,10 @@ def forward_button_light(num, type, on):
             ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=num))
         else:
             ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=num))
-    if type == "midline":
-        if on:
-            ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
-            ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
+    # if type == "midline":
+    #     if on:
+    #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
+    #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
 
 
 
@@ -391,7 +430,8 @@ FUNCTION_MAPPINGS = {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
         SHEPHERD_HEADER.SET_TEAMS_INFO.name: set_teams_info,
         SHEPHERD_HEADER.SETUP_MATCH.name: to_setup,
-        SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
+        # temporary code for exhibition, uncomment later
+        # SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
     }
 }
 
@@ -411,7 +451,13 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.TURN_LIGHT_FROM_UI.name: forward_button_light,
     SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
     SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
+
+    # SHEPHERD_HEADER.UPDATE_SCORE.name: update_score,
+    # temporary code for exhibition, remove later
+    SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
+
 }
 
 if __name__ == '__main__':
+    threading.Thread(target=pull_from_sheets).start()
     start()

@@ -156,6 +156,12 @@ class SHEPHERD_HEADER():
         This extra header allows the timer to actually resume on time
         """
 
+    # @header(YDL_TARGETS.SHEPHERD, "update_score")
+    # def UPDATE_SCORE():
+    #     """
+    #     source: UI. add here
+    #     """
+
 class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.

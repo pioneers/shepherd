@@ -282,10 +282,12 @@ blight_0 = Light(name="light0", should_poll=False, identifier=0)
 blight_1 = Light(name="light1", should_poll=False, identifier=1)
 blight_2 = Light(name="light2", should_poll=False, identifier=2)
 blight_3 = Light(name="light3", should_poll=False, identifier=3)
+blight_4 = Light(name="light4", should_poll=False, identifier=4)
+blight_5 = Light(name="light5", should_poll=False, identifier=5)
 
 
-arduino_1 = Device(1, 1, [blight_0, blight_1])
-arduino_2 = Device(2, 2, [blight_2, blight_3])
+arduino_1 = Device(1, 1, [blight_0, blight_1, blight_4])
+arduino_2 = Device(2, 2, [blight_2, blight_3, blight_5])
 #arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
 #arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
 #arduino_4 = Device(4, 4, [lasers])
@@ -296,8 +298,8 @@ arduino_2 = Device(2, 2, [blight_2, blight_3])
 ################################################
 
 HEADER_MAPPINGS = {
-    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3],
-    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3],
+    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3, blight_4, blight_5],
+    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name : [blight_0, blight_1, blight_2, blight_3, blight_4, blight_5],
     # SENSOR_HEADER.SET_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_OFF_TRAFFIC_LIGHT : [traffic_light],
     # SENSOR_HEADER.TURN_ON_FIRE_LIGHT : [fire_light],

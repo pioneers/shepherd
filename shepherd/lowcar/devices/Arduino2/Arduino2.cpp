@@ -1,7 +1,7 @@
 #include "Arduino2.h"
 
 // number of switches on a limit switch (how many input pins)
-const int Arduino2::NUM_LIGHTS = 2;
+const int Arduino2::NUM_LIGHTS = 7;
 /*
 button1: 2
 light1: 3
@@ -22,6 +22,7 @@ const uint8_t Arduino2::pins[] = {
     // lights 1 - 7
     3,
     5,
+    7
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in

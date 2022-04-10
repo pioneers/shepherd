@@ -22,8 +22,8 @@
     const end_btn = $("#end-btn");
 
     // lights
-    const l_blizzard_light_btn = $("#l-blizzard-light-btn");
-    const r_blizzard_light_btn = $("#r-blizzard-light-btn");
+    const midline_btn_on = $("#midline-btn-on");
+    const midline_btn_off = $("#midline-btn-off");
     const beacon_1_btn_on = $("#beacon-1-btn-on");
     const beacon_1_btn_off = $("#beacon-1-btn-off");
     const beacon_2_btn_on = $("#beacon-2-btn-on");
@@ -181,6 +181,17 @@
 
     beacon_4_btn_off.click(() => {
       send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+    })
+
+    midline_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: true}));
+
+    })
+
+    midline_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: false}));
     })
 
 
@@ -390,11 +401,11 @@
     <div class="input-group">
       <h4>Lights:</h4>
       <span class="input-group-btn ml-3">
-        <button class="btn btn-info" type="button" id="l-blizzard-light-btn">
-          L Blizzard Light
+        <button class="btn btn-info" type="button" id="midline-btn-on">
+          Midline On
         </button>
-        <button class="btn btn-info" type="button" id="r-blizzard-light-btn">
-          R Blizzard Light
+        <button class="btn btn-info" type="button" id="midline-btn-off">
+          Midline Off
         </button>
         <button class="btn btn-info" type="button" id="beacon-1-btn-on">
           Beacon #1 on
