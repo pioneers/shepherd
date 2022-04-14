@@ -76,14 +76,7 @@ def start():
 def pull_from_sheets():
     while True:
         if GAME_STATE not in [STATE.END, STATE.SETUP]:
-            Sheet.read_scores(MATCH_NUMBER)
-
-        # if (GAME_STATE == STATE.AUTO or 
-        # GAME_STATE == STATE.TELEOP_1 or 
-        # GAME_STATE == STATE.BLIZZARD or 
-        # GAME_STATE == STATE.TELEOP_2 or 
-        # GAME_STATE == STATE.ENDGAME):
-        #     Sheet.read_scores(MATCH_NUMBER)
+            Sheet.send_scores_for_icons(MATCH_NUMBER)
 
         time.sleep(2.0)
 
@@ -121,9 +114,9 @@ def pause_timer():
 
 def resume_timer():
     ydl_send(*UI_HEADER.RESUME_TIMER(start_time=(GAME_TIMER.pauseStart)))
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ")
+    # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ")
     Timer.resume()
-    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB: ")
+    # print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB: ")
 
 
 
@@ -319,15 +312,6 @@ def send_connection_status_to_ui():
     Sends the connection status of all runtime clients to the UI
     '''
     CLIENTS.send_connection_status_to_ui()
-
-
-# def update_score():
-#     '''
-#     ToDo: add here
-#     '''
-
-#     Sheet.send_scores(MATCH_NUMBER)
-
 
 
 

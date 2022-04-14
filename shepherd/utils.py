@@ -156,12 +156,6 @@ class SHEPHERD_HEADER():
         This extra header allows the timer to actually resume on time
         """
 
-    # @header(YDL_TARGETS.SHEPHERD, "update_score")
-    # def UPDATE_SCORE():
-    #     """
-    #     source: UI. add here
-    #     """
-
 class UI_HEADER():
     """
     These are headers used by Shepherd to send information to the Staff UI.
@@ -223,6 +217,13 @@ class UI_HEADER():
         source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout with the new end time
         Used to resume the game after it has
         been paused using PAUSE_TIMERS.
+        """
+
+    @header(YDL_TARGETS.UI, "scores_for_icons")
+    def SCORES_FOR_ICONS(blue_score, gold_score):
+        """
+        source: Sheet. Used to update the number score per team as well as 
+        update the icons such as the pioneers/campsites on the scoreboard UI
         """
 
 
