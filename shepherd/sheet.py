@@ -10,7 +10,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from ydl import ydl_send
-from utils import YDL_TARGETS, SHEPHERD_HEADER, CONSTANTS
+from utils import *
 
 # If modifying these scopes, delete your previously saved credentials
 # at USER_TOKEN_FILE
@@ -63,7 +63,7 @@ class Sheet:
                 Sheet.__read_online_scores(match_number)
             except: # pylint: disable=bare-except
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to write to spreadsheet")
+                print("Unable to read from spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -77,13 +77,13 @@ class Sheet:
         threading.Thread(target=bg_thread_work).start()
     
     @staticmethod
-    def send_scores(match_number):
+    def send_scores_for_icons(match_number):
         def bg_thread_work():
             try:
-                Sheet.__send_online_scores(match_number)
+                Sheet.__send_online_scores_for_icons(match_number)
             except: # pylint: disable=bare-except
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to write to spreadsheet")
+                print("Unable to send score from spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -159,28 +159,67 @@ class Sheet:
             range=range_name, body=body, valueInputOption="RAW").execute()
 
     @staticmethod
-    def __send_online_scores(match_number):
+    def __send_online_scores_for_icons(match_number):
         """
         Sends all types of scores to ui
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:BE").execute()['values']
-        print(game_data)
-        # blue = None
-        # gold = None
-        # for _, row in enumerate(game_data):
-        #     if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-        #         if row[1] == "Blue":
-        #             blue = row[2]
-        #             if blue is not None and gold is not None:
-        #                 ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
-        #                 return
-        #         elif row[1] == "Gold":
-        #             gold = row[2]
-        #             if blue is not None and gold is not None:
-        #                 ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
-        #                 return
-
-
-
+            range="Ref Scoring!A4:BL").execute()['values']
+        
+        blue = None
+        gold = None
+        for _, row in enumerate(game_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                if row[1] == "Blue":
+                    blue = {
+                        "score" : int(row[2]),
+                        "campsite-resource-top-left-leftside" : 0 if row[10] == "" else int(row[10]),
+                        "campsite-resource-bottom-left-leftside" : 0 if row[12] == "" else int(row[12]),
+                        "campsite-resource-top-middle-leftside" : 0 if row[14] == "" else int(row[14]),
+                        "campsite-resource-bottom-middle-leftside" : 0 if row[16] == "" else int(row[16]),
+                        "campsite-resource-top-right-leftside" : 0 if row[18] == "" else int(row[18]),
+                        "campsite-resource-bottom-right-leftside" : 0 if row[20] == "" else int(row[20]),
+                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
+                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
+                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
+                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
+                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
+                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
+                        "campsite-pioneer-top-left" : row[28] == "TRUE",
+                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
+                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
+                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
+                        "campsite-pioneer-top-right" : row[44] == "TRUE",
+                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
+                        "endgame-pioneer-blue" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                    }
+                    if blue is not None and gold is not None:
+                        ydl_send(*UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        return
+                elif row[1] == "Gold":
+                    gold = {
+                        "score" : int(row[2]),
+                        "campsite-resource-top-left-rightside" : 0 if row[10] == "" else int(row[10]),
+                        "campsite-resource-bottom-left-rightside" : 0 if row[12] == "" else int(row[12]),
+                        "campsite-resource-top-middle-rightside" : 0 if row[14] == "" else int(row[14]),
+                        "campsite-resource-bottom-middle-rightside" : 0 if row[16] == "" else int(row[16]),
+                        "campsite-resource-top-right-rightside" : 0 if row[18] == "" else int(row[18]),
+                        "campsite-resource-bottom-right-rightside" : 0 if row[20] == "" else int(row[20]),
+                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
+                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
+                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
+                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
+                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
+                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
+                        "campsite-pioneer-top-left" : row[28] == "TRUE",
+                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
+                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
+                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
+                        "campsite-pioneer-top-right" : row[44] == "TRUE",
+                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
+                        "endgame-pioneer-gold" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                    }
+                    if blue is not None and gold is not None:
+                        ydl_send(*UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        return

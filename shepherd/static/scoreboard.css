@@ -90,7 +90,7 @@
   --font-size: 175%;
   --text-stroke: 1.5px;
   --headerSize: 0.30;
-  --scoreboardContentSize: 95%
+  --scoreboardContentSize: 95%;
 }
 
 body {
@@ -313,16 +313,8 @@ body {
   /* border: solid 2px yellow ;
   background-color: cyan; */
 
-  /* display: flex;
+  display: flex;
   flex-direction: column;
-  width: auto;
-  height: auto; */
-
-  /* CAN CHANGE TO FLEX BOX (ABOVE) TO BE MORE DYNAMIC */
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
-  column-gap: 2.5px;
-  row-gap: 2.5px;
   width: auto;
   height: auto;
 }
@@ -334,7 +326,7 @@ body {
   background-color: rgba(112, 112, 255, 0.5);
 
   padding: 2.5px;
-  margin: 1px;
+  margin: 2.5px;
 
   /* text-align: center; */
   display: flex;
@@ -461,7 +453,8 @@ body {
 
 .campsite-resource-icon {
   border: solid 4px white;
-  background-color: rgba(255, 215, 0, 100);
+  /* background-color: rgba(255, 215, 0, 100); */
+  background-color: var(--grey500);
   width: 30px;
   height: 30px;
 }
@@ -470,9 +463,17 @@ body {
   border: solid 4px white;
   border-top: solid 0px white;
   border-bottom: solid 0px white;
-  background-color: rgba(255, 215, 0, 100);
+  /* background-color: rgba(255, 215, 0, 100); */
+  background-color: var(--grey500);
   width: 30px;
   height: calc(30px - 8px);
+}
+
+.campsite-pioneer-icon-background {
+  /* for debugging */
+  /* border: solid 2px red ;
+  background-color: cyan; */
+
 }
 
 .campsite-pioneer-icon {
@@ -482,11 +483,12 @@ body {
 
   width: calc(110px * 0.8);
   height: calc(108px * 0.5);
-  background-image: url('pioneer.png');
+  background: url('pioneer.png');
   background-size: cover;
   visibility: visible;
-  margin-bottom: 5px;
-  padding: 0px;
+
+  border: solid 2px rgb(0, 112, 255);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Used to preload the blizzard background */

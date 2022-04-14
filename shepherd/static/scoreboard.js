@@ -5,12 +5,24 @@ var stageTimer = false;
 // var startTime = 0;
 var myStageTimeout;
 var state_time;
+var state;
 var prevStateBlizzard = false;
 var prev_start_time;
+var campsite_resource;
+var campsite_satellite_icon;
+var campsite_pioneer_icon;
+var endgame_pioneer_icon;
+var campsite_pioneer_icon_background;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
   socket.emit('join', 'scoreboard');
+
+  campsite_resource = individual($(".campsite-resource-icon, .campsite-resource-middle-icon"));
+  campsite_satellite_icon = individual($(".campsite-satellite-icon-circle-border"));
+  campsite_pioneer_icon = individual($(".campsite-pioneer-icon"));
+  endgame_pioneer_icon = individual($(".endgame-pioneer-blue-container, .endgame-pioneer-gold-container"));
+  campsite_pioneer_icon_background = individual($(".campsite-pioneer-icon-background"));
 });
 
 socket.on('teams_info', (match_info) => {
@@ -28,8 +40,6 @@ socket.on('teams_info', (match_info) => {
   team_num_g2 = match_info.teams[3]["team_num"];
   updateTeam(team_name_b1, team_num_b1, team_name_b2, 
     team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2);
-  // setImageVisible('#total', false);
-  // setImageVisible('.totalinfo', false);
 });
 
 /*
@@ -61,7 +71,7 @@ socket.on('stage_timer_start', (secondsInStage) => {
 //   }
 // })
 
-// USE STATE, NOT STAGE!!!
+// USE STATE, NOT STAGE
 socket.on('state', (state_info) => {
   console.log("Successful ydl message: state");
   console.log(`received team header with info ${state_info}`);
@@ -77,7 +87,7 @@ socket.on('state', (state_info) => {
   if (state === "setup") {
     setStageName(state);
     setTime(0);
-  } else if (state == "end") {
+  } else if (state === "end") {
     setStageName(state);
     stageTimer = false;
   } else {
@@ -116,6 +126,139 @@ socket.on("resume_timer", (start_time) => {
 
   stageTimer = true;
   runStageTimer((new Date().getTime() / 1000) - (start_time_info.start_time - prev_start_time / 1000));
+});
+
+socket.on("scores_for_icons", (score_info) => {
+  score_info = JSON.parse(score_info);
+  blue_score = score_info.blue_score;
+  gold_score = score_info.gold_score;
+
+  setBlueScore(blue_score["score"]);
+  setGoldScore(gold_score["score"]);
+
+  const blue_resource = [
+    blue_score["campsite-resource-top-left-leftside"],
+    blue_score["campsite-resource-bottom-left-leftside"],
+    blue_score["campsite-resource-top-middle-leftside"],
+    blue_score["campsite-resource-bottom-middle-leftside"],
+    blue_score["campsite-resource-top-right-leftside"],
+    blue_score["campsite-resource-bottom-right-leftside"]
+  ];
+  const blue_satellite = [
+    blue_score["campsite-satellite-top-left"],
+    blue_score["campsite-satellite-bottom-left"],
+    blue_score["campsite-satellite-top-middle"],
+    blue_score["campsite-satellite-bottom-middle"],
+    blue_score["campsite-satellite-top-right"],
+    blue_score["campsite-satellite-bottom-right"]
+  ];
+  const blue_pioneer = [
+    blue_score["campsite-pioneer-top-left"],
+    blue_score["campsite-pioneer-bottom-left"],
+    blue_score["campsite-pioneer-top-middle"],
+    blue_score["campsite-pioneer-bottom-middle"],
+    blue_score["campsite-pioneer-top-right"],
+    blue_score["campsite-pioneer-bottom-right"]
+  ];
+  
+  const gold_resource = [
+    gold_score["campsite-resource-top-left-rightside"],
+    gold_score["campsite-resource-bottom-left-rightside"],
+    gold_score["campsite-resource-top-middle-rightside"],
+    gold_score["campsite-resource-bottom-middle-rightside"],
+    gold_score["campsite-resource-top-right-rightside"],
+    gold_score["campsite-resource-bottom-right-rightside"]    
+  ];
+  const gold_satellite = [
+    gold_score["campsite-satellite-top-left"],
+    gold_score["campsite-satellite-bottom-left"],
+    gold_score["campsite-satellite-top-middle"],
+    gold_score["campsite-satellite-bottom-middle"],
+    gold_score["campsite-satellite-top-right"],
+    gold_score["campsite-satellite-bottom-right"]
+  ];
+  const gold_pioneer = [
+    gold_score["campsite-pioneer-top-left"],
+    gold_score["campsite-pioneer-bottom-left"],
+    gold_score["campsite-pioneer-top-middle"],
+    gold_score["campsite-pioneer-bottom-middle"],
+    gold_score["campsite-pioneer-top-right"],
+    gold_score["campsite-pioneer-bottom-right"]
+  ];
+
+  const blue_endgame_pioneer = blue_score["endgame-pioneer-blue"];
+  const gold_endgame_pioneer = gold_score["endgame-pioneer-gold"];
+
+  for (let a = 0; a < blue_resource.length; a++) {
+    for (let b = 0, c = blue_resource[a] > 3 ? 3 : blue_resource[a]; b < c ; b++) {
+      campsite_resource[a * 6 + b].css("background-color", "var(--blue500)");
+    }
+    for (let b = blue_resource[a] > 3 ? 3 : blue_resource[a]; b < 3 ; b++) {
+      campsite_resource[a * 6 + b].css("background-color", "white");
+    }
+  }
+  for (let a = 0; a < gold_resource.length; a++) {
+    for (let b = 0, c = gold_resource[a] > 3 ? 3 : gold_resource[a]; b < c ; b++) {
+      campsite_resource[a * 6 + 3 + b].css("background-color", "var(--gold500)");
+    }
+    for (let b = gold_resource[a] > 3 ? 3 : gold_resource[a]; b < 3 ; b++) {
+      campsite_resource[a * 6 + 3 + b].css("background-color", "white");
+    }
+  }
+
+  for (let a = 0; a < blue_satellite.length && a < gold_satellite.length; a++) {
+    if (blue_satellite[a] == true && gold_satellite[a] == true) {
+      console.log("ERROR: Both Blue and Gold teams cannot control the same satellite!");
+      campsite_satellite_icon[a].css("background-color", "black");
+      continue;
+    }
+    if (blue_satellite[a]) {
+      campsite_satellite_icon[a].css("background-color", "var(--blue500)");
+    }
+    else if (gold_satellite[a]) {
+      campsite_satellite_icon[a].css("background-color", "var(--gold500)");
+    }
+    else {
+      campsite_satellite_icon[a].css("background-color", "black");
+    }
+  }
+
+  for (let a = 0; a < blue_pioneer.length && a < gold_pioneer.length; a++) {
+    if (blue_pioneer[a] == true && gold_pioneer[a] == true) {
+      campsite_pioneer_icon[a].css("background-color", "rgba(0, 0, 0, 0)");
+      campsite_pioneer_icon_background[a].css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) 50%, var(--gold500) 50%, var(--gold500) 100%)")
+    }
+    else if (blue_pioneer[a]) {
+      campsite_pioneer_icon_background[a].css("background", "transparent")
+      campsite_pioneer_icon[a].css("background-color", "var(--blue500)");
+    }
+    else if (gold_pioneer[a]) {
+      campsite_pioneer_icon_background[a].css("background", "transparent")
+      campsite_pioneer_icon[a].css("background-color", "var(--gold500)");
+    }
+    else {
+      campsite_pioneer_icon_background[a].css("background", "transparent")
+      campsite_pioneer_icon[a].css("background-color", "black");
+    }
+  }
+
+  if ((blue_endgame_pioneer > 0 || gold_endgame_pioneer > 0) && state !== "endgame") {
+    console.log("ERROR: Cannot set endgame pioneer scores until endgame has started!");
+  }
+  else {
+    for (let a = 0; a < blue_endgame_pioneer; a++) {
+      endgame_pioneer_icon[a].show();
+    }
+    for (let a = blue_endgame_pioneer; a < 4; a++) {
+      endgame_pioneer_icon[a].hide();
+    }
+    for (let a = 0; a < gold_endgame_pioneer; a++) {
+      endgame_pioneer_icon[a + 4].show();
+    }
+    for (let a = gold_endgame_pioneer; a < 4; a++) {
+      endgame_pioneer_icon[a + 4].hide();
+    }  
+  }
 });
 
 // not used???
@@ -175,6 +318,15 @@ socket.on("resume_timer", (start_time) => {
 // function removeSandstorm() {
 //   $('body').css('background-image', 'url()');
 // }
+
+function individual(jq_obj) {
+  console.log("Inside function: individual");
+  let res = Array(jq_obj.length);
+  for (let a = 0; a < jq_obj.length; a++) {
+    res[a] = $(jq_obj[a]);
+  }
+  return res;
+}
 
 function setTime(time) {
   stageTimer = false;
