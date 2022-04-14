@@ -16,9 +16,7 @@ class TimerThread(threading.Thread):
     def run(self):
         """When started, thread will run and process Timers in queue until the queue is empty."""
         while Timer.eventQueue:
-            if Timer.paused:
-                break
-            else:
+            if not Timer.paused:
                 time_to_wait = Timer.update_all()
                 if time_to_wait > 0:
                     time.sleep(0.99 * time_to_wait)
@@ -97,8 +95,6 @@ class Timer:
             cls.paused = False
             print(f"Pause status: {cls.paused}")
             cls.queueLock.release()
-            Timer.thread.run()
-
 
     def __init__(self, timer_type):
         """
