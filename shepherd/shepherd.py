@@ -12,7 +12,6 @@ import threading
 import time
 
 
-
 ###########################################
 # Evergreen Variables
 ###########################################
@@ -21,6 +20,7 @@ MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
 GAME_TIMER = Timer(TIMER_TYPES.MATCH)
 BLIZZARD_WARNING_TIMER = Timer(TIMER_TYPES.BLIZZARD_WARNING)
+IS_TIMER_PAUSED = None
 
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
@@ -77,7 +77,6 @@ def pull_from_sheets():
     while True:
         if GAME_STATE not in [STATE.END, STATE.SETUP]:
             Sheet.send_scores_for_icons(MATCH_NUMBER)
-
         time.sleep(2.0)
 
 
@@ -111,14 +110,18 @@ def set_teams_info(teams):
     send_match_info_to_ui()
 
 def pause_timer():
-    Timer.pause()
-    ydl_send(*UI_HEADER.PAUSE_TIMER())
+    global IS_TIMER_PAUSED
+    if IS_TIMER_PAUSED == None or not IS_TIMER_PAUSED:
+        IS_TIMER_PAUSED = True
+        Timer.pause()
+        ydl_send(*UI_HEADER.PAUSE_TIMER())
 
 def resume_timer():
-    ydl_send(*UI_HEADER.RESUME_TIMER(start_time=(GAME_TIMER.pauseStart)))
-    # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: ")
-    Timer.resume()
-    # print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB: ")
+    global IS_TIMER_PAUSED
+    if IS_TIMER_PAUSED:
+        IS_TIMER_PAUSED = False
+        Timer.resume()
+        ydl_send(*UI_HEADER.RESUME_TIMER(end_time=GAME_TIMER.end_time, pause_end=GAME_TIMER.pauseEnd))
 
 
 
@@ -146,8 +149,9 @@ def reset_match():
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE
+    global GAME_STATE, IS_TIMER_PAUSED
     GAME_STATE = STATE.SETUP
+    IS_TIMER_PAUSED = None
     Timer.reset_all()
     disable_robots()
     CLIENTS.reconnect_all()
@@ -205,8 +209,9 @@ def to_end():
     '''
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
     '''
-    global GAME_STATE
+    global GAME_STATE, IS_TIMER_PAUSED
     GAME_STATE = STATE.END
+    IS_TIMER_PAUSED = None
     disable_robots()
     CLIENTS.close_all()
     GAME_TIMER.reset()
@@ -427,6 +432,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
     SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
     SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,
+    # SHEPHERD_HEADER.RESUME_TIMER_FINISHED.name: resume_timer_finished,
     # temporary code for exhibition, remove later
     SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
 

@@ -1,13 +1,15 @@
 var socket = io('/');
-var stageTimer = false;
 // var timerA = true;
 // var globaltime = 0;
 // var startTime = 0;
+var stageTimer = false;
 var myStageTimeout;
 var state_time;
 var state;
 var prevStateBlizzard = false;
 var prev_start_time;
+var is_timer_paused = null;
+
 var campsite_resource;
 var campsite_satellite_icon;
 var campsite_pioneer_icon;
@@ -42,35 +44,6 @@ socket.on('teams_info', (match_info) => {
     team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2);
 });
 
-/*
-socket.on('stage_timer_start', (secondsInStage) => {
-  time = JSON.parse(secondsInStage).time
-  stageTimerStart(time)
-})
-*/
-
-// not used???
-// STAGE{stage, start_time}
-// socket.on('stage', (stage_details) => {
-//   console.log("Successful ydl message: stage")
-//   stage = JSON.parse(stage_details).stage
-//   start_time = JSON.parse(stage_details).start_time
-//   console.log("got stage header")
-//   console.log(stage_details)
-//   if (stage === "setup") {
-//     setTime(0);
-//     setStamp(0);
-//     setPenalty(0);
-//   } else if (stage === "end") {
-//     stageTimer = false;
-//   } else {
-//     setStageName(stage);
-//     if (start_time != null) {
-//       setStartTime(start_time);
-//     }
-//   }
-// })
-
 // USE STATE, NOT STAGE
 socket.on('state', (state_info) => {
   console.log("Successful ydl message: state");
@@ -87,9 +60,13 @@ socket.on('state', (state_info) => {
   if (state === "setup") {
     setStageName(state);
     setTime(0);
+    setSetupState();
+    stageTimer = false;
+    is_timer_paused = null;
   } else if (state === "end") {
     setStageName(state);
     stageTimer = false;
+    is_timer_paused = null;
   } else {
     if (state === "blizzard") {
       prevStateBlizzard = true;
@@ -112,20 +89,6 @@ socket.on("scores", (scores) => {
   ({ blue_score, gold_score } = scores);
   setBlueScore(blue_score);
   setGoldScore(gold_score);
-});
-
-socket.on("pause_timer", () => {
-  console.log("Successful ydl message: pause_timer");
-  clearTimeout(myStageTimeout);
-  stageTimer = false;
-});
-
-socket.on("resume_timer", (start_time) => {
-  console.log("Successful ydl message: resume_timer");
-  start_time_info = JSON.parse(start_time);
-
-  stageTimer = true;
-  runStageTimer((new Date().getTime() / 1000) - (start_time_info.start_time - prev_start_time / 1000));
 });
 
 socket.on("scores_for_icons", (score_info) => {
@@ -244,6 +207,12 @@ socket.on("scores_for_icons", (score_info) => {
 
   if ((blue_endgame_pioneer > 0 || gold_endgame_pioneer > 0) && state !== "endgame") {
     console.log("ERROR: Cannot set endgame pioneer scores until endgame has started!");
+    for (let a = 0; a < endgame_pioneer_icon.length; a++) {
+      endgame_pioneer_icon[a].hide();
+    }
+  }
+  else if ((blue_endgame_pioneer = 0 && gold_endgame_pioneer == 0) && state !== "endgame") {
+    endgame_pioneer_icon[a].hide();
   }
   else {
     for (let a = 0; a < blue_endgame_pioneer; a++) {
@@ -261,63 +230,25 @@ socket.on("scores_for_icons", (score_info) => {
   }
 });
 
-// not used???
-// i think this is not used for 2022 game?
-// socket.on("reset_timers", () => {
-//   console.log("Successful ydl message: reset_timers")
-//   resetTimers();
-// })
+socket.on("pause_timer", () => {
+  if (is_timer_paused == null || !is_timer_paused) {
+    is_timer_paused = true;
+    console.log("Successful ydl message: pause_timer");
+    clearTimeout(myStageTimeout);
+    stageTimer = false;
+  }
+});
 
-
-// not used???
-// SCORES{time, penalty, stamp_time, score, start_time}
-// socket.on("scores", (scores) => {
-//   console.log("Successful ydl message: scores")
-//   console.log("receiving score");
-//   scores = JSON.parse(scores);
-//   console.log(`scores are ${JSON.stringify(scores)}`);
-//   ({ time, penalty, stamp_time } = scores);
-
-//   console.log("THIS SHOULD PRINT")
-//   console.log(time)
-//   if (time) {
-//     console.log("Setting time")
-//     setTime(time);
-//     setTotal(time + stamp_time + penalty)
-//   }
-//   setStamp(stamp_time);
-//   setPenalty(penalty);
-//   console.log(time)
-  
-//   // if (time) {
-//   //   console.log("Setting total")
-//   //   setTotal(time - stamp_time + penalty)
-//   // }
-// })
-
-// not used???
-// updates the stage 
-// socket.on("sandstorm", (sandstorm) => {
-//   console.log("Successful ydl message: sandstorm")
-//   on = JSON.parse(sandstorm).on;
-//   if (on) {
-//     console.log("Setting sandstorm");
-//     setSandstorm();
-//   } else {
-//     console.log("Removing sandstorm");
-//     removeSandstorm();
-//   }
-// })
-
-// not used???
-// function setSandstorm() {
-//   $('body').css('background-image', 'url(../static/2.png)');
-// }
-
-// not used???
-// function removeSandstorm() {
-//   $('body').css('background-image', 'url()');
-// }
+socket.on("resume_timer", (time) => {
+  if (is_timer_paused) {
+    is_timer_paused = false;
+    time_info = JSON.parse(time);
+    pause_end = time_info.pause_end;
+    state_time = time_info.end_time - pause_end;
+    stageTimer = true;
+    runStageTimer(pause_end);
+  }
+});
 
 function individual(jq_obj) {
   console.log("Inside function: individual");
@@ -386,6 +317,39 @@ function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2,
   $('#team-num-g2').html("Team " + team_num_g2);
 }
 
+function setSetupState() {
+  // campsite_resource = individual($(".campsite-resource-icon, .campsite-resource-middle-icon"));
+  // campsite_satellite_icon = individual($(".campsite-satellite-icon-circle-border"));
+  // campsite_pioneer_icon = individual($(".campsite-pioneer-icon"));
+  // endgame_pioneer_icon = individual($(".endgame-pioneer-blue-container, .endgame-pioneer-gold-container"));
+  // campsite_pioneer_icon_background = individual($(".campsite-pioneer-icon-background"));
+  for (let a = 0; a < campsite_resource.length; a++) {
+    campsite_resource[a].css("background-color", "var(--grey500)");
+  }
+  for (let a = 0; a < campsite_satellite_icon.length; a++) {
+    campsite_satellite_icon[a].css("background-color", "rgba(0, 0, 0, 0.5)");
+  }
+  for (let a = 0; a < campsite_pioneer_icon.length; a++) {
+    campsite_pioneer_icon_background[a].css("background", "transparent")
+    campsite_pioneer_icon[a].css("background-color", "rgba(0, 0, 0, 0.5)");
+  }
+  for (let a = 0; a < endgame_pioneer_icon.length; a++) {
+    endgame_pioneer_icon[a].show();
+  }
+}
+
+function setStartTime(start_time) {
+  // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
+  // the difference between the current time and the sent timestamp, and set the starting time 
+  // to be the amount of time given in the round minus the offset.
+  //
+  // Args:
+  // start_time = timestamp sent by Shepherd of when the stage began in seconds
+  start_time = start_time / 1000; // seconds
+
+  stageTimerStart(start_time);
+}
+
 function stageTimerStart(startTime) {
   stageTimer = true;
   runStageTimer(startTime);
@@ -411,11 +375,102 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
+
 // not used???
-function setImageVisible(id, visible) {
-  console.log("Set visible/invisible");
-  $(id).css("visibility", (visible ? 'visible' : 'hidden'));
-}
+// function setImageVisible(id, visible) {
+//   console.log("Set visible/invisible");
+//   $(id).css("visibility", (visible ? 'visible' : 'hidden'));
+// }
+
+
+/*
+socket.on('stage_timer_start', (secondsInStage) => {
+  time = JSON.parse(secondsInStage).time
+  stageTimerStart(time)
+})
+*/
+
+// not used???
+// STAGE{stage, start_time}
+// socket.on('stage', (stage_details) => {
+//   console.log("Successful ydl message: stage")
+//   stage = JSON.parse(stage_details).stage
+//   start_time = JSON.parse(stage_details).start_time
+//   console.log("got stage header")
+//   console.log(stage_details)
+//   if (stage === "setup") {
+//     setTime(0);
+//     setStamp(0);
+//     setPenalty(0);
+//   } else if (stage === "end") {
+//     stageTimer = false;
+//   } else {
+//     setStageName(stage);
+//     if (start_time != null) {
+//       setStartTime(start_time);
+//     }
+//   }
+// })
+
+
+// not used???
+// i think this is not used for 2022 game?
+// socket.on("reset_timers", () => {
+//   console.log("Successful ydl message: reset_timers")
+//   resetTimers();
+// })
+
+
+// not used???
+// SCORES{time, penalty, stamp_time, score, start_time}
+// socket.on("scores", (scores) => {
+//   console.log("Successful ydl message: scores")
+//   console.log("receiving score");
+//   scores = JSON.parse(scores);
+//   console.log(`scores are ${JSON.stringify(scores)}`);
+//   ({ time, penalty, stamp_time } = scores);
+
+//   console.log("THIS SHOULD PRINT")
+//   console.log(time)
+//   if (time) {
+//     console.log("Setting time")
+//     setTime(time);
+//     setTotal(time + stamp_time + penalty)
+//   }
+//   setStamp(stamp_time);
+//   setPenalty(penalty);
+//   console.log(time)
+  
+//   // if (time) {
+//   //   console.log("Setting total")
+//   //   setTotal(time - stamp_time + penalty)
+//   // }
+// })
+
+// not used???
+// updates the stage 
+// socket.on("sandstorm", (sandstorm) => {
+//   console.log("Successful ydl message: sandstorm")
+//   on = JSON.parse(sandstorm).on;
+//   if (on) {
+//     console.log("Setting sandstorm");
+//     setSandstorm();
+//   } else {
+//     console.log("Removing sandstorm");
+//     removeSandstorm();
+//   }
+// })
+
+// not used???
+// function setSandstorm() {
+//   $('body').css('background-image', 'url(../static/2.png)');
+// }
+
+// not used???
+// function removeSandstorm() {
+//   $('body').css('background-image', 'url()');
+// }
+
 
 /*
 function progress(timeleft, timetotal, $element) {
@@ -514,18 +569,6 @@ function timer1() {
 
 }
 */
-
-function setStartTime(start_time) {
-  // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
-  // the difference between the current time and the sent timestamp, and set the starting time 
-  // to be the amount of time given in the round minus the offset.
-  //
-  // Args:
-  // start_time = timestamp sent by Shepherd of when the stage began in seconds
-  start_time = start_time / 1000; // seconds
-
-  stageTimerStart(start_time);
-}
 
 
 /* FOR TESTING: */

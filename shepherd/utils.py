@@ -148,13 +148,6 @@ class SHEPHERD_HEADER():
         been paused using PAUSE_TIMERS.
         """
     
-    @header(YDL_TARGETS.SHEPHERD, "resume_timer_finished")
-    def RESUME_TIMER_FINISHED():
-        """
-        source: Timer. Resumes and finishes the work of the resume_timer header. 
-        This was added only because Timer.resume() takes some time to finish running. 
-        This extra header allows the timer to actually resume on time
-        """
 
 class UI_HEADER():
     """
@@ -212,9 +205,9 @@ class UI_HEADER():
         """
     
     @header(YDL_TARGETS.UI, "resume_timer")
-    def RESUME_TIMER(start_time):
+    def RESUME_TIMER(end_time, pause_end):
         """
-        source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout with the new end time
+        source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout
         Used to resume the game after it has
         been paused using PAUSE_TIMERS.
         """
