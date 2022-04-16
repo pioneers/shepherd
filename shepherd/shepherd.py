@@ -440,7 +440,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.TURN_LIGHT_FROM_UI.name: forward_button_light,
     SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
     SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
-    SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,
+    # SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,
     # SHEPHERD_HEADER.UPDATE_SCORE.name: update_score,
     # temporary code for exhibition, remove later
     SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
