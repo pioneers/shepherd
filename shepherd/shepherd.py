@@ -75,7 +75,7 @@ def start():
 
 def pull_from_sheets():
     while True:
-        if GAME_STATE not in [STATE.END, STATE.SETUP]:
+        if (IS_TIMER_PAUSED == None or not IS_TIMER_PAUSED) and GAME_STATE not in [STATE.END, STATE.SETUP]:
             Sheet.send_scores_for_icons(MATCH_NUMBER)
         time.sleep(2.0)
 
