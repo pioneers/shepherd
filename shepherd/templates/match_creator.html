@@ -114,6 +114,33 @@
       toggleHeartbeat(data.ind, data.connected, msg);
     });
 
+    socket.on("invalid_write_match", (match) => {
+      console.log("Successful ydl message: invalid_write_match");
+      match_num_info = JSON.parse(match);
+      match_num = match_num_info.match_num;
+      reason = match_num_info.reason;
+      if (reason == 1) {
+        msg1 = "The match number cannot be negative";
+        alert(msg1);
+        return;
+      }
+      else if (reason == 2) {
+        msg1 = "The team numbers cannot be negative";
+        alert(msg1);
+        return;
+      }
+      else if (reason == 3) {
+        msg1 = "Warning: The match number " + match_num + " was already found in the spreadsheet under the Ref Scoring tab. ";
+        msg2 = "The match data was correctly set but please reset the scores in the spreadsheet."
+        alert(msg1 + msg2);
+      }
+      else {
+        msg1 = "The match number " + match_num + " was already found in the spreadsheet under the Match Database tab. ";
+        msg2 = "Please delete that match from the spreadsheet or use a different match number."
+        alert(msg1 + msg2);
+      }
+    });
+
     function setDefaultTeamsInfo() {
       console.log("Inside function: setDefaultTeamsInfo");
       match_num_input.val(match_num);

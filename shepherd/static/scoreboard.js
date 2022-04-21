@@ -96,6 +96,7 @@ socket.on("scores", (scores) => {
 });
 
 socket.on("scores_for_icons", (score_info) => {
+  console.log("Successful ydl message: scores_for_icons");
   score_info = JSON.parse(score_info);
   blue_score = score_info.blue_score;
   gold_score = score_info.gold_score;
@@ -161,7 +162,7 @@ socket.on("scores_for_icons", (score_info) => {
       campsite_resource[a * 6 + b].css("background-color", "var(--blue500)");
     }
     for (let b = blue_resource[a] > 3 ? 3 : blue_resource[a]; b < 3 ; b++) {
-      campsite_resource[a * 6 + b].css("background-color", "white");
+      campsite_resource[a * 6 + b].css("background-color", "var(--grey500)");
     }
   }
   for (let a = 0; a < gold_resource.length; a++) {
@@ -169,7 +170,7 @@ socket.on("scores_for_icons", (score_info) => {
       campsite_resource[a * 6 + 3 + b].css("background-color", "var(--gold500)");
     }
     for (let b = gold_resource[a] > 3 ? 3 : gold_resource[a]; b < 3 ; b++) {
-      campsite_resource[a * 6 + 3 + b].css("background-color", "white");
+      campsite_resource[a * 6 + 3 + b].css("background-color", "var(--grey500)");
     }
   }
 
@@ -209,14 +210,13 @@ socket.on("scores_for_icons", (score_info) => {
     }
   }
 
-  if ((blue_endgame_pioneer > 0 || gold_endgame_pioneer > 0) && state !== "endgame") {
-    console.log("ERROR: Cannot set endgame pioneer scores until endgame has started!");
+  if (state !== "endgame") {
+    if (blue_endgame_pioneer != 0 || gold_endgame_pioneer != 0) {
+      console.log("ERROR: Cannot set endgame pioneer scores until endgame has started!");
+    }
     for (let a = 0; a < endgame_pioneer_icon.length; a++) {
       endgame_pioneer_icon[a].hide();
     }
-  }
-  else if ((blue_endgame_pioneer == 0 && gold_endgame_pioneer == 0) && state !== "endgame") {
-    endgame_pioneer_icon[a].hide();
   }
   else {
     for (let a = 0; a < blue_endgame_pioneer; a++) {
@@ -235,15 +235,16 @@ socket.on("scores_for_icons", (score_info) => {
 });
 
 socket.on("pause_timer", () => {
+  console.log("Successful ydl message: pause_timer");
   if (is_timer_paused == null || !is_timer_paused) {
     is_timer_paused = true;
-    console.log("Successful ydl message: pause_timer");
     clearTimeout(myStageTimeout);
     stageTimer = false;
   }
 });
 
 socket.on("resume_timer", (time) => {
+  console.log("Successful ydl message: resume_timer");
   if (is_timer_paused) {
     is_timer_paused = false;
     time_info = JSON.parse(time);
@@ -364,7 +365,7 @@ function runStageTimer(startTime) {
       time = 0;
     }
     $('#stage-timer').html(secondsToTimeString(time));
-    
+
     total_game_time += currTime - prev_curr_time;
     total_game_time = total_game_time > 180 ? 180 : total_game_time;
     timer_background.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 180) + "%, var(--gold500) " + (100 * total_game_time / 180) + "%, var(--gold500) 100%)")

@@ -219,6 +219,15 @@ class UI_HEADER():
         update the icons such as the pioneers/campsites on the scoreboard UI
         """
 
+    @header(YDL_TARGETS.UI, "invalid_write_match")
+    def INVALID_WRITE_MATCH(match_num, reason=0):
+        """
+        source: Sheet. Used to send an alert message to UI saying why
+        the request to write to the spreadsheet was invalid.
+        If reason=1, we don't allow negative numbers because reading/writing -1 from
+        google sheets gives us a str instead of an int which complicates code
+        """
+
 
 class SENSOR_HEADER():
     """

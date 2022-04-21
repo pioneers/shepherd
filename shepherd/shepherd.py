@@ -87,11 +87,14 @@ def set_match_number(match_num):
     Fetching info from spreadsheet is asynchronous, will send a ydl header back with results
     '''
     global MATCH_NUMBER
-    if MATCH_NUMBER != match_num:
-        MATCH_NUMBER = match_num
-        Sheet.get_match(match_num)
-    else:
-        send_match_info_to_ui()
+    # if MATCH_NUMBER != match_num:
+    #     MATCH_NUMBER = match_num
+    #     Sheet.get_match(match_num)
+    # else:
+    #     send_match_info_to_ui()
+    MATCH_NUMBER = match_num
+    Sheet.get_match(match_num)
+
 
 
 def set_teams_info(teams):
@@ -134,6 +137,8 @@ def to_setup(match_num, teams):
     calls reset_match() to move to setup state.
     By the end, should be ready to start match.
     '''
+    if Sheet.write_match_info(match_num, teams) == False:
+        return
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     set_teams_info(teams)
@@ -220,6 +225,10 @@ def to_end():
     send_state_to_ui()
     send_score_to_ui()
     flush_scores()
+
+    # temporary code for scrimmage, comment later
+    Sheet.write_scores_from_read_scores(MATCH_NUMBER)
+    
     print("ENTERING END STATE")
 
 

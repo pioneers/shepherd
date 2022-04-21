@@ -77,6 +77,16 @@ class Sheet:
         threading.Thread(target=bg_thread_work).start()
     
     @staticmethod
+    def write_scores_from_read_scores(match_number):
+        def bg_thread_work():
+            try:
+                Sheet.__write_scores_from_read_scores(match_number)
+            except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to read & write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+    
+    @staticmethod
     def send_scores_for_icons(match_number):
         def bg_thread_work():
             try:
@@ -84,6 +94,16 @@ class Sheet:
             except: # pylint: disable=bare-except
                 print('[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to send score from spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+    
+    @staticmethod
+    def write_match_info(match_number, teams):
+        def bg_thread_work():
+            try:
+                Sheet.__write_match_info(match_number, teams)
+            except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write match info to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -129,18 +149,46 @@ class Sheet:
                     blue = row[2]
                     if blue is not None and gold is not None:
                         ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
-                        return
+                        return blue, gold
                 elif row[1] == "Gold":
                     gold = row[2]
                     if blue is not None and gold is not None:
                         ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
-                        return
+                        return blue, gold
 
     @staticmethod
     def __write_online_scores(match_number, blue_score, gold_score):
         """
         A method that writes the scores to the sheet
         """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Match Database!A2:A").execute()['values']
+
+        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        for i, row in enumerate(game_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                row_num = i
+                break
+
+        range_name = f"Match Database!N{row_num + 2}:O{row_num + 2}"
+        body = {
+            'values': [[str(blue_score), str(gold_score)]]
+        }
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range=range_name, body=body, valueInputOption="RAW").execute()
+    
+    @staticmethod
+    def __write_scores_from_read_scores(match_number):
+        """
+        A method that writes the scores to the spreadsheet using scores from the spreadsheet
+        (transfering scores from one spreadsheet tab to another)
+        """
+        scores = Sheet.__read_online_scores(match_number)
+        if (scores == None):
+            return
+        blue_score, gold_score = scores[0], scores[1]
+
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range="Match Database!A2:A").execute()['values']
@@ -223,3 +271,80 @@ class Sheet:
                     if blue is not None and gold is not None:
                         ydl_send(*UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
                         return
+
+
+    @staticmethod
+    def __write_match_info(match_number, teams):
+        """
+        Writes the match info to the spreadsheet
+        """
+        if (match_number < 0):
+            ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=1))
+            return False
+        for i in range(len(teams)):
+            if teams[i]["team_num"] < 0:
+                ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
+                return False
+        
+
+        spreadsheet = Sheet.__get_authorized_sheet()
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Match Database!A2:A").execute()['values']
+        row_num = -1
+        for i, row in enumerate(game_data):
+            row_num = i
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=0))
+                return False
+        range_name = f"Match Database!A{row_num + 3}:M{row_num + 3}"
+        body = {
+            'values': [[match_number, teams[0]["team_num"], teams[0]["team_name"], teams[0]["robot_ip"],
+                        teams[1]["team_num"], teams[1]["team_name"], teams[1]["robot_ip"],
+                        teams[2]["team_num"], teams[2]["team_name"], teams[2]["robot_ip"],
+                        teams[3]["team_num"], teams[3]["team_name"], teams[3]["robot_ip"]]]
+        }
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range=range_name, body=body, valueInputOption="RAW").execute()
+        
+
+        spreadsheet = Sheet.__get_authorized_sheet()
+        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Ref Scoring!A4:B").execute()['values']
+        row_num = -1
+        blue = False
+        gold = False
+        empty_cell_blue = -1
+        empty_cell_gold = -1
+        for i, row in enumerate(game_data):
+            row_num = i
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                if row[1] == "Blue":
+                    blue = True
+                    ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    if blue is True and gold is True:
+                        return
+                elif row[1] == "Gold":
+                    gold = True
+                    ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    if blue is True and gold is True:
+                        return
+            elif len(row) > 0 and row[0] == "":
+                if (empty_cell_blue == -1):
+                    empty_cell_blue = i
+                elif (empty_cell_gold == -1):
+                    empty_cell_gold = i
+
+        if not blue:
+            range_name = f"Ref Scoring!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
+            body = {
+                'values': [[match_number]]
+            }
+            spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                range=range_name, body=body, valueInputOption="RAW").execute()
+        if not gold:
+            range_name = f"Ref Scoring!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
+            body = {
+                'values': [[match_number]]
+            }
+            spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                range=range_name, body=body, valueInputOption="RAW").execute()
