@@ -384,7 +384,7 @@ def sound_blizzard_warning():
 
 
 def sound_blizzard_warning_helper():
-    wave_obj = sa.WaveObject.from_wave_file('static/onew.wav')
+    wave_obj = sa.WaveObject.from_wave_file('static/blizzard_warning.wav')
     play_obj = wave_obj.play()
     play_obj.wait_done()
     
