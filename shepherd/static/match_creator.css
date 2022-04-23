@@ -267,8 +267,15 @@
   height: 15px;
 }
 
-.disabled-btn {
+.disabled-green-btn {
   background-color: #2a4000;
+  transition: var(--transition);
+  color: var(--white);
+  cursor: default;
+}
+
+.disabled-red-btn {
+  background-color: #400000;
   transition: var(--transition);
   color: var(--white);
   cursor: default;

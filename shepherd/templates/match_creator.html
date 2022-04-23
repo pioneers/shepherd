@@ -86,13 +86,14 @@
       match_num = data.match_num;
       teams = data.teams;
       setDefaultTeamsInfo();
-      next_match_btn.prop("disabled", false);
-      next_match_btn.removeClass("disabled-btn");
-      next_match_btn.addClass("green-btn");
-      populate_btn.prop("disabled", false);
-      populate_btn.removeClass("disabled-btn");
-      populate_btn.addClass("green-btn");
-
+      // next_match_btn.prop("disabled", false);
+      // next_match_btn.removeClass("disabled-btn");
+      // next_match_btn.addClass("green-btn");
+      // populate_btn.prop("disabled", false);
+      // populate_btn.removeClass("disabled-btn");
+      // populate_btn.addClass("green-btn");
+      setButtonStatus(next_match_btn, true, "green");
+      setButtonStatus(populate_btn, true, "green");
     });
 
     socket.on("state", function (data) {
@@ -101,6 +102,9 @@
       for (let a = 0; a < 4; a++) {
         state_msg[a].text(data.state);
       }
+      setButtonStatus(create_match_btn, true, "green");
+      setButtonStatus(start_match_btn, true, "green");
+      setButtonStatus(reset_match_btn, true, "red");
     });
 
     socket.on("robot_connection", function (data) {
@@ -135,8 +139,9 @@
         alert(msg1 + msg2);
       }
       else {
-        msg1 = "The match number " + match_num + " was already found in the spreadsheet under the Match Database tab. ";
-        msg2 = "Please delete that match from the spreadsheet or use a different match number."
+        msg1 = "Warning: The match number " + match_num + " was already found in the spreadsheet under the Match Database tab. ";
+        msg2 = "If you are intending to start a new match, please delete the existing row in the spreadsheet and press the create match button again. "
+        msg3 = "Or you can use a different match number. "
         alert(msg1 + msg2);
       }
     });
@@ -167,16 +172,48 @@
       }
     }
 
+    function setButtonStatus(id, status, color) {
+      console.log("Inside function: setButtonStatus");
+      if (status == true) {
+        $(id).prop("disabled", false);
+        if (color == "green") {
+          $(id).removeClass("disabled-green-btn");
+          $(id).addClass("green-btn");
+        }
+        else if (color == "red") {
+          $(id).removeClass("disabled-red-btn");
+          $(id).addClass("green-btn");
+        }
+      }
+      else if (status == false) {
+        $(id).prop("disabled", true);
+        $(id).removeClass("green-btn");
+        $(id).addClass("disabled-btn");
+        if (color == "green") {
+          $(id).removeClass("green-btn");
+          $(id).addClass("disabled-green-btn");
+        }
+        else if (color == "red") {
+          $(id).removeClass("green-btn");
+          $(id).addClass("disabled-red-btn");
+        }
+      }
+
+      
+    }
+
     next_match_btn.click(() => {
       console.log("Inside onClick function: next_match_btn");
       match_num++;
       match_num_input.val("");
-      next_match_btn.prop("disabled", true);
-      next_match_btn.removeClass("green-btn");
-      next_match_btn.addClass("disabled-btn");
-      populate_btn.prop("disabled", true);
-      populate_btn.removeClass("green-btn");
-      populate_btn.addClass("disabled-btn");
+      // next_match_btn.prop("disabled", true);
+      // next_match_btn.removeClass("green-btn");
+      // next_match_btn.addClass("disabled-btn");
+      // populate_btn.prop("disabled", true);
+      // populate_btn.removeClass("green-btn");
+      // populate_btn.addClass("disabled-btn");
+      setButtonStatus(next_match_btn, false, "green");
+      setButtonStatus(populate_btn, false, "green");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
@@ -188,12 +225,14 @@
         return;
       }
       match_num_input.val("");
-      next_match_btn.prop("disabled", true);
-      next_match_btn.removeClass("green-btn");
-      next_match_btn.addClass("disabled-btn");
-      populate_btn.prop("disabled", true);
-      populate_btn.removeClass("green-btn");
-      populate_btn.addClass("disabled-btn");
+      // next_match_btn.prop("disabled", true);
+      // next_match_btn.removeClass("green-btn");
+      // next_match_btn.addClass("disabled-btn");
+      // populate_btn.prop("disabled", true);
+      // populate_btn.removeClass("green-btn");
+      // populate_btn.addClass("disabled-btn");
+      setButtonStatus(next_match_btn, false, "green");
+      setButtonStatus(populate_btn, false, "green");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
     });
 
@@ -218,6 +257,9 @@
         // teams[a].starting_position = team_sp_inputs[a].val();
         teams[a].robot_ip = robot_ip_inputs[a].val();
       }
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
       send(
         "setup_match",
         JSON.stringify({ match_num: match_num, teams: teams })
@@ -227,6 +269,9 @@
     start_match_btn.click(() => {
       console.log("Inside onClick function: start_match_btn");      
       let match_phase = match_phase_input.val();
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
       if (match_phase == "") {
         send("start_next_stage");
       } else {
@@ -239,6 +284,9 @@
 
     reset_match_btn.click(() => {
       console.log("Inside onClick function: reset_match_btn");
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
       send("reset_match");
     });
 
