@@ -1,7 +1,8 @@
 #include "Arduino2.h"
 
 // number of switches on a limit switch (how many input pins)
-const int Arduino2::NUM_LIGHTS = 7;
+const int Arduino2::NUM_LIGHTS = 3;
+const int Arduino2::NUM_BUTTONS = 1;
 /*
 button1: 2
 light1: 3
@@ -22,7 +23,8 @@ const uint8_t Arduino2::pins[] = {
     // lights 1 - 7
     3,
     5,
-    7
+    7,
+    2
 };
 
 // Constructor is called once and immediately when the Arduino is plugged in
@@ -30,26 +32,23 @@ Arduino2::Arduino2() : Device(DeviceType::ARDUINO2, 13) {
 }
 
 size_t Arduino2::device_read(uint8_t param, uint8_t* data_buf) {
-    // put pin value into data_buf and return the amount of bytes written
-    /*
-    if (param >= Arduino2::NUM_BUTTONS) {
-        // this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
+    if (param < Arduino2::NUM_LIGHTS) {
+        this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
         return 0;
     }
     data_buf[0] = (digitalRead(this->pins[param]) == HIGH) ? TRUE : FALSE;
 
-    static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
-    uint64_t curr = millis();
+    // static uint64_t last_update_time[] = {0, 0, 0, 0, 0, 0, 0};
+    // uint64_t curr = millis();
 
-    // log each button every 500ms
-    if (curr - last_update_time[param] > 500) {
-        // this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
-        last_update_time[param] = curr;
-    }
-    */
-
+    // // log each button every 500ms
+    // if (curr - last_update_time[param] > 500) {
+    //     // this->msngr->lowcar_printf("button %d is %s", param, data_buf[0] == 1 ? "pressed" : "not pressed");
+    //     last_update_time[param] = curr;
+    // }
     return sizeof(uint8_t);
 }
+
 // writable, not readable. should just call device_write id hope.
 size_t Arduino2::device_write(uint8_t param, uint8_t* data_buf) {
     if (data_buf[0] == 1) {
@@ -69,6 +68,9 @@ void Arduino2::device_enable() {
 
     for (int i = 0; i < Arduino2::NUM_LIGHTS; i++) {
         pinMode(Arduino2::pins[i], OUTPUT);
+    }
+    for(int j = Arduino2::NUM_LIGHTS; j < Arduino2::NUM_LIGHTS + Arduino2::NUM_BUTTONS; j++) {
+        pinMode(Arduino2::pins[j], INPUT)
     }
 }
 

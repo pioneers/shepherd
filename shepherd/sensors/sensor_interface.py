@@ -65,7 +65,7 @@ def place_device_command(lowcar_message):
     """
     Reads a Lowcar command and writes it to shared memory.
     Arguments:
-        lowcar_message: An LowcarMessage that contains a command for lowcar
+        lowcardevice_read_message: An LowcarMessage that contains a command for lowcar
     Returns:
         None
     """

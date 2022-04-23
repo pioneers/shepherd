@@ -392,6 +392,9 @@ def forward_button_light(num, type, on):
     #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
     #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
 
+def button_pressed(id):
+    print(f"Detected button {id} pressed")
+
 
 
 ###########################################
@@ -413,16 +416,20 @@ FUNCTION_MAPPINGS = {
     },
     STATE.TELEOP_1: {
         SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard,
+        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.BLIZZARD: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
+        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.TELEOP_2: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame,
+        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.ENDGAME: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
+        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,

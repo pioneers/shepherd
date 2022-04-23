@@ -217,16 +217,18 @@ class DehydrationButton(Parameter):
         }
         return args
         # self.identifier is which button
-"""
 
 class GenericButton(Parameter):
     def is_state_change_significant(self, value: bool, previous_value: bool):
         return value == True and previous_value == False
 
     def ydl_message_from_state_change(self, value: float):
-        # fire lever, traffic button, linebreak sensors
-        args = {}
+        args = {
+            "button": self.identifier
+        }
         return args
+
+"""
 
 class TrafficLight(Parameter):
     # COLORS = {"red" : 0xFF0000, "green" : 0x00FF00, "yellow" : 0xFFFF00}
@@ -276,8 +278,8 @@ traffic_light = TrafficLight(name="traffic_light", should_poll=False)
 #lasers = Light(name="lasers", should_poll=False)
 
 
-# button_0 = DehydrationButton(name="button0", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
-# button_1 = DehydrationButton(name="button1", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+button_0 = GenericButton(name="button0", should_poll=True, identifier=0, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
+button_1 = GenericButton(name="button1", should_poll=True, identifier=1, ydl_header=SHEPHERD_HEADER.BUTTON_PRESS.name)
 blight_0 = Light(name="light0", should_poll=False, identifier=0)
 blight_1 = Light(name="light1", should_poll=False, identifier=1)
 blight_2 = Light(name="light2", should_poll=False, identifier=2)
@@ -286,8 +288,8 @@ blight_4 = Light(name="light4", should_poll=False, identifier=4)
 blight_5 = Light(name="light5", should_poll=False, identifier=5)
 
 
-arduino_1 = Device(1, 1, [blight_0, blight_1, blight_4])
-arduino_2 = Device(2, 2, [blight_2, blight_3, blight_5])
+arduino_1 = Device(1, 1, [blight_0, blight_1, blight_4, button_0])
+arduino_2 = Device(2, 2, [blight_2, blight_3, blight_5, button_1])
 #arduino_2 = Device(2, 2, [desert_linebreak, dehydration_linebreak, hypothermia_linebreak, airport_linebreak, fire_lever, fire_light]) # fix NOW TODO
 #arduino_3 = Device(3, 3, [city_linebreak, traffic_linebreak, traffic_button, traffic_light]) # fix
 #arduino_4 = Device(4, 4, [lasers])
