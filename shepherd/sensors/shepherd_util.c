@@ -34,9 +34,9 @@ device_t Arduino1 = {
     .num_params = 14,
     .params = {
         // Read-only
-        {.name = "light0", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light1", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light4", .type = BOOL, .read = 1, .write = 1},
+        {.name = "light0", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light1", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light4", .type = BOOL, .read = 0, .write = 1},
         {.name = "button0", .type = BOOL, .read = 1, .write = 0},
         // Read-able and write-able
         /*
@@ -53,9 +53,9 @@ device_t Arduino2 = {
     .name = "Arduino2",
     .num_params = 6,
     .params = {
-        {.name = "light2", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light3", .type = BOOL, .read = 1, .write = 1},
-        {.name = "light5", .type = BOOL, .read = 1, .write = 1},
+        {.name = "light2", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light3", .type = BOOL, .read = 0, .write = 1},
+        {.name = "light5", .type = BOOL, .read = 0, .write = 1},
         {.name = "button1", .type = BOOL, .read = 1, .write = 0},
     }
 };

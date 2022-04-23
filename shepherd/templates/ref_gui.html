@@ -217,8 +217,10 @@
       send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
       send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
       await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
       send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
       await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
       send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
       await sleep(250);
       send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
@@ -230,8 +232,10 @@
       send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
       send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
       await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
       send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
       await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
       send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
       await sleep(250);
       send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));

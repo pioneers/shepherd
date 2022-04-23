@@ -186,6 +186,8 @@ def to_auto():
     '''
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
+    for n in [0,1,2,3]:
+        ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
 
 def to_teleop_1():
@@ -211,6 +213,8 @@ def to_teleop_2():
 def to_endgame():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
     enable_robots(autonomous=False)
+    for n in [0,1,2,3]:
+        ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     set_state(STATE.ENDGAME)
 
 def to_end():
@@ -400,8 +404,22 @@ def forward_button_light(num, type, on):
     #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
     #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
 
-def button_pressed(id):
+
+def flash_lights(ar):
+    for _ in range(2):
+        for a in ar:
+            ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=a))
+        time.sleep(0.25)
+        for a in ar:
+            ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
+        time.sleep(0.25)
+
+
+def button_pressed(button):
+    id = button
     print(f"Detected button {id} pressed")
+    ar = [0,1] if id == 0 else [2,3]
+    threading.Thread(target=flash_lights, args=(ar,)).start()
 
 
 
@@ -425,19 +443,15 @@ FUNCTION_MAPPINGS = {
     STATE.TELEOP_1: {
         SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard,
-        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.BLIZZARD: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
-        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.TELEOP_2: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame,
-        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.ENDGAME: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
-        SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
@@ -462,6 +476,7 @@ EVERYWHERE_FUNCTIONS = {
     SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
 
     SHEPHERD_HEADER.TURN_LIGHT_FROM_UI.name: forward_button_light,
+    SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed,
     SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
     SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
     # SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,

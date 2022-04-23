@@ -70,7 +70,7 @@ void Arduino2::device_enable() {
         pinMode(Arduino2::pins[i], OUTPUT);
     }
     for(int j = Arduino2::NUM_LIGHTS; j < Arduino2::NUM_LIGHTS + Arduino2::NUM_BUTTONS; j++) {
-        pinMode(Arduino2::pins[j], INPUT)
+        pinMode(Arduino2::pins[j], INPUT);
     }
 }
 

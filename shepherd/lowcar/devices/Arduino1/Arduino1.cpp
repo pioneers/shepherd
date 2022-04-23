@@ -16,7 +16,7 @@ Arduino1::Arduino1() : Device(DeviceType::ARDUINO1, 13) {
 }
 
 size_t Arduino1::device_read(uint8_t param, uint8_t* data_buf) {
-    if (param < Arduino2::NUM_LIGHTS) {
+    if (param < Arduino1::NUM_LIGHTS) {
         this->msngr->lowcar_printf("Sorry, can only read from buttons. Please check your shepherd_util.c");
         return 0;
     }
@@ -50,11 +50,11 @@ void Arduino1::device_enable() {
     // todo: ask ben what is diff between device enable and constructor
     this->msngr->lowcar_printf("ARDUINO 1 ENABLING");
 
-    for (int i = 0; i < Arduino2::NUM_LIGHTS; i++) {
-        pinMode(Arduino2::pins[i], OUTPUT);
+    for (int i = 0; i < Arduino1::NUM_LIGHTS; i++) {
+        pinMode(Arduino1::pins[i], OUTPUT);
     }
-    for(int j = Arduino2::NUM_LIGHTS; j < Arduino2::NUM_LIGHTS + Arduino2::NUM_BUTTONS; j++) {
-        pinMode(Arduino2::pins[j], INPUT)
+    for(int j = Arduino1::NUM_LIGHTS; j < Arduino1::NUM_LIGHTS + Arduino1::NUM_BUTTONS; j++) {
+        pinMode(Arduino1::pins[j], INPUT);
     }
 }
 
