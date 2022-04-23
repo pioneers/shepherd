@@ -10,6 +10,7 @@ from sheet import Sheet
 from robot import Robot
 import threading
 import time
+import simpleaudio as sa
 
 
 ###########################################
@@ -379,7 +380,14 @@ def disconnect_robot(ind):
 
 def sound_blizzard_warning():
     # TODO: figure out audio
-    pass
+    threading.Thread(target=sound_blizzard_warning_helper).start()
+
+
+def sound_blizzard_warning_helper():
+    wave_obj = sa.WaveObject.from_wave_file('static/onew.wav')
+    play_obj = wave_obj.play()
+    play_obj.wait_done()
+    
 
 def forward_button_light(num, type, on):
     if type == "button":
