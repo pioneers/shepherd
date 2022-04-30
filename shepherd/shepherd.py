@@ -214,8 +214,6 @@ def to_teleop_2():
 def to_endgame():
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
     enable_robots(autonomous=False)
-    for n in [0,1,2,3]:
-        ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     set_state(STATE.ENDGAME)
 
 def to_end():
@@ -226,7 +224,9 @@ def to_end():
     GAME_STATE = STATE.END
     IS_TIMER_PAUSED = None
     disable_robots()
-    play_sound("static/S5FRJ7E-buzzers.wav")
+    play_sound("static/trim.wav")
+    for n in [0,1,2,3]:
+        ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
