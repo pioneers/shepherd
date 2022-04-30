@@ -186,6 +186,7 @@ def to_auto():
     '''
     GAME_TIMER.start_timer(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
+    play_sound("static/boxing-bell.wav")
     for n in [0,1,2,3]:
         ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
@@ -225,6 +226,7 @@ def to_end():
     GAME_STATE = STATE.END
     IS_TIMER_PAUSED = None
     disable_robots()
+    play_sound("static/S5FRJ7E-buzzers.wav")
     CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
@@ -383,12 +385,13 @@ def disconnect_robot(ind):
 
 
 def sound_blizzard_warning():
-    # TODO: figure out audio
-    threading.Thread(target=sound_blizzard_warning_helper).start()
+    play_sound("static/blizzard_warning.wav")
 
+def play_sound(filename):
+    threading.Thread(target=actually_make_sound, args=(filename,)).start()
 
-def sound_blizzard_warning_helper():
-    wave_obj = sa.WaveObject.from_wave_file('static/blizzard_warning.wav')
+def actually_make_sound(filename):
+    wave_obj = sa.WaveObject.from_wave_file(filename)
     play_obj = wave_obj.play()
     play_obj.wait_done()
     
