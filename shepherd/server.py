@@ -1,6 +1,7 @@
 import json
 import queue
 import hashlib
+import gevent
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 from utils import YDL_TARGETS, UI_PAGES, CONSTANTS
@@ -65,12 +66,11 @@ def ui_to_server(p, header, args=None):
 def receiver():
     events = queue.Queue()
     ydl_start_read(YDL_TARGETS.UI, events)
+    tpool = gevent.get_hub().threadpool
     while True:
-        while not events.empty():
-            event = events.get()
-            print("RECEIVED:", event)
-            socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
-        socketio.sleep(0.1)
+        event = tpool.spawn(events.get).get()
+        print("RECEIVED:", event)
+        socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
 
 if __name__ == "__main__":
     print("Hello, world!")
