@@ -108,8 +108,7 @@ def read(sel, conn, obj):
 def start_backend():
     '''
     (server method - internal use only)
-    Starts the YDL server that processes will use
-    to communicate with each other
+    Starts the server and processes connections
     '''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

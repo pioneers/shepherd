@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from ydl import ydl_send
+from ydl import YDLClient
 from utils import *
 
 # If modifying these scopes, delete your previously saved credentials
@@ -17,6 +17,7 @@ from utils import *
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'sheets/client_secret.json'
 USER_TOKEN_FILE = "sheets/user_token.json" # user token; do not upload to github (.gitignore it)
+YC = YDLClient()
 
 """
 Sheet structure: [match #, blue 1 #, blue 1 name, blue 1 ip, blue 2 #, ...]
@@ -52,7 +53,7 @@ class Sheet:
                 teams[a]["team_num"] = int(lst[3*a]) if lst[3*a].isdigit() else -1
                 teams[a]["team_name"] = lst[3*a+1]
                 teams[a]["robot_ip"] = lst[3*a+2]
-            ydl_send(*SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
+            YC.send(SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
 
         threading.Thread(target=bg_thread_work).start()
 
@@ -148,12 +149,12 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+                        YC.send(SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return blue, gold
                 elif row[1] == "Gold":
                     gold = row[2]
                     if blue is not None and gold is not None:
-                        ydl_send(*SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+                        YC.send(SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
                         return blue, gold
 
     @staticmethod
@@ -243,7 +244,7 @@ class Sheet:
                         "endgame-pioneer-blue" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
                     }
                     if blue is not None and gold is not None:
-                        ydl_send(*UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = {
@@ -269,7 +270,7 @@ class Sheet:
                         "endgame-pioneer-gold" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
                     }
                     if blue is not None and gold is not None:
-                        ydl_send(*UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
                         return
 
 
@@ -279,11 +280,11 @@ class Sheet:
         Writes the match info to the spreadsheet
         """
         if (match_number < 0):
-            ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=1))
+            YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=1))
             return False
         for i in range(len(teams)):
             if teams[i]["team_num"] < 0:
-                ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
+                YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
                 return False
         
 
@@ -294,7 +295,7 @@ class Sheet:
         for i, row in enumerate(game_data):
             row_num = i
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=0))
+                YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=0))
                 return False
         range_name = f"Match Database!A{row_num + 3}:M{row_num + 3}"
         body = {
@@ -320,12 +321,12 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 if row[1] == "Blue":
                     blue = True
-                    ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
                     if blue is True and gold is True:
                         return
                 elif row[1] == "Gold":
                     gold = True
-                    ydl_send(*UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
                     if blue is True and gold is True:
                         return
             elif len(row) > 0 and row[0] == "":

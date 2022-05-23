@@ -2,17 +2,17 @@
 import time
 import random
 import queue
-from ydl import ydl_send, ydl_start_read
+from ydl import YDLClient
 from utils import *
 
 
 NUM_BUTTONS = 1
-
+YC = YDLClient(YDL_TARGETS.SHEPHERD)
 
 def turn_all_lights(on):
     head = SENSOR_HEADER.TURN_ON_BUTTON_LIGHT if on else SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT
     for i in range(NUM_BUTTONS):
-        ydl_send(YDL_TARGETS.SENSORS, head.name, {"id": i})    
+        YC.send((YDL_TARGETS.SENSORS, head.name, {"id": i}))
 
 def start():
 

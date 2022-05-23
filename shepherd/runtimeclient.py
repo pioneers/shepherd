@@ -2,13 +2,13 @@ import time
 import threading
 import socket
 import sys
+from ydl import YDLClient
+from utils import PROTOBUF_TYPES, UI_HEADER
 sys.path.append("protos") # needed so protos can import each other
 from protos import run_mode_pb2
 from protos import start_pos_pb2
 from protos import gamestate_pb2
 from protos import runtime_status_pb2
-from utils import PROTOBUF_TYPES, UI_HEADER
-from ydl import ydl_send
 
 PORT_RASPI = 8101
 
@@ -48,9 +48,10 @@ class RuntimeClient:
     reconnect. If close_connection is called, the socket will close and the
     thread will end.
     """
-    def __init__(self, ind, robot_ip):
+    def __init__(self, ind, robot_ip, yc:YDLClient):
         self.ind = ind
         self.robot_ip = robot_ip
+        self.yc = yc
         self.sock = None
         self.readobj = ReadObject()
         self.connected = False
@@ -121,8 +122,8 @@ class RuntimeClient:
 
 
     def send_connection_status_to_ui(self):
-        ydl_send(*UI_HEADER.ROBOT_CONNECTION(
-            ind=self.ind, 
+        self.yc.send(UI_HEADER.ROBOT_CONNECTION(
+            ind=self.ind,
             connected=self.connected and not self.manually_closed, 
             robot_ip=self.robot_ip
         ))
@@ -189,7 +190,7 @@ class RuntimeClient:
                     # TODO: add msg_type handling if needed
                     runtime_status = runtime_status_pb2.RuntimeStatus()
                     runtime_status.ParseFromString(msg)
-                    ydl_send(*UI_HEADER.RUNTIME_STATUS(
+                    self.yc.send(UI_HEADER.RUNTIME_STATUS(
                         ind=self.ind,
                         shep_connected=runtime_status.shep_connected,
                         dawn_connected=runtime_status.dawn_connected,
@@ -201,8 +202,9 @@ class RuntimeClient:
 
 
 class RuntimeClientManager:
-    def __init__(self):
-        self.clients = [RuntimeClient(i, "") for i in range(4)]
+    def __init__(self, yc:YDLClient):
+        self.yc = yc
+        self.clients = [RuntimeClient(i, "", yc) for i in range(4)]
 
     def connect_client(self, ind: int, robot_ip: str):
         """
@@ -210,7 +212,7 @@ class RuntimeClientManager:
         given robot_ip, terminating any previous connection
         """
         self.clients[ind].close_connection()
-        self.clients[ind] = RuntimeClient(ind, robot_ip)
+        self.clients[ind] = RuntimeClient(ind, robot_ip, self.yc)
 
     def reconnect_all(self):
         """

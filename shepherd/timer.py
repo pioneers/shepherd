@@ -1,156 +1,148 @@
-import time
 import threading
-import ydl
-from utils import YDL_TARGETS#, SHEPHERD_HEADER
+import time
 
-class TimerThread(threading.Thread):
-    '''
-    Subclass that is the actual thread that will be running.
-    There will only be one for the entire Timer class.
-    '''
+# pylint: disable=protected-access
+
+class TimerGroup:
+    """
+    A group of timers, which can be paused and unpaused together.
+    Please do not access instance variables directly, instead use the
+    is_paused(), pause(), and resume() methods
+    """
     def __init__(self):
-        super().__init__()
-        self.daemon = True # will stop abruptly when main thread dies
+        self._timers: list[Timer] = []
+        self._paused = False
+        self._sema = threading.Semaphore(value=0)
+        self._lock = threading.Lock()
+        # lock protects all instance variables, as well as all
+        # instance variables in the individual timers.
+        threading.Thread(target=self._timer_loop, daemon=True).start()
 
+    def is_paused(self):
+        with self._lock: # with clause releases lock on return
+            return self._paused
 
-    def run(self):
-        """When started, thread will run and process Timers in queue until the queue is empty."""
-        while Timer.eventQueue:
-            if not Timer.paused:
-                time_to_wait = Timer.update_all()
-                if time_to_wait > 0:
-                    time.sleep(0.99 * time_to_wait)
-                    # 0.99 makes it run a few extra cycles, but more accurate
+    def pause(self):
+        """
+        Pauses this group of timers. If group is already paused, does nothing.
+        """
+        cur = time.time()
+        with self._lock:
+            if self._paused:
+                return # with clause releases lock on return
+            self._paused = True
+            for timer in self._timers:
+                if timer._running:
+                    timer._time_remaining = timer._end_time - cur
+                    timer._end_time = None
 
+    def resume(self):
+        """
+        Resumes this group of timers. If group is not paused, does nothing
+        """
+        cur = time.time()
+        with self._lock:
+            if not self._paused:
+                return # with clause releases lock on return
+            self._paused = False
+            for timer in self._timers:
+                if timer._running:
+                    timer._end_time = timer._time_remaining + cur
+                    timer._time_remaining = None
+        self._sema.release() # wake timer thread
+
+    def reset_all(self):
+        """
+        Resets all timers to not running, and sets this group to unpaused.
+        """
+        with self._lock:
+            self._paused = False
+            for timer in self._timers:
+                timer._running = False
+                timer._end_time = None
+                timer._time_remaining = None
+
+    def _timer_loop(self):
+        """
+        In a loop, will wait for timer expiry
+        """
+        while True:
+            self._sema.acquire(timeout=self._timer_loop_update())
+
+    def _timer_loop_update(self):
+        """
+        Runs callbacks of all expired timers, and returns the time to
+        wait until the next timer expires (None if no timers will expire).
+        Time to wait will be 0.99 * (min_expiry_time - curren_time),
+        which causes the timer loop to spin a bit but results in more accurate timing.
+        Does nothing if group is paused (no callbacks should run during a pause).
+        """
+        with self._lock:
+            if self._paused:
+                return None
+            callbacks = []
+            min_time = None
+            cur = time.time()
+            for t in self._timers:
+                if t._running and t._end_time < cur:
+                    callbacks.append(t._callback)
+                    t._running = False
+                    t._end_time = None
+                elif t._running:
+                    if min_time is None or t._end_time < min_time:
+                        min_time = t._end_time
+
+        # do all callbacks (outside lock for deadlock reasons)
+        for c in callbacks:
+            c()
+        # return time to wait before next update
+        return None if min_time is None else max(0, 0.99 * (min_time - time.time()))
 
 class Timer:
     """
-    This class should spawn another thread that will keep track of a target time
-    and compare it to the current system time in order to see how much time is left
+    A timer, bound to a specific callback. Each timer is part of a specific TimerGroup.
+    Please do not access instance variables directly, instead use the
+    status() method to get instance variables. Use start() and reset() to control timer.
     """
-    MIN_TIMER_TIME = 1 # TODO: put this in Utils.py
-    eventQueue = []
-    queueLock = threading.Lock()
-    thread = TimerThread()
-    paused = False
-    pauseStart = 0
-    pauseEnd = 0
+    def __init__(self, timergroup: TimerGroup, callback):
+        self._timergroup = timergroup
+        self._callback = callback
+        self._running = False
+        self._end_time = None # only used when running
+        self._time_remaining = None # only used when running and group is paused
+        with self._timergroup._lock:
+            self._timergroup._timers.append(self)
 
-
-    @classmethod
-    def update_all(cls):
+    def status(self):
         """
-        Checks to see if any of the timers has run out, and does the timer's callback if so
-        (may run multiple callbacks). Returns the time remaining until the next timer
-        (could be negative if timers expire at the same time).
-        This assumes that a timer will never have its end_time spontanously decrease,
-        and that all timers last at least MIN_TIMER_TIME
+        returns the tuple (end_time, time_remaining)
+        if timer is not running: end_time = None,  time_remaining = None
+        if timer is paused:      end_time = None,  time_remaining = float
+        if timer is running:     end_time = float, time_remaining = None
         """
-        cls.queueLock.acquire()
-        current_time = time.time()
-        finished = [t for t in cls.eventQueue if t.end_time <  current_time]
-        keep     = [t for t in cls.eventQueue if t.end_time >= current_time]
-        # want to end immediately if queue is empty
-        min_time = current_time if len(keep) == 0 else min((t.end_time for t in keep))
-        cls.eventQueue = keep
-        cls.queueLock.release()
-        for t in finished:
-            t.end_timer()
-        # current time is recalculated for accuracy
-        return min(cls.MIN_TIMER_TIME, min_time - time.time())
+        with self._timergroup._lock: # will release on return
+            return (self._end_time, self._time_remaining)
 
-
-    @classmethod
-    def reset_all(cls):
-        """Resets Timer Thread when game changes"""
-        cls.queueLock.acquire()
-        for t in cls.eventQueue:
-            t.active = False
-        cls.eventQueue = []
-        cls.queueLock.release()
-        # since queue is empty, timer thread will stop
-
-
-    @classmethod
-    def pause(cls):
-        """Pause timer and get when it was paused"""
-        if cls.paused:
-            print("Already paused")
-        else:
-            cls.queueLock.acquire()
-            cls.pauseStart = time.time()    
-            cls.paused = True
-            print(f"Pause status: {cls.paused}")
-            cls.queueLock.release()
-
-
-    @classmethod
-    def resume(cls):
-        """Unpause timer and add difference of current time and when timer was paused
-        to all timers."""
-        if not cls.paused:
-            print("Not paused yet")
-        else:
-            cls.queueLock.acquire()
-            pauseEnd = time.time()
-            for t in cls.eventQueue:
-                t.end_time += (pauseEnd - cls.pauseStart)
-            cls.paused = False
-            print(f"Pause status: {cls.paused}")
-            cls.queueLock.release()
-
-
-    def __init__(self, timer_type):
+    def start(self, duration):
         """
-        timer_type - a Enum representing the type of timer that this is:
-                        TIMER_TYPES.MATCH - represents the time of the current
+        Starts a timer. If timer is already running, restarts timer.
         """
-        self.active = False
-        self.timer_type = timer_type
-        self.end_time = None
-
-
-    def start_timer(self, duration):
-        """Starts a new timer with the duration (seconds) and sets timer to active.
-           If Timer is already running, restarts timer"""
-        Timer.queueLock.acquire()
-        if self.active:
-            self.end_time = time.time() + duration
-        else:
-            self.end_time = time.time() + duration
-            Timer.eventQueue.append(self)
-            self.active = True
-
-        if not Timer.thread.is_alive():
-            Timer.thread = TimerThread()
-            Timer.thread.start()
-        Timer.queueLock.release()
-
-
-    def end_timer(self):
-        """Does the callback for current timer and sets it to inactive.
-           Note that current timer should not be in the event queue, to avoid deadlock"""
-        if not self.active:
-            return #if timer was just reset
-        self.active = False #in case callback restarts the timer, do this first
-        if self.timer_type is not None and "FUNCTION" in self.timer_type:
-            ydl.ydl_send(YDL_TARGETS.SHEPHERD, self.timer_type["FUNCTION"])
-
+        cur = time.time()
+        with self._timergroup._lock:
+            if self._timergroup._paused:
+                self._end_time = None
+                self._time_remaining = duration
+            else:
+                self._end_time = duration + cur
+                self._time_remaining = None
+            self._running = True
+        self._timergroup._sema.release() # wake up timergroup thread
 
     def reset(self):
-        """Stops the current timer (if any) and sets timer to inactive"""
-        Timer.queueLock.acquire()
-        if self.active:
-            if self in Timer.eventQueue:
-                Timer.eventQueue.remove(self)
-            self.active = False
-        Timer.queueLock.release()
-
-
-    def is_running(self):
         """
-        Returns true if the timer is currently running.
-        Specifically, returns true if it's in the event queue,
-        or about to do its callback
+        Resets the timer to not running. If timer is not running, does nothing.
         """
-        return self.active
+        with self._timergroup._lock:
+            self._running = False
+            self._end_time = None
+            self._time_remaining = None

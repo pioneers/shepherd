@@ -1,34 +1,35 @@
-import queue
+import threading
+import time
+import simpleaudio as sa
+from ydl import YDLClient
 from alliance import Alliance
-from timer import Timer
-from ydl import ydl_send, ydl_start_read
+from timer import TimerGroup, Timer
 from utils import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
 from sheet import Sheet
 from robot import Robot
-import threading
-import time
-import simpleaudio as sa
 
 
 ###########################################
 # Evergreen Variables
 ###########################################
-
+YC = YDLClient(YDL_TARGETS.SHEPHERD)
 MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
-GAME_TIMER = Timer(TIMER_TYPES.MATCH)
-BLIZZARD_WARNING_TIMER = Timer(TIMER_TYPES.BLIZZARD_WARNING)
-IS_TIMER_PAUSED = None
+TIMERS = TimerGroup()
+GAME_TIMER = Timer(TIMERS,
+    lambda: YC.send(SHEPHERD_HEADER.STAGE_TIMER_END()))
+BLIZZARD_WARNING_TIMER = Timer(TIMERS,
+    lambda: YC.send(SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING()))
 
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
     ALLIANCE_COLOR.BLUE: Alliance(Robot("", -1), Robot("", -1)),
 }
 
-CLIENTS = RuntimeClientManager()
+CLIENTS = RuntimeClientManager(YC)
 
 
 ###########################################
@@ -53,22 +54,16 @@ def start():
     Main loop which processes the event queue and calls the appropriate function
     based on game state and the dictionary of available functions
     '''
-    events = queue.Queue()
-    ydl_start_read(YDL_TARGETS.SHEPHERD, events)
     while True:
-        try:
-            #timeout is required because windows is really stupid and terrible.
-            payload = events.get(True, timeout=1)
-        except queue.Empty:
-            continue
+        payload = YC.receive()
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         print(payload)
 
         if GAME_STATE in FUNCTION_MAPPINGS:
             func_list = FUNCTION_MAPPINGS.get(GAME_STATE)
-            func = func_list.get(payload[0]) or EVERYWHERE_FUNCTIONS.get(payload[0])
+            func = func_list.get(payload[1]) or EVERYWHERE_FUNCTIONS.get(payload[1])
             if func is not None:
-                func(**payload[1]) #deconstructs dictionary into arguments
+                func(**payload[2]) #deconstructs dictionary into arguments
             else:
                 print(f"Invalid Event in {GAME_STATE}")
         else:
@@ -76,7 +71,7 @@ def start():
 
 def pull_from_sheets():
     while True:
-        if (IS_TIMER_PAUSED == None or not IS_TIMER_PAUSED) and GAME_STATE not in [STATE.END, STATE.SETUP]:
+        if not TIMERS.is_paused() and GAME_STATE not in [STATE.END, STATE.SETUP]:
             Sheet.send_scores_for_icons(MATCH_NUMBER)
         time.sleep(2.0)
 
@@ -112,18 +107,15 @@ def set_teams_info(teams):
     send_match_info_to_ui()
 
 def pause_timer():
-    global IS_TIMER_PAUSED
-    if IS_TIMER_PAUSED == None or not IS_TIMER_PAUSED:
-        IS_TIMER_PAUSED = True
-        Timer.pause()
-        ydl_send(*UI_HEADER.PAUSE_TIMER())
+    if not TIMERS.is_paused():
+        TIMERS.pause()
+        YC.send(UI_HEADER.PAUSE_TIMER())
 
 def resume_timer():
-    global IS_TIMER_PAUSED
-    if IS_TIMER_PAUSED:
-        IS_TIMER_PAUSED = False
-        Timer.resume()
-        ydl_send(*UI_HEADER.RESUME_TIMER(end_time=GAME_TIMER.end_time, pause_end=GAME_TIMER.pauseEnd))
+    if TIMERS.is_paused():
+        TIMERS.resume()
+        end_time, _ = GAME_TIMER.status()
+        YC.send(UI_HEADER.RESUME_TIMER(end_time=end_time, pause_end=time.time()))
 
 
 
@@ -153,10 +145,9 @@ def reset_match():
     Should reset all state being tracked by Shepherd.
     ****THIS METHOD MIGHT NEED UPDATING EVERY YEAR BUT SHOULD ALWAYS EXIST****
     '''
-    global GAME_STATE, IS_TIMER_PAUSED
+    global GAME_STATE
     GAME_STATE = STATE.SETUP
-    IS_TIMER_PAUSED = None
-    Timer.reset_all()
+    TIMERS.reset_all()
     disable_robots()
     CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
@@ -165,7 +156,7 @@ def reset_match():
     print("ENTERING SETUP STATE")
 
     # temporary code for exhibition, remove later
-    ydl_send(*UI_HEADER.SCORES(
+    YC.send(UI_HEADER.SCORES(
         blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
         gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
     ))
@@ -184,35 +175,35 @@ def to_auto():
     By the end, should be in autonomous state, allowing any function from this
     stage to be called and autonomous match timer should have begun.
     '''
-    GAME_TIMER.start_timer(STAGE_TIMES[STATE.AUTO])
+    GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
     play_sound("static/boxing-bell.wav")
     for n in [0,1,2,3]:
-        ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
+        YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
 
 def to_teleop_1():
-    GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_1])
-    BLIZZARD_WARNING_TIMER.start_timer(CONSTANTS.BLIZZARD_WARNING_TIME)
+    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_1])
+    BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
 
 def to_blizzard():
-    GAME_TIMER.start_timer(STAGE_TIMES[STATE.BLIZZARD])
+    GAME_TIMER.start(STAGE_TIMES[STATE.BLIZZARD])
     enable_robots(autonomous=False)
     set_state(STATE.BLIZZARD)
-    ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=4))
-    ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=5))
+    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=4))
+    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=5))
 
 def to_teleop_2():
-    GAME_TIMER.start_timer(STAGE_TIMES[STATE.TELEOP_2])
+    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
-    ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=4))
-    ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=5))
+    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=4))
+    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=5))
 
 def to_endgame():
-    GAME_TIMER.start_timer(STAGE_TIMES[STATE.ENDGAME])
+    GAME_TIMER.start(STAGE_TIMES[STATE.ENDGAME])
     enable_robots(autonomous=False)
     set_state(STATE.ENDGAME)
 
@@ -220,13 +211,12 @@ def to_end():
     '''
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
     '''
-    global GAME_STATE, IS_TIMER_PAUSED
+    global GAME_STATE
     GAME_STATE = STATE.END
-    IS_TIMER_PAUSED = None
     disable_robots()
     play_sound("static/trim.wav")
     for n in [0,1,2,3]:
-        ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
+        YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
@@ -235,7 +225,7 @@ def to_end():
 
     # temporary code for scrimmage, comment later
     Sheet.write_scores_from_read_scores(MATCH_NUMBER)
-    
+
     print("ENTERING END STATE")
 
 
@@ -276,7 +266,7 @@ def score_adjust(blue_score=None, gold_score=None):
     flush_scores()
 
     # temporary code for exhibition, remove later
-    ydl_send(*UI_HEADER.SCORES(
+    YC.send(UI_HEADER.SCORES(
         blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
         gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
     ))
@@ -298,7 +288,7 @@ def send_match_info_to_ui():
     '''
     Sends all match info to the UI
     '''
-    ydl_send(*UI_HEADER.TEAMS_INFO(match_num=MATCH_NUMBER, teams=[
+    YC.send(UI_HEADER.TEAMS_INFO(match_num=MATCH_NUMBER, teams=[
         ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_ip),
         ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_ip),
         ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_ip),
@@ -311,7 +301,7 @@ def send_score_to_ui():
     Sends the current score to the UI
     '''
     # temporary code for exhibition, uncomment later
-    # ydl_send(*UI_HEADER.SCORES(
+    # YC.send(UI_HEADER.SCORES(
     #     blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
     #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
     # ))
@@ -321,11 +311,13 @@ def send_state_to_ui():
     '''
     Sends the GAME_STATE to the UI
     '''
-    if GAME_STATE in STAGE_TIMES:
-        st = (GAME_TIMER.end_time - STAGE_TIMES.get(GAME_STATE)) * 1000
-        ydl_send(*UI_HEADER.STATE(state=GAME_STATE, start_time=st, state_time=STAGE_TIMES.get(GAME_STATE)))
+    end_time, _ = GAME_TIMER.status()
+    if GAME_STATE in STAGE_TIMES and end_time is not None:
+        state_time = STAGE_TIMES.get(GAME_STATE)
+        st = (end_time - state_time) * 1000
+        YC.send(UI_HEADER.STATE(state=GAME_STATE, start_time=st, state_time=state_time))
     else:
-        ydl_send(*UI_HEADER.STATE(state=GAME_STATE))
+        YC.send(UI_HEADER.STATE(state=GAME_STATE))
 
 
 def send_connection_status_to_ui():
@@ -394,27 +386,27 @@ def actually_make_sound(filename):
     wave_obj = sa.WaveObject.from_wave_file(filename)
     play_obj = wave_obj.play()
     play_obj.wait_done()
-    
+
 
 def forward_button_light(num, type, on):
     if type == "button":
         if on:
-            ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=num))
+            YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=num))
         else:
-            ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=num))
+            YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=num))
     # if type == "midline":
     #     if on:
-    #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
-    #         ydl_send(*SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
+    #         YC.send(SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
+    #         YC.send(SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
 
 
 def flash_lights(ar):
     for _ in range(2):
         for a in ar:
-            ydl_send(*SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=a))
+            YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=a))
         time.sleep(0.25)
         for a in ar:
-            ydl_send(*SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
+            YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
         time.sleep(0.25)
 
 
