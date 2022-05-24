@@ -1,5 +1,4 @@
 import json
-import queue
 import hashlib
 import gevent
 from flask import Flask, render_template, request
@@ -14,7 +13,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
-YC = YDLClient()
+YC = YDLClient(YDL_TARGETS.UI)
 
 @app.route('/')
 def hello_world():
@@ -58,7 +57,7 @@ def ui_to_server(p, header, args=None):
     if not password(p):
         return
     if args is None:
-        YC.send((YDL_TARGETS.SHEPHERD, header))
+        YC.send((YDL_TARGETS.SHEPHERD, header, {}))
     else:
         YC.send((YDL_TARGETS.SHEPHERD, header, json.loads(args)))
 
@@ -67,8 +66,8 @@ def receiver():
     tpool = gevent.get_hub().threadpool
     while True:
         event = tpool.spawn(YC.receive).get()
-        print("RECEIVED:", event)
-        socketio.emit(event[0], json.dumps(event[1], ensure_ascii=False))
+        print("RECEIVED:", event[1], event[2])
+        socketio.emit(event[1], json.dumps(event[2], ensure_ascii=False))
 
 if __name__ == "__main__":
     print("Hello, world!")

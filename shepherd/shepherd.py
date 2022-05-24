@@ -107,16 +107,23 @@ def set_teams_info(teams):
     send_match_info_to_ui()
 
 def pause_timer():
+    '''
+    Pauses a running match. Invalid to call during setup and end.
+    '''
     if not TIMERS.is_paused():
         TIMERS.pause()
+        disable_robots()
         YC.send(UI_HEADER.PAUSE_TIMER())
 
 def resume_timer():
+    '''
+    Resumes a running match. Invalid to call during setup and end.
+    '''
     if TIMERS.is_paused():
         TIMERS.resume()
+        enable_robots(autonomous=(GAME_STATE==STATE.AUTO))
         end_time, _ = GAME_TIMER.status()
         YC.send(UI_HEADER.RESUME_TIMER(end_time=end_time, pause_end=time.time()))
-
 
 
 ###########################################
@@ -482,5 +489,5 @@ EVERYWHERE_FUNCTIONS = {
 }
 
 if __name__ == '__main__':
-    threading.Thread(target=pull_from_sheets).start()
+    threading.Thread(target=pull_from_sheets, daemon=True).start()
     start()

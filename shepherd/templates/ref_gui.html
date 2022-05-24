@@ -64,7 +64,7 @@
       // teams_info_msg.text(msg);
 
       for (let i = 0; i < 4; i++) {
-        let msg = `Match ${data.match_num}: ` + names[i].join(", ");
+        let msg = `Match ${data.match_num}: ` + names[i];
         let team_info_msg = $(`#teams-${i}-info`);
         team_info_msg.text(msg);
       }
@@ -139,10 +139,10 @@
       send("set_state", JSON.stringify({ state: "auto" }));
     });
     teleop_1_btn.click(() => {
-      send("set_state", JSON.stringify({ state: "teleop-1" }));
+      send("set_state", JSON.stringify({ state: "teleop_1" }));
     });
     teleop_2_btn.click(() => {
-      send("set_state", JSON.stringify({ state: "teleop-2" }));
+      send("set_state", JSON.stringify({ state: "teleop_2" }));
     });
     blizzard_btn.click(() => {
       send("set_state", JSON.stringify({ state: "blizzard" }));
