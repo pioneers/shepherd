@@ -1,0 +1,91 @@
+<html>
+
+<head>
+    <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
+    <!-- TODO MAKE THE BELOW THING A FILE -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
+    <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='whackamole.css')}}">
+</head>
+
+<body>
+    <!-- <img id="sandstorm" src="{{url_for('static', filename='sand1.png')}}" /> -->
+    <!-- <div class="container" id="stagename-container">
+        
+    </div> -->
+    <div class="scoreboard-outer-container">
+        <div class="scoreboard-container">
+            <!-- <div class="stagename">
+                Autonomous
+            </div> -->
+
+            <div class="robotinfo">
+                <mark class="black" id="team-num">Beat the high score to get boba!</mark>
+                <!-- <div id="team-name">Beat the high score!</div> -->
+            </div>
+
+            <!-- <div class="time">
+                <div> <mark class="black">Time</mark> </div>
+                <div id="stage-timer">0:00</div>
+            </div>
+
+            <div class="penalty">
+                <div><mark class="black">Penalty</mark> </div>
+                <div id="penalty">+ 0:00</div>
+            </div>
+
+            <div class="stamps">
+                <div> <mark class="black">Stamps</mark> </div>
+                <div id="stamp_time">- 0:00</div>
+            </div> -->
+        </div>
+
+        <div class="scoreboard-container">
+            <div class="robotinfo">
+                <mark class="black" id="high-score-banner">High Score: Baaa with a score of 0</mark>
+                <!-- <div id="team-name">Beat the high score!</div> -->
+            </div>
+        </div>    
+
+        <div class="total-container">
+            <div class="totalinfo" id="totalinfobackground">
+                <div> <mark class="black" id="your-score-game-over">Your Score</mark></div>
+                <!-- <div> <mark class="black">0</mark></div> -->
+                <div id="total">0</div>
+            </div>
+        </div>
+
+        <div class="larger-container">
+            <div class="time">
+                <div id="team-name">Step 1: Start game <button id="start-game" type="button">here</button></div>
+                <div id="team-name">Step 2: After the game is over, input your name</div>
+                <div id="team-name">
+                    <label for="player-name">Name:</label>
+                    <input type="text" id="player-name" name="player-name">
+                    <button type="button" id="submit-name">Submit</button>
+                </div>
+            </div>
+        </div>  
+        
+        <div class="largest-table-container">
+            <div class="table-container" id="table-container">
+                <table id="ranking-table">
+                    <tr>
+                    <th>Name</th>
+                    <th>Score</th>
+                    </tr>
+                    <tr>
+                    <td>Baaa</td>
+                    <td>0</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="text/javascript" src={{url_for( 'static' , filename='whackamole.js' )}}></script>
+</body>
+
+</html> 

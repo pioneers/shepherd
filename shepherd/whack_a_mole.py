@@ -20,6 +20,20 @@ def fill_queue():
     while True:
         EVENT_QUEUE.put(YC.receive())
 
+# def start_whackamole():
+#     start()
+
+def start_helper():
+    # start()
+    while True:
+        if (not EVENT_QUEUE.empty()):
+            try:
+                message = EVENT_QUEUE.get(False)
+            except queue.Empty:
+                continue
+            if message[1] == SHEPHERD_HEADER.START_WHACKAMOLE.name:
+                start()
+
 def start():
 
     #ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
@@ -33,7 +47,9 @@ def start():
     """
     turn_all_lights(on=False)
     score = 0
+    YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
     while True:
+        # print("start score: " + str(score))
         button = int(random.random()*NUM_BUTTONS)
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name, {"id": button}))
         
@@ -42,7 +58,7 @@ def start():
         delay = delay if delay > .4 else .4
         waited = 0
         pressed = False
-        while not EVENT_QUEUE.empty() or (waited < delay and not pressed):
+        while (not EVENT_QUEUE.empty()) or (waited < delay and not pressed):
             waited += 0.01
             time.sleep(0.01)
             try:
@@ -50,6 +66,7 @@ def start():
             except queue.Empty:
                 continue
             if message[1] == SHEPHERD_HEADER.BUTTON_PRESS.name:
+                # print("III pressed: " + str(message[2]["id"]))
                 if int(message[2]["id"]) == button:
                     pressed = True
         if pressed:
@@ -62,8 +79,17 @@ def start():
             print(f":( {button}", end=" ")
         print(f'score: {score}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
+        YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
+        if (not pressed):
+            # print("not pressed")
+            YC.send((YDL_TARGETS.UI, UI_HEADER.GAME_OVER.name, { }))
+            return
         sleeptime = random.random() + 1
         time.sleep(sleeptime)
 
 threading.Thread(target=fill_queue, args=(), daemon=True).start()
-start()
+start_helper()
+
+# EVERYWHERE_FUNCTIONS = {
+#     SHEPHERD_HEADER.START_WHACKAMOLE.name: start_whackamole,
+# }

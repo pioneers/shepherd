@@ -173,6 +173,15 @@ class SHEPHERD_HEADER():
         been paused using PAUSE_TIMERS.
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "start_whackamole")
+    def START_WHACKAMOLE():
+        """
+        Starts a new game of whackamole
+        """
+    
+
+
 
 class UI_HEADER():
     """
@@ -264,6 +273,23 @@ class UI_HEADER():
         If reason=1, we don't allow negative numbers because reading/writing -1 from
         google sheets gives us a str instead of an int which complicates code
         """
+    
+    @staticmethod
+    @header(YDL_TARGETS.UI, "update_player_score")
+    def UPDATE_PLAYER_SCORE(score):
+        """
+        Updates and displays the current player's whackamole score
+        on whackamole.html. This should update every instance a 
+        light is turned on. 
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.UI, "game_over")
+    def GAME_OVER():
+        """
+        Tells user that they have lost in the game of whackamole. 
+        """
+    
 
 
 class SENSOR_HEADER():
@@ -333,6 +359,7 @@ UI_PAGES = {
     "match_creator.html": True,
     "alliance_selection.html": True,
     "bracket_ui.html": False,
+    "whackamole.html": False,
 }
 
 
