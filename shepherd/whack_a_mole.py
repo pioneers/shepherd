@@ -56,6 +56,7 @@ def start():
         while not EVENT_QUEUE.empty(): EVENT_QUEUE.get(True) # clear the queue 
         delay = random.random()
         delay = delay if delay > .4 else .4
+        delay *= 5
         waited = 0
         pressed = False
         while (not EVENT_QUEUE.empty()) or (waited < delay and not pressed):
