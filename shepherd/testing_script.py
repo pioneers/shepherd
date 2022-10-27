@@ -9,8 +9,26 @@ import sys
 import time
 # pylint: disable = global-statement
 SUCCESS = True
+# pylint: disable = global-statement
+PYTHON = ""
 
 instruction_file = "instructions.shepherd"
+
+def find_python_name():
+    '''
+    Finds what python is named on this computer and sets it as the global PYTHON
+    '''
+    global PYTHON
+    if PYTHON:
+        return
+    names = ['python3', 'python', 'py']
+    for name in names:
+        test_namespace = Popen([name, "-V"], stdout=PIPE, stderr=PIPE)
+        test_namespace.wait()
+        if test_namespace.returncode == 0:
+            PYTHON = name
+            return
+    print('could not run python on this system')
 
 def run_test(name, path, verbose=False):
     '''
@@ -34,9 +52,9 @@ def run_test(name, path, verbose=False):
     real_processes = []
     for type, file in files:
         if type == "REAL":
-            args = ['python3', file]
+            args = [PYTHON, file]
         elif type == "TEST":
-            args = ['python3', 'Tester.py', os.path.join(name, file)]
+            args = [PYTHON, 'Tester.py', os.path.join(name, file)]
         else:
             raise Exception(f"did not recognize test type {type}")
         if type == "REAL":
@@ -64,6 +82,8 @@ def run_test(name, path, verbose=False):
     print("---------------\n")
     for process in real_processes:
         process.kill()
+    for process in test_processes:
+        process.kill()
 
 def start():
     """
@@ -73,6 +93,8 @@ def start():
     If -h or -help is present in the list of args, run no tests and instead
     print out a list of all possible tests.
     """
+    # find what python is called on this computer
+    find_python_name()
     # collect all valid tests and test groups
     tentative_test_groups = [f.name for f in filter(lambda f: f.is_dir(), os.scandir('./tests'))]
     test_groups = {}
@@ -130,7 +152,7 @@ def start():
     print(f"Running {len(queued_tests)} out of {len(tests)} possible tests")
     print("---------------\n")
 
-    args = ['python3', 'ydl.py']
+    args = [PYTHON, 'ydl.py']
     ydl_process = Popen(args, stdout=PIPE)
     try:
         for test in queued_tests:

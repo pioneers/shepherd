@@ -702,6 +702,9 @@ def main():
     script_dir = os.path.dirname(__file__)
     rel_path = "tests/{}".format(sys.argv[1])
     abs_file_path = os.path.join(script_dir, rel_path)
+    if not os.path.isfile(abs_file_path):
+        print('[ERROR] The tester requires a test file, not a folder')
+        return 1
     file = open(abs_file_path, "r")
     for line in file:
         line = line[0:None]
