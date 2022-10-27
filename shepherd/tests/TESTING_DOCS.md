@@ -206,11 +206,11 @@ The testing utility right now is functional, but flawed. The most precarious sys
 
 ### Modifications:
 
-- Syntax for the testing utility is currently hard coded into each of the processing functions. A more robust solution would be to introduce a tokenizer and parser using regular expressions and a grammar such as CUP or BISON to ensure that the syntax makes sense. Unfortunately some of the more specific error messages in the current implementation would become generic, however all syntax errors would be caught.
+- Syntax for the testing utility is currently hard coded into each of the processing functions. A more robust solution would be to introduce a tokenizer and parser using regular expressions and a grammar such as CUP or BISON to ensure that the syntax makes sense. Unfortunately some of the more specific error messages in the current implementation would become generic, however all syntax errors would be caught. I like [lark](https://lark-parser.readthedocs.io/en/latest/ "lark docs").
 
 - The IF and WHILE statements would also see more reliable functionality from the previous strategy. The grammar would allow IF and WHILE to be packaged with their corresponding END statements, and this would make execution faster and more robust. Furthermore, unbalanced END statements would be detected when the file was read in, and not at runtime (how they currently are) making debugging a script much simpler.
 
-- YDL is ultimately too niche (hard to install) and overly complicated for Shepherd's needs, however until a better alternative is found (or coded), the best solution to the YDL issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign YDL targets, or potentially to even read from multiple would make the scripting much more intuitive.
+- The best solution to the YDL issues is to modify the interaction with queues used in the start loop of the tester. Having a dynamic way to reassign YDL targets, or potentially to even read from multiple would make the scripting much more intuitive.
 
 ### Additions:
 
