@@ -1,6 +1,7 @@
 import threading
 import time
-import simpleaudio as sa
+# commenting out simple audio code
+# import simpleaudio as sa
 from ydl import YDLClient
 from alliance import Alliance
 from timer import TimerGroup, Timer
@@ -390,9 +391,11 @@ def play_sound(filename):
     threading.Thread(target=actually_make_sound, args=(filename,)).start()
 
 def actually_make_sound(filename):
-    wave_obj = sa.WaveObject.from_wave_file(filename)
-    play_obj = wave_obj.play()
-    play_obj.wait_done()
+    # commenting out simple audio code
+    # wave_obj = sa.WaveObject.from_wave_file(filename)
+    # play_obj = wave_obj.play()
+    # play_obj.wait_done()
+    pass
 
 
 def forward_button_light(num, type, on):
