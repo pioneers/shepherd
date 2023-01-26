@@ -10,7 +10,7 @@ from sheet import Sheet
 from robot import Robot
 import threading
 import time
-import simpleaudio as sa
+# import simpleaudio as sa
 
 
 ###########################################
@@ -385,15 +385,18 @@ def disconnect_robot(ind):
 
 
 def sound_blizzard_warning():
-    play_sound("static/blizzard_warning.wav")
+    # play_sound("static/blizzard_warning.wav")
+    pass
 
 def play_sound(filename):
-    threading.Thread(target=actually_make_sound, args=(filename,)).start()
+    # threading.Thread(target=actually_make_sound, args=(filename,)).start()
+    pass
 
 def actually_make_sound(filename):
-    wave_obj = sa.WaveObject.from_wave_file(filename)
-    play_obj = wave_obj.play()
-    play_obj.wait_done()
+    # wave_obj = sa.WaveObject.from_wave_file(filename)
+    # play_obj = wave_obj.play()
+    # play_obj.wait_done()
+    pass
     
 
 def forward_button_light(num, type, on):
