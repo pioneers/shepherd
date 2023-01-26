@@ -385,10 +385,12 @@ def disconnect_robot(ind):
 
 
 def sound_blizzard_warning():
-    play_sound("static/blizzard_warning.wav")
+    # play_sound("static/blizzard_warning.wav")
+    pass
 
 def play_sound(filename):
-    threading.Thread(target=actually_make_sound, args=(filename,)).start()
+    # threading.Thread(target=actually_make_sound, args=(filename,)).start()
+    pass
 
 def actually_make_sound(filename):
     # commenting out simple audio code
