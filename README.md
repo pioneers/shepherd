@@ -33,7 +33,7 @@ If this is successful, you should be able to go to any of the urls listed in ter
 
 ### Running Sensors
 
-For talking to sensors, we use an Arduino program and a python script based on `termios`. This will only work on Linux devices, so only continue if you computer runs Linux.
+For talking to sensors, we use an Arduino program and a python script based on `termios`. This will only work on Linux devices, so only continue if your computer runs Linux.
 
  - First, open the `src/sensors` folder in the Arduino IDE. At the top of the `sensors.ino` file, there is a `MY_UUID` variable. If you plan to run multiple arduinos, each one should get a unique UUID (if you only have one arduino, the default is fine).
 
