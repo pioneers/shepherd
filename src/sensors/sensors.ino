@@ -41,6 +41,7 @@ void readAllBytes(byte* buffer, size_t length) {
 void setup() {
   // first part of handshake: send 4 byte magic and 4 byte UUID
   Serial.begin(baudrate);
+  while (!Serial); // wait for Serial to initialize
   Serial.setTimeout(1000);
   to_buf(handshake_magic, msg_buf);
   to_buf(MY_UUID, &(msg_buf[4]));
