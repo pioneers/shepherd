@@ -111,9 +111,79 @@
   // this function is called when the page is loaded, from base.html
   // socket: the main socketio websocket
   // send: a function that sends a header through the socket, and also logs it
+
+
+  /* The schools to add to this year's competition */
+  let schools = ["Middle College", "Pinole Valley", "Oakland Tech", 
+    "Bishop O'Dowd", "El Cerrito", "Coliseum", "Live Oak", "ASTI", 
+    "LPS Richmond", "Albany", "Hayward", "ACLC", "ARISE", "Salesian",
+     "Hercules", "Skyline", "San Leandro"].sort();
+
+  /* We create a div element and add it to right-container for each
+  schools participating in this year's competition
+   */
+  function addSchools() {
+    //the right-container div
+    const parent1 = document.getElementsByClassName("right-container")[0];
+    for (var school of schools) {
+      //this is the container that stores the school name and score
+      var container = document.createElement("div")
+      container.classList.add("row", "rounded", "m-2", "p-2", "bg-primary", "text-center", "draggable");
+      container.setAttribute("draggable", "true");
+      container.style.justifyContent = "space-evenly";
+
+      //div for school and score
+      var newDivSchool = document.createElement("div")
+      newDivSchool.classList.add("col-md-8", "bg-light", "rounded");
+      var newDivScore = document.createElement("div")
+      newDivScore.classList.add("col-md-3", "bg-warning", "rounded");
+
+      var newSchool = document.createTextNode(school);
+      var divScore = document.createTextNode("0:3");
+
+      newDivSchool.appendChild(newSchool);
+      newDivScore.appendChild(divScore);
+
+      container.appendChild(newDivSchool);
+      container.appendChild(newDivScore);
+      //add the div to the right-container
+      parent1.appendChild(container);
+    }
+  }
+
+  /* Function to make the teamDivs in the left container */
+  function makeTeamDivs() {
+    var innerContainer = document.getElementsByClassName("inner-container")[0]
+    var leftContainer = innerContainer.getElementsByClassName("left-container")[0];
+    var numSchools = schools.length % 3 == 0 ? schools.length: schools.length + 1;
+    //create a yellow container for num_schools/2 alliances
+    for (let i= 0; i < numSchools/2; i++) {
+      // Create the outer div element with the class "alliance"
+      var allianceDiv = document.createElement("div");
+      allianceDiv.classList.add("alliance");
+        
+      // Create the inner div element with the class "alliance-num"
+      const allianceNumDiv = document.createElement("div");
+      allianceNumDiv.classList.add("alliance-num");
+      // Create the span element and set its text content to "i + 1"
+      const spanElement = document.createElement("span");
+      spanElement.textContent = i + 1;
+
+      // Append the span element to the inner div
+      allianceNumDiv.appendChild(spanElement);
+
+      // Create the inner div element with the classes "alliance-drop-area" and "drop-here"
+      const allianceDropAreaDiv = document.createElement("div");
+      allianceDropAreaDiv.classList.add("alliance-drop-area", "drop-here");
+
+      // Append the inner divs to the outer div
+      allianceDiv.appendChild(allianceNumDiv);
+      allianceDiv.appendChild(allianceDropAreaDiv);
+      leftContainer.appendChild(allianceDiv);
+    }
+  }
+
   function main_js_content(socket, send) {
-
-
 
 
     function saveStateOfAlliance() {
@@ -138,7 +208,10 @@
     document.getElementById("clear").addEventListener("click", clearSelection);
 
     // on reload this is called 
-    loadStateOfAlliance()
+    loadStateOfAlliance();
+    addSchools();
+    makeTeamDivs();
+
 
     const draggables = document.querySelectorAll('.draggable')
     const containers = document.querySelectorAll('.drop-here')
@@ -215,7 +288,7 @@
 <div class="inner-container" id="inner-container">
   <div class="left-container">
 
-    <div class="alliance">
+    <!-- <div class="alliance">
       <div class="alliance-num">
         <span>
           1
@@ -224,9 +297,9 @@
       </div>
       <div class="alliance-drop-area drop-here">
       </div>
-    </div>
+    </div> -->
 
-    <div class="alliance">
+    <!-- <div class="alliance">
       <div class="alliance-num">
         <span>
           2
@@ -257,20 +330,21 @@
       </div>
       <div class="alliance-drop-area drop-here">
       </div>
-    </div>
-
-
+    </div> -->
   </div>
 
 
 
 
 
+<!-- the addSchools function will add all schools participating in this container -->
+<div class="right-container drop-here">
+</div>
 
-
-  <div class="right-container drop-here">
+<!-- 
+<div class="right-container drop-here">
     <div class="row rounded m-2 p-2 bg-primary text-center draggable" draggable="true"
-      style="justify-content: space-evenly;">
+      style="justify-content: space-evenly;" id="SanMateo">
       <div class="col-md-8 bg-light rounded">
         San Mateo
       </div>
@@ -308,7 +382,7 @@
         0:3
       </div>
     </div>
-  </div>
+  </div>  -->
 
 
 
