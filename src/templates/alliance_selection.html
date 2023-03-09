@@ -155,9 +155,9 @@
   function makeTeamDivs() {
     var innerContainer = document.getElementsByClassName("inner-container")[0]
     var leftContainer = innerContainer.getElementsByClassName("left-container")[0];
-    var numSchools = schools.length % 3 == 0 ? schools.length: schools.length + 1;
+    var numAlliances = Math.ceil(schools.length / 3);
     //create a yellow container for num_schools/2 alliances
-    for (let i= 0; i < numSchools/2; i++) {
+    for (let i= 1; i <= numAlliances; i++) {
       // Create the outer div element with the class "alliance"
       var allianceDiv = document.createElement("div");
       allianceDiv.classList.add("alliance");
@@ -165,9 +165,9 @@
       // Create the inner div element with the class "alliance-num"
       const allianceNumDiv = document.createElement("div");
       allianceNumDiv.classList.add("alliance-num");
-      // Create the span element and set its text content to "i + 1"
+      // Create the span element and set its text content to "i"
       const spanElement = document.createElement("span");
-      spanElement.textContent = i + 1;
+      spanElement.textContent = i;
 
       // Append the span element to the inner div
       allianceNumDiv.appendChild(spanElement);
