@@ -383,8 +383,7 @@ def update_alliance_selection(alliances: list):
     Updates the Google Sheets with the chosen alliances
     where 3 schools are in each alliance.
     '''
-    print("hi!")
-    #TODO return the sheets function
+    Sheet.write_alliance_selections(alliances)
 
 
 ###########################################
