@@ -378,6 +378,14 @@ def disconnect_robot(ind):
     CLIENTS.clients[ind].close_connection()
 
 
+def update_alliance_selection(alliances: list):
+    '''
+    Updates the Google Sheets with the chosen alliances
+    where 3 schools are in each alliance.
+    '''
+    print("hi!")
+    #TODO return the sheets function
+
 
 ###########################################
 # Spring 2022 Game
@@ -490,7 +498,7 @@ EVERYWHERE_FUNCTIONS = {
     # SHEPHERD_HEADER.UPDATE_SCORE.name: update_score,
     # temporary code for exhibition, remove later
     SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
-
+    SHEPHERD_HEADER.UPDATE_ALLIANCE_SELECTION.name: update_alliance_selection,
 }
 
 if __name__ == '__main__':

@@ -119,6 +119,9 @@
     "LPS Richmond", "Albany", "Hayward", "ACLC", "ARISE", "Salesian",
      "Hercules", "Skyline", "San Leandro"].sort();
 
+  /* Button to sync the Google Spreadsheet */
+  const sync = $("sync");
+
   /* We create a div element and add it to right-container for each
   schools participating in this year's competition
    */
@@ -205,8 +208,29 @@
         location.reload();
       }
     }
-    document.getElementById("clear").addEventListener("click", clearSelection);
 
+    /* Sends a YDL call to shepherd. Sends data over containing 
+    the alliances to ultimately update in the Google Sheets.*/
+    function updateAlliance() {
+      const left_container = document.getElementsByClassName("left-container")[0];
+      var div_alliances = left_container.getElementsByClassName('alliance');
+      var all_alliances = [];
+      for (let i = 0; i < div_alliances.length; i++) {
+        var alliance_lst_div = div_alliances[i].querySelectorAll('.col-md-8');
+        var alliance_lst = []
+        for (let j = 0; j < alliance_lst_div.length; j++) {
+          alliance_lst.push(alliance_lst_div[j].innerHTML);
+        }
+        all_alliances.push(alliance_lst);
+      }
+      send("update_alliance_selection", JSON.stringify({ alliances: all_alliances }));
+    }
+
+    document.getElementById("clear").addEventListener("click", clearSelection);
+       
+    document.getElementById("sync").addEventListener("click", () => updateAlliance());
+
+    
     // on reload this is called 
     loadStateOfAlliance();
     addSchools();
@@ -216,8 +240,7 @@
     const containers = document.querySelectorAll('.drop-here')
 
 
-    
-
+ 
 
     draggables.forEach(draggable => {
       draggable.addEventListener('dragstart', () => {
@@ -266,6 +289,8 @@
       }).element
     }
   }
+
+  console.log("Starting script");
 </script>
 {% endblock %}
 {% block html_content %}

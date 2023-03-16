@@ -173,6 +173,15 @@ class SHEPHERD_HEADER():
         been paused using PAUSE_TIMERS.
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_alliance_selection")
+    def UPDATE_ALLIANCE_SELECTION(alliances):
+        """
+        alliances: A list of lists, where each list is the length of
+        an alliance and contains the name of each school. Updates the
+        Google Sheets with the alliances selected.
+        """
+
 
 class UI_HEADER():
     """
