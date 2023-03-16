@@ -107,6 +107,17 @@ class Sheet:
                 print("Unable to write match info to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
+    
+    @staticmethod
+    def write_alliance_selections(alliances: list):
+        def bg_thread_work():
+            try:
+                Sheet.__write_alliance_selections(alliances)
+            except: # pylint: disable=bare-except
+                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+
     @staticmethod
     def __get_authorized_sheet():
         """
@@ -349,3 +360,12 @@ class Sheet:
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
+    
+    @staticmethod
+    def __write_alliance_selections(alliances: list):
+        """
+        Updates the Google Sheets where each alliance is composed of 3 schools.
+        alliances: list of lists of schools
+        """
+        #TODO
+        pass
