@@ -197,7 +197,10 @@
       if (localStorage.getItem("alliances")) {
         document.getElementById("inner-container").innerHTML = localStorage.getItem("alliances");
       } else {
-        console.log("No key found");
+        // console.log("No key found");
+        makeTeamDivs();
+        addSchools();
+
       }
 
     }
@@ -223,6 +226,9 @@
         }
         all_alliances.push(alliance_lst);
       }
+      // saveStateOfAlliance();
+      console.log("all_alliances");
+      console.log(all_alliances);
       send("update_alliance_selection", JSON.stringify({ alliances: all_alliances }));
     }
 
@@ -233,8 +239,6 @@
     
     // on reload this is called 
     loadStateOfAlliance();
-    addSchools();
-    makeTeamDivs();
 
     const draggables = document.querySelectorAll('.draggable')
     const containers = document.querySelectorAll('.drop-here')
