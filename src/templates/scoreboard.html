@@ -1,9 +1,11 @@
+<!-- TODO: Fix state transitions & add match sounds -->
+<!-- TODO: Perfect loop video -->
+<!-- TODO: Make minigame names work -->
+
 <html>
 
 <head>
-    <!-- <script type="text/javascript" src={{url_for( 'static', filename='socket.io.js' )}}></script> -->
-    <!-- TODO MAKE THE BELOW THING A FILE -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.2/socket.io.js"></script>
+    <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
     <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
     <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
@@ -11,14 +13,16 @@
 </head>
 
 <body>
+    <video autoplay muted loop class="bg-video">
+        <source src="../static/circus_background.mp4" type="video/mp4">
+    </video>
     <div class="scoreboard-outer-container">
-        <video autoplay muted loop class="bg-video">
-            <source src="../static/circus_background.mp4" type="video/mp4">
-        </video>
         <div class="scoreboard-header-outer-container">
-            <div class="timer-container">
-                <div class="timer-text" id="timer">
-                    00:00
+            <div class="timer-outer-container">
+                <div class="timer-inner-container">
+                    <div class="timer-text" id="timer">
+                        00:00
+                    </div>
                 </div>
             </div>
             <div class="scoreboard-header-container">
@@ -31,6 +35,9 @@
                 <div class="minigame-text" id="minigame2">
                     FOOD COURT
                 </div>
+            </div>
+            <div class="progression-bar">
+
             </div>
         </div>
         <div class="scoreboard-bottom-container">
@@ -62,13 +69,16 @@
                         0
                     </div>
                     <div class="robot-text">
-                        <span id="team-name-g1">UC Berkeley</span>
+                        <span id="team-name-g2">UC Berkeley</span>
                         &nbsp;
-                        <span id="team-num-g1">4</span>
+                        <span id="team-num-g2">4</span>
                     </div>
                 </div>
             </div>
         </div>
+        <button class="audio-button" onclick="buttonHide()">
+            Enable audio
+        </button>
     </div>
 </body>
 </html>
