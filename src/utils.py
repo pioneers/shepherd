@@ -369,17 +369,15 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     TELEOP_1 = "teleop_1"
-    BLIZZARD = "blizzard"
     TELEOP_2 = "teleop_2"
-    ENDGAME = "endgame"
+    TELEOP_3 = "teleop_3"
     END = "end"
 
 STAGE_TIMES = {
     STATE.AUTO: 30,
-    STATE.TELEOP_1: 180,
-    STATE.BLIZZARD: 15,
-    STATE.TELEOP_2: 45,
-    STATE.ENDGAME: 60
+    STATE.TELEOP_1: 60,
+    STATE.TELEOP_2: 10,
+    STATE.TELEOP_3: 90
 }
 
 class PROTOBUF_TYPES():
