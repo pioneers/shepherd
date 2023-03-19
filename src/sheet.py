@@ -113,8 +113,8 @@ class Sheet:
         def bg_thread_work():
             try:
                 Sheet.__write_alliance_selections(alliances)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+            except Exception as error: # pylint: disable=bare-except
+                print(f'[error!] Google API has changed yet again, please fix Sheet.py', error)
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
@@ -297,8 +297,7 @@ class Sheet:
             if teams[i]["team_num"] < 0:
                 YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
                 return False
-        
-
+    
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range="Match Database!A2:A").execute()['values']
@@ -365,7 +364,25 @@ class Sheet:
     def __write_alliance_selections(alliances: list):
         """
         Updates the Google Sheets where each alliance is composed of 3 schools.
-        alliances: list of lists of schools
+        alliances: list of lists of schools, i.e list of alliances
+        Example usage:
+        >>> alliances = ['Albany', 'ACLC', 'ARISE'], ['San Leandro', 'Hayward'], ['Coliseum', 'Salesian', 'ASTI']]
+        >>> __write_alliance_selections(alliances) #updates the google sheets filling in the values for the 3 alliances
         """
-        #TODO
-        pass
+        spreadsheet = Sheet.__get_authorized_sheet()
+        
+        #the cells to update where each mappings[i] contains one alliance
+        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10", "D8:D10", "F8:F10"]
+
+        for i, alliance in enumerate(alliances):
+            if len(alliance) > 3:
+                raise Exception(f"Error: Alliance located at index {i} is greater than length 3")
+            range_name = f"Alliances!{mappings[i]}"
+            new_alliance = [[x] for x in alliance] #[[team1], [team2], [team3]]
+            while len(new_alliance) < 3: #append a column containing the empty string until alliance size == 3
+                new_alliance.append([""])
+            body = {
+                'values': new_alliance
+            }
+            spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                range=range_name, body=body, valueInputOption="RAW").execute()

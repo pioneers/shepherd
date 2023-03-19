@@ -383,8 +383,10 @@ def update_alliance_selection(alliances: list):
     Updates the Google Sheets with the chosen alliances
     where 3 schools are in each alliance.
     '''
+    #Sheet.write_alliance_selections(alliances)
+    # print("Shepherd.py update alliance selection")
+    # Sheet.write_alliance_selections(alliances)
     Sheet.write_alliance_selections(alliances)
-
 
 ###########################################
 # Spring 2022 Game
@@ -458,14 +460,8 @@ FUNCTION_MAPPINGS = {
         SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard,
     },
-    STATE.BLIZZARD: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
-    },
     STATE.TELEOP_2: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame,
-    },
-    STATE.ENDGAME: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
