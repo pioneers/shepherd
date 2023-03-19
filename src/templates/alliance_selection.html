@@ -114,10 +114,34 @@
 
 
   /* The schools to add to this year's competition */
-  let schools = ["Middle College", "Pinole Valley", "Oakland Tech", 
+  var schools = ["Middle College", "Pinole Valley", "Oakland Tech", 
     "Bishop O'Dowd", "El Cerrito", "Coliseum", "Live Oak", "ASTI", 
     "LPS Richmond", "Albany", "Hayward", "ACLC", "ARISE", "Salesian",
-     "Hercules", "Skyline", "San Leandro"].sort();
+     "Hercules", "Skyline", "San Leandro"]
+
+  /* Dummy data that will sort schools by their ranking points first and qualification points second
+  TODO: Use google Sheets to grab the actual data. */
+  const rankPoints = [2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+  const qualPoints = [5, 7, 4, 7, 5, 2, 6, 4, 8, 5, 4, 7, 5, 6, 3, 6, 2];
+
+
+    /* Create a dictionary that creates fields name, qualScore, and rankScore*/
+    const teamScores = schools.map((team, index) => {
+    return {
+      name: team,
+      qualScore: qualPoints[index],
+      rankScore: rankPoints[index]
+    };
+  });
+
+  /* Sorts the teams by rankScore and then qualScore. */
+  teamScores.sort((a, b) => {
+    return b.rankScore - a.rankScore || b.qualScore - a.qualScore;
+  });
+
+  //new school
+  schools = teamScores.map(team => team.name);
+
 
   /* Button to sync the Google Spreadsheet */
   const sync = $("sync");
@@ -128,7 +152,9 @@
   function addSchools() {
     //the right-container div
     const parent1 = document.getElementsByClassName("right-container")[0];
-    for (var school of schools) {
+    for (var team of teamScores) {
+      let school = team.name 
+      console.log(school);
       //this is the container that stores the school name and score
       var container = document.createElement("div")
       container.classList.add("row", "rounded", "m-2", "p-2", "bg-primary", "text-center", "draggable");
@@ -142,7 +168,8 @@
       newDivScore.classList.add("col-md-3", "bg-warning", "rounded");
 
       var newSchool = document.createTextNode(school);
-      var divScore = document.createTextNode("0:3");
+    
+      var divScore = document.createTextNode(team.rankScore + ":" + team.qualScore);
 
       newDivSchool.appendChild(newSchool);
       newDivScore.appendChild(divScore);
