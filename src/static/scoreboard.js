@@ -11,7 +11,8 @@ var prev_curr_time;
 var total_game_time;
 
 var progression_bar;
-var bell_audio;
+var start_audio;
+var end_audio;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
@@ -109,6 +110,16 @@ socket.on("resume_timer", (time) => {
   }
 });
 
+socket.on("play_start_sound", () => {
+  console.log("Successful ydl message: play_start_sound");
+  start_audio.play();
+});
+
+socket.on("play_end_sound", () => {
+  console.log("Successful ydl message: play_end_sound");
+  end_audio.play();
+});
+
 function individual(jq_obj) {
   console.log("Inside function: individual");
   let res = Array(jq_obj.length);
@@ -197,8 +208,8 @@ function runStageTimer(startTime) {
     $('#timer').html(secondsToTimeString(time));
 
     total_game_time += currTime - prev_curr_time;
-    total_game_time = total_game_time > 180 ? 180 : total_game_time;
-    progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 180) + "%, var(--gold500) " + (100 * total_game_time / 180) + "%, var(--gold500) 100%)")
+    total_game_time = total_game_time > 190 ? 190 : total_game_time;
+    progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);

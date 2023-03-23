@@ -185,6 +185,7 @@ def to_auto():
     '''
     GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
+    YC.send(UI_HEADER.PLAY_START_SOUND())
     for n in [0,1,2,3]:
         YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
@@ -212,7 +213,7 @@ def to_end():
     global GAME_STATE
     GAME_STATE = STATE.END
     disable_robots()
-    play_sound("static/trim.wav")
+    YC.send(UI_HEADER.PLAY_END_SOUND())
     for n in [0,1,2,3]:
         YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     CLIENTS.close_all()

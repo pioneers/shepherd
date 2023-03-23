@@ -233,52 +233,14 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 if row[1] == "Blue":
                     blue = {
-                        "score" : int(row[2]),
-                        "campsite-resource-top-left-leftside" : 0 if row[10] == "" else int(row[10]),
-                        "campsite-resource-bottom-left-leftside" : 0 if row[12] == "" else int(row[12]),
-                        "campsite-resource-top-middle-leftside" : 0 if row[14] == "" else int(row[14]),
-                        "campsite-resource-bottom-middle-leftside" : 0 if row[16] == "" else int(row[16]),
-                        "campsite-resource-top-right-leftside" : 0 if row[18] == "" else int(row[18]),
-                        "campsite-resource-bottom-right-leftside" : 0 if row[20] == "" else int(row[20]),
-                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
-                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
-                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
-                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
-                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
-                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
-                        "campsite-pioneer-top-left" : row[28] == "TRUE",
-                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
-                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
-                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
-                        "campsite-pioneer-top-right" : row[44] == "TRUE",
-                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
-                        "endgame-pioneer-blue" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                        "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = {
-                        "score" : int(row[2]),
-                        "campsite-resource-top-left-rightside" : 0 if row[10] == "" else int(row[10]),
-                        "campsite-resource-bottom-left-rightside" : 0 if row[12] == "" else int(row[12]),
-                        "campsite-resource-top-middle-rightside" : 0 if row[14] == "" else int(row[14]),
-                        "campsite-resource-bottom-middle-rightside" : 0 if row[16] == "" else int(row[16]),
-                        "campsite-resource-top-right-rightside" : 0 if row[18] == "" else int(row[18]),
-                        "campsite-resource-bottom-right-rightside" : 0 if row[20] == "" else int(row[20]),
-                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
-                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
-                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
-                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
-                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
-                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
-                        "campsite-pioneer-top-left" : row[28] == "TRUE",
-                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
-                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
-                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
-                        "campsite-pioneer-top-right" : row[44] == "TRUE",
-                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
-                        "endgame-pioneer-gold" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                        "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))

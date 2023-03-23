@@ -274,6 +274,20 @@ class UI_HEADER():
         google sheets gives us a str instead of an int which complicates code
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.UI, "play_start_sound")
+    def PLAY_START_SOUND():
+        """
+        source: Shepherd. Plays the start sound when the game starts
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.UI, "play_end_sound")
+    def PLAY_END_SOUND():
+        """
+        source: Shepherd. Plays the end sound when the game ends
+        """
+
 
 class SENSOR_HEADER():
     """
