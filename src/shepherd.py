@@ -185,7 +185,6 @@ def to_auto():
     '''
     GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
-    play_sound("static/boxing-bell.wav")
     for n in [0,1,2,3]:
         YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
@@ -196,24 +195,15 @@ def to_teleop_1():
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
 
-def to_blizzard():
-    GAME_TIMER.start(STAGE_TIMES[STATE.BLIZZARD])
-    enable_robots(autonomous=False)
-    set_state(STATE.BLIZZARD)
-    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=4))
-    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=5))
-
 def to_teleop_2():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
-    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=4))
-    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=5))
 
-def to_endgame():
-    GAME_TIMER.start(STAGE_TIMES[STATE.ENDGAME])
+def to_teleop_3():
+    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_3])
     enable_robots(autonomous=False)
-    set_state(STATE.ENDGAME)
+    set_state(STATE.TELEOP_3)
 
 def to_end():
     '''
@@ -242,18 +232,14 @@ def go_to_state(state):
         STATE.SETUP: reset_match,
         STATE.AUTO: to_auto,
         STATE.TELEOP_1: to_teleop_1,
-        STATE.BLIZZARD: to_blizzard,
         STATE.TELEOP_2: to_teleop_2,
-        STATE.ENDGAME: to_endgame,
+        STATE.TELEOP_3: to_teleop_3,
         STATE.END: to_end
     }
     if state in transitions:
         transitions[state]()
     else:
         print(f"Sorry, {state} is not a valid state to move to.")
-
-
-
 
 def set_robot_ip(ind, robot_ip):
     '''
@@ -457,11 +443,13 @@ FUNCTION_MAPPINGS = {
         # SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
     },
     STATE.TELEOP_1: {
-        SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
     },
     STATE.TELEOP_2: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_3,
+    },
+    STATE.TELEOP_3: {
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
     },
     STATE.END: {
         SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
