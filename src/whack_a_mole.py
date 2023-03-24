@@ -10,8 +10,8 @@ NUM_BUTTONS = 5
 YC = YDLClient(YDL_TARGETS.SHEPHERD)
 EVENT_QUEUE = queue.Queue()
 
-CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #cheat code button order
-REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5]
+CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #cheat code button id order
+REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
 
 
 def turn_all_lights(on):
@@ -84,12 +84,15 @@ def start():
 
             if message[1] == SHEPHERD_HEADER.BUTTON_PRESS.name:
                 # print("III pressed: " + str(message[2]["id"]))
-                BUTTON_ID = int(message[2]["id"])
-                if BUTTON_ID == button:
+                PRESSED_ID = int(message[2]["id"])
+                YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name, {"id": PRESSED_ID}))
+                time.sleep(0.2)
+                YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": PRESSED_ID}))
+                if PRESSED_ID == button:
                     pressed = True
-                if BUTTON_ID == CHEAT_CODE[0]:
+                if PRESSED_ID == CHEAT_CODE[0]:
                     CHEAT_CODE.pop
-                if BUTTON_ID == REVERSED_CHEAT_CODE[0]:
+                if PRESSED_ID == REVERSED_CHEAT_CODE[0]:
                     REVERSED_CHEAT_CODE.pop
 
         if pressed:
@@ -98,6 +101,8 @@ def start():
             turn_all_lights(on=True)
             time.sleep(0.2)
             turn_all_lights(on=False)
+
+
         if not CHEAT_CODE or not REVERSED_CHEAT_CODE:
             score = 100
             print("CHEAT CODE bonus")
@@ -113,19 +118,18 @@ def start():
         if STREAK >= 7:
             score = 80
         YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
-
         print(f'score: {score}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
-        YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
         """
         if (not pressed):
             # print("not pressed")
             YC.send((YDL_TARGETS.UI, UI_HEADER.GAME_OVER.name, { }))
         
             return
-        """
+        
         sleeptime = random.random() + 1
         time.sleep(sleeptime)
+        """
 
 threading.Thread(target=fill_queue, args=(), daemon=True).start()
 start_helper()
