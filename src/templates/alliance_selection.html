@@ -176,7 +176,7 @@
     between two schools in rankingPoints. In the case of a tie between both rankingPoints and QualificationPoints
     between two schools, we flip a coin to break the tie. */
     teamScores.sort((a, b) => {
-    return b.rankScore - a.rankScore || b.qualScore - a.qualScore || (Math.random() < 0.5) ? -1 : 1;
+    return b.rankScore - a.rankScore || b.qualScore - a.qualScore || (Math.random() < 0.5) ? -1 : -2;
   });
 
     //var schools = teamScores.map(team => team.name);
