@@ -110,10 +110,13 @@
 </style>
 
 <script>
-  // this function is called when the page is loaded, from base.html
-  // socket: the main socketio websocket
-  // send: a function that sends a header through the socket, and also logs it
   //GOOGLE SHEETS CODE for static page 
+  /* This function is called when the page is loaded from base.html
+  socket: the main socketio websocket
+  send: a function that sends a header through the socket, and also logs it
+  GOOGLE SHEETS CODE for static page 
+  The function get_teams handles loading the schools and divs in the inner container.
+  */
   function gapiLoaded() {
     const API_KEY = 'AIzaSyCtdsxq4_TWBoQU-gZEiA6YVQZUaweN6C8'; //CHANGE
     const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
@@ -127,20 +130,25 @@
     });
   }
 
+  /* Loads the current state of the page if we have already retrieved the Google Sheets data
+  in this window session. Loads up the variable teamScores and loads the innerHTML.
+  If the data is not stored in this window session, use gapi to load the data from our Google Sheets
+  spredsheet under `Qualifiers`, where we read the schoolName, RankingPoints, and QualificationPoints
+  for each school.*/
   async function get_teams() {
     var teamScores;
     if (window.sessionStorage.getItem("alliances")) {
-      document.getElementById("inner-container").innerHTML = window.sessionStorage.getItem("alliances");
+      document.getElementById("inner-container").innerHTML = window.sessionStorage.getItem("alliances"); //load the alliance HTML if it exists in this window session
     }
     if (window.sessionStorage.getItem("teamScores")) {
-      teamScores = JSON.parse(window.sessionStorage.getItem("teamScores"));
-    } else {
+      teamScores = JSON.parse(window.sessionStorage.getItem("teamScores")); //loads `teamScores` if it exists in this window session
+    } else { //otherwise read the data from Google Sheets and load the data into `teamScores`
     try {
       // fetching the 1 line 
       console.log("Get teams function running");
       response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: '1xyVzBbAxXMeSO4OUHljtZetXTwJGq7FGqOJpQUwW41k', //change this
-        range: 'Qualifiers!E4:G13',
+        range: 'Qualifiers!E4:G13', //the spreadsheet name to fetch the data from
       });
       console.log('t', response) //prints shows the spreadsheet values 
     } catch (err) {
@@ -149,23 +157,34 @@
       return;
     }
 
-    game_data = response.result.values // [[Albany, 2, 24], [] ...]
+    game_data = response.result.values // [[Albany, 2, 24], [teamName, rankingPoints, QualificationPoints],  ...]
     console.log('here is the array', game_data) //printing the range 
-    // console.log('index show', game_data.at(0)) //printing the first one 
+    
+    /* Creates an array of teamScore objects, which contain
+    @param name: the school's name
+    @param rankScore: the school's ranking points
+    @param qualScore: the school's qualification points */
     teamScores = game_data.map((team) => {
     return {
-      name: team[0],
-      rankScore: team[1],
-      qualScore: team[2]
+        name: team[0],
+        rankScore: team[1],
+        qualScore: team[2]
       };
     });
 
+    /* Sorts each teamScore object by rankingPoints first, then qualificationPoints if there is a tie
+    between two schools in rankingPoints. In the case of a tie between both rankingPoints and QualificationPoints
+    between two schools, we flip a coin to break the tie. */
     teamScores.sort((a, b) => {
-    return b.rankScore - a.rankScore || b.qualScore - a.qualScore;
+    return b.rankScore - a.rankScore || b.qualScore - a.qualScore || (Math.random() < 0.5) ? -1 : 1;
   });
+
     var schools = teamScores.map(team => team.name);
 
     console.log(teamScores);
+
+    /* Store the variable teamScores in our browser if we reload the page. This 
+    saves us a few seconds to not reread data from Google Sheets upon reloading.*/
     window.sessionStorage.setItem("teamScores", JSON.stringify(teamScores));
   
     makeTeamDivs(teamScores);
@@ -176,8 +195,10 @@
     const draggables = document.querySelectorAll('.draggable');
     const containers = document.querySelectorAll('.drop-here');
 
-
-     function saveStateOfAlliance() {
+    /* Saves the alliance inner HTML information in the browser.
+    If we reload the webpage during our window session, we do not have to
+    read the data again from Google Sheets. */
+    function saveStateOfAlliance() {
       window.sessionStorage.setItem("alliances", document.getElementById("inner-container").innerHTML);
     }
 
@@ -188,12 +209,12 @@
 
       draggable.addEventListener('dragend', () => {
         draggable.classList.remove('dragging');
-        saveStateOfAlliance();
+        saveStateOfAlliance(); //every time an item is dragged, we save this result. When we reload the page, the changes are restored
       })
     })
 
 
-
+    /* Allows for dragging schools to the alliance containers on the left side of the screen. */
     containers.forEach(container => {
       container.addEventListener('dragover', e => {
         e.preventDefault()
@@ -209,6 +230,7 @@
 
     })
 
+    /* Cool dragging animation. */
     function getDragAfterElement(container, y) {
       const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
 
