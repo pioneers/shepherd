@@ -181,6 +181,14 @@ class SHEPHERD_HEADER():
         an alliance and contains the name of each school. Updates the
         Google Sheets with the alliances selected.
         """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_whack_a_mole_score")
+    def UPDATE_WHACK_A_MOLE_SCORE(alliance, score):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the whack a mole score for the alliance.
+
+        """
 
 
 class UI_HEADER():

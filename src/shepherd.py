@@ -6,6 +6,7 @@ from ydl import YDLClient
 from alliance import Alliance
 from timer import TimerGroup, Timer
 from utils import *
+from whack_a_mole import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
@@ -36,6 +37,8 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
+BLUE_WHACK_A_MOLE_SCORE = 0
+GOLD_WHACK_A_MOLE_SCORE = 0
 
 
 ###########################################
@@ -160,6 +163,10 @@ def reset_match():
     CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
+    global BLUE_WHACK_A_MOLE_SCORE
+    BLUE_WHACK_A_MOLE_SCORE = 0
+    global GOLD_WHACK_A_MOLE_SCORE
+    GOLD_WHACK_A_MOLE_SCORE = 0
     send_state_to_ui()
     print("ENTERING SETUP STATE")
 
@@ -195,6 +202,9 @@ def to_teleop_1():
     BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
+    whack_a_mole_start('blue')
+    whack_a_mole_start('gold')
+
 
 def to_teleop_2():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
@@ -375,6 +385,16 @@ def update_alliance_selection(alliances: list):
     # Sheet.write_alliance_selections(alliances)
     Sheet.write_alliance_selections(alliances)
 
+def update_whack_a_mole_score(alliance, score):
+    '''
+    Updates the whack a mole score and send updated score to sheet
+    '''
+    if alliance == 'blue':
+        BLUE_WHACK_A_MOLE_SCORE = score
+    else: 
+        GOLD_WHACK_A_MOLE_SCORE = score
+    Sheet.write_alliance_selections(MATCH_NUMBER, BLUE_WHACK_A_MOLE_SCORE, GOLD_WHACK_A_MOLE_SCORE)
+
 ###########################################
 # Spring 2022 Game
 ###########################################
@@ -483,6 +503,7 @@ EVERYWHERE_FUNCTIONS = {
     # temporary code for exhibition, remove later
     SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
     SHEPHERD_HEADER.UPDATE_ALLIANCE_SELECTION.name: update_alliance_selection,
+    SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name: update_whack_a_mole_score,
 }
 
 if __name__ == '__main__':

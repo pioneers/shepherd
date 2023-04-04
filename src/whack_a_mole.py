@@ -10,8 +10,7 @@ NUM_BUTTONS = 5
 YC = YDLClient(YDL_TARGETS.SHEPHERD)
 EVENT_QUEUE = queue.Queue()
 
-CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #cheat code button id order
-REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
+
 
 
 def turn_all_lights(on):
@@ -26,7 +25,7 @@ def fill_queue():
 # def start_whackamole():
 #     start()
 
-def start_helper():
+def start_helper(alliance):
     # start()
     while True:
         if (not EVENT_QUEUE.empty()):
@@ -35,10 +34,10 @@ def start_helper():
             except queue.Empty:
                 continue
             if message[1] == SHEPHERD_HEADER.START_WHACKAMOLE.name:
-                start()
+                whack_a_mole_start(alliance)
 
-def start():
-
+def whack_a_mole_start(alliance):
+    # side: blue or gold
     #ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
     #print("banana boat")
     """
@@ -48,9 +47,16 @@ def start():
         turn_all_lights(on=True)
         time.sleep(1)
     """
+    if alliance == 'blue':
+        CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #change this!! cheat code button id order
+        REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
+    else: #alliance == 'gold'
+        CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #change this!! cheat code button id order
+        REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
+
     turn_all_lights(on=False)
     score = 0
-    YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
+    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
     """
         When the function starts
         1. Button chosen
@@ -106,8 +112,8 @@ def start():
         if not CHEAT_CODE or not REVERSED_CHEAT_CODE:
             score = 100
             print("CHEAT CODE bonus")
-            YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
-            return
+            YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
+            return 
         
         if STREAK == (1 or 2):
             score = 20
@@ -117,7 +123,7 @@ def start():
             score = 60
         if STREAK >= 7:
             score = 80
-        YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
+        YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
         print(f'score: {score}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
         """
