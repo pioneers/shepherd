@@ -393,7 +393,7 @@ def update_whack_a_mole_score(alliance, score):
         BLUE_WHACK_A_MOLE_SCORE = score
     else: 
         GOLD_WHACK_A_MOLE_SCORE = score
-    Sheet.write_alliance_selections(MATCH_NUMBER, BLUE_WHACK_A_MOLE_SCORE, GOLD_WHACK_A_MOLE_SCORE)
+    Sheet.write_whack_a_mole_scores(MATCH_NUMBER, BLUE_WHACK_A_MOLE_SCORE, GOLD_WHACK_A_MOLE_SCORE)
 
 ###########################################
 # Spring 2022 Game

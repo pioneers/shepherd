@@ -25,19 +25,19 @@ def fill_queue():
 # def start_whackamole():
 #     start()
 
-def start_helper(alliance):
-    # start()
-    while True:
-        if (not EVENT_QUEUE.empty()):
-            try:
-                message = EVENT_QUEUE.get(False)
-            except queue.Empty:
-                continue
-            if message[1] == SHEPHERD_HEADER.START_WHACKAMOLE.name:
-                whack_a_mole_start(alliance)
+# def start_helper():
+#     # start()
+#     while True:
+#         if (not EVENT_QUEUE.empty()):
+#             try:
+#                 message = EVENT_QUEUE.get(False)
+#             except queue.Empty:
+#                 continue
+#             if message[1] == SHEPHERD_HEADER.START_WHACKAMOLE.name:
+#                 whack_a_mole_start()
 
 def whack_a_mole_start(alliance):
-    # side: blue or gold
+    #alliance: blue or gold
     #ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
     #print("banana boat")
     """
@@ -56,7 +56,7 @@ def whack_a_mole_start(alliance):
 
     turn_all_lights(on=False)
     score = 0
-    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
+    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
     """
         When the function starts
         1. Button chosen
@@ -112,7 +112,7 @@ def whack_a_mole_start(alliance):
         if not CHEAT_CODE or not REVERSED_CHEAT_CODE:
             score = 100
             print("CHEAT CODE bonus")
-            YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
+            YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
             return 
         
         if STREAK == (1 or 2):
@@ -123,7 +123,8 @@ def whack_a_mole_start(alliance):
             score = 60
         if STREAK >= 7:
             score = 80
-        YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alli": alliance, "score": score})) 
+            return
+        YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
         print(f'score: {score}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
         """
@@ -137,8 +138,8 @@ def whack_a_mole_start(alliance):
         time.sleep(sleeptime)
         """
 
-threading.Thread(target=fill_queue, args=(), daemon=True).start()
-start_helper()
+# threading.Thread(target=fill_queue, args=(), daemon=True).start()
+# start_helper()
 
 # EVERYWHERE_FUNCTIONS = {
 #     SHEPHERD_HEADER.START_WHACKAMOLE.name: start_whackamole,
