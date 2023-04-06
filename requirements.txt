@@ -16,5 +16,5 @@ flask-socketio
 gevent-websocket
 
 ##### Type checking #####
-typeguard
+typeguard == 2.13.*
 
