@@ -18,6 +18,3 @@ gevent-websocket
 ##### Type checking #####
 typeguard
 
-##### Audio #####
-simpleaudio
-
