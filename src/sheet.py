@@ -159,9 +159,13 @@ class Sheet:
         """
         Sends (blue score, gold score)
         """
+        print("Start read online score")
         spreadsheet = Sheet.__get_authorized_sheet()
+        print("auth")
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:C").execute()['values']
+            range="Ref!A4:C").execute()['values']
+        print("Middle of read online score")
+
 
         blue = None
         gold = None
@@ -235,7 +239,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:BL").execute()['values']
+            range="Ref!A4:BL").execute()['values']
         
         blue = None
         gold = None
@@ -292,7 +296,7 @@ class Sheet:
 
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:B").execute()['values']
+            range="Ref!A4:B").execute()['values']
         row_num = -1
         blue = False
         gold = False
@@ -318,14 +322,14 @@ class Sheet:
                     empty_cell_gold = i
 
         if not blue:
-            range_name = f"Ref Scoring!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
+            range_name = f"Ref!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
             body = {
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
         if not gold:
-            range_name = f"Ref Scoring!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
+            range_name = f"Ref!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
             body = {
                 'values': [[match_number]]
             }
@@ -366,7 +370,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring (NEW)!A4:A").execute()['values']
+            range="Ref!A4:A").execute()['values']
 
         row_num = -1 # if this fails, it'll overwrite the header which is fine
         for i, row in enumerate(ref_data):
@@ -374,7 +378,7 @@ class Sheet:
                 row_num = i
                 break
 
-        range_name = f"Ref Scoring (NEW)!T{row_num + 4}:T{row_num + 5}"
+        range_name = f"Ref!T{row_num + 4}:T{row_num + 5}"
         body = {
             'values': [[str(blue_score), str(gold_score)]]
         }

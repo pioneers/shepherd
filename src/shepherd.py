@@ -202,8 +202,8 @@ def to_teleop_1():
     BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
-    whack_a_mole_start('blue')
-    whack_a_mole_start('gold')
+    # whack_a_mole_start('blue')
+    # whack_a_mole_start('gold')
 
 
 def to_teleop_2():
