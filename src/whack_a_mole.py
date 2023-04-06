@@ -56,6 +56,7 @@ def whack_a_mole_start(alliance):
 
     turn_all_lights(on=False)
     score = 0
+    STREAK = 0
     YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
     """
         When the function starts
@@ -107,6 +108,8 @@ def whack_a_mole_start(alliance):
             turn_all_lights(on=True)
             time.sleep(0.2)
             turn_all_lights(on=False)
+        else:
+            STREAK = 0
 
 
         if not CHEAT_CODE or not REVERSED_CHEAT_CODE:
@@ -145,5 +148,6 @@ def whack_a_mole_start(alliance):
 #     SHEPHERD_HEADER.START_WHACKAMOLE.name: start_whackamole,
 # }
 
-
-
+threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.BLUE,), daemon=True).start()
+threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.GOLD,), daemon=True).start()
+fill_queue()

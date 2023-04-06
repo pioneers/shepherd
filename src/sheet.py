@@ -119,10 +119,10 @@ class Sheet:
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
-    def write_whack_a_mole_scores(match_number, blue_score, gold_score):
+    def write_whack_a_mole_scores(match_number, alliance, score):
         def bg_thread_work():
             try:
-                Sheet.__write_whack_a_mole_scores(match_number, blue_score, gold_score)
+                Sheet.__write_whack_a_mole_scores(match_number, alliance, score)
             except: # pylint: disable=bare-excepts
                 print(f'[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write to spreadsheet")
@@ -364,7 +364,7 @@ class Sheet:
                 range=range_name, body=body, valueInputOption="RAW").execute()
             
     @staticmethod
-    def __write_whack_a_mole_scores(match_number, blue_score, gold_score):
+    def __write_whack_a_mole_scores(match_number, alliance, score):
         """
         A method that writes the scores to the sheet
         """
@@ -377,10 +377,12 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
                 break
-
-        range_name = f"Ref!T{row_num + 4}:T{row_num + 5}"
+        if alliance == ALLIANCE_COLOR.BLUE:
+            range_name = f"Ref!T{row_num + 4}"
+        else:
+            range_name = f"Ref!T{row_num + 5}"
         body = {
-            'values': [[str(blue_score), str(gold_score)]]
+            'values': [[str(score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range=range_name, body=body, valueInputOption="RAW").execute()
