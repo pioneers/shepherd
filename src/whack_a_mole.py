@@ -129,6 +129,7 @@ def whack_a_mole_start(alliance):
             return
         YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
         print(f'score: {score}')
+        print(f'alliance: {alliance}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
         """
         if (not pressed):
