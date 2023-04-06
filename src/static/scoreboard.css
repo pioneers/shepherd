@@ -145,7 +145,7 @@ body {
   /* border: solid 2px blueviolet ;
   background-color: rgb(255, 0, 0); */
 
-  background-color: var(--grey400);
+  /*background-color: var(--grey400);*/
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -154,6 +154,7 @@ body {
   column-gap: 5px;
   row-gap: 5px;
   padding: 5px calc(calc(100% - var(--scoreboardContentSize)) / 2);
+  margin-top: -60px; /* temporary, change later */
 }
 
 .alliance-container {
@@ -241,7 +242,9 @@ body {
   font-size: 190%;
   width: 20%;
   height: 8%;
-  border-radius: 2rem 2rem 0 0;
+  padding-bottom: 60px; /* temporary, change later */
+  border-radius: 2rem; /* temporary, change later */
+  /*border-radius: 2rem 2rem 0 0;*/
 }
 
 .progression-bar {

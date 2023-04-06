@@ -9,7 +9,7 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
-
+var minigames;
 var progression_bar;
 var start_audio;
 var end_audio;
@@ -21,6 +21,8 @@ socket.on('connect', (data) => {
   progression_bar = $(".progression-bar");
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
+  minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
+  shuffleArray(minigames);
 });
 
 socket.on('teams_info', (match_info) => {
@@ -48,19 +50,18 @@ socket.on('state', (state_info) => {
   state = state_info.state;
   state_time = state_info.state_time;
 
+  setStageName(state);
+  setMinigameNames(state);
   if (state === "setup") {
-    setStageName(state);
     setTime(0);
     setSetupState();
     stageTimer = false;
     is_timer_paused = null;
     total_game_time = 0;
   } else if (state === "end") {
-    setStageName(state);
     stageTimer = false;
     is_timer_paused = null;
   } else {
-    setStageName(state);
     clearTimeout(myStageTimeout);
     prev_curr_time = new Date().getTime() / 1000;
     start_time = state_info.start_time;
@@ -164,6 +165,10 @@ function setStageName(stage) {
   $('#stage').html(stage_names[stage]);
 }
 
+function setMinigameNames(stage) {
+  // TODO: this function
+}
+
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   console.log("Inside function: updateTeam");
@@ -226,6 +231,16 @@ function secondsToTimeString(seconds) {
 
 function buttonHide() {
   $('.audio-button').hide();
+}
+
+function shuffleArray(arr) {
+  let index = arr.length,
+      randomIndex;
+
+  while (index !== 0) {
+    randomIndex = Math.floor(Math.random() * index);
+    index--;
+  }
 }
 
 // not used???
