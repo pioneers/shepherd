@@ -173,6 +173,23 @@ class SHEPHERD_HEADER():
         been paused using PAUSE_TIMERS.
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_alliance_selection")
+    def UPDATE_ALLIANCE_SELECTION(alliances):
+        """
+        alliances: A list of lists, where each list is the length of
+        an alliance and contains the name of each school. Updates the
+        Google Sheets with the alliances selected.
+        """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_whack_a_mole_score")
+    def UPDATE_WHACK_A_MOLE_SCORE(alliance, score):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the whack a mole score for the alliance.
+
+        """
+
 
 class UI_HEADER():
     """
@@ -265,6 +282,20 @@ class UI_HEADER():
         google sheets gives us a str instead of an int which complicates code
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.UI, "play_start_sound")
+    def PLAY_START_SOUND():
+        """
+        source: Shepherd. Plays the start sound when the game starts
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.UI, "play_end_sound")
+    def PLAY_END_SOUND():
+        """
+        source: Shepherd. Plays the end sound when the game ends
+        """
+
 
 class SENSOR_HEADER():
     """
@@ -340,7 +371,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "11pJgMl_AXHWyu3QFoM6Rc_-5GkNmOx1UR0HYF1o8KwI"
+    SPREADSHEET_ID = "1c9NUoB1prQdrBfAAkaSKJCnIGrAQV8kx5GZKEeIAmWs"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
@@ -360,17 +391,15 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     TELEOP_1 = "teleop_1"
-    BLIZZARD = "blizzard"
     TELEOP_2 = "teleop_2"
-    ENDGAME = "endgame"
+    TELEOP_3 = "teleop_3"
     END = "end"
 
 STAGE_TIMES = {
     STATE.AUTO: 30,
-    STATE.TELEOP_1: 180,
-    STATE.BLIZZARD: 15,
-    STATE.TELEOP_2: 45,
-    STATE.ENDGAME: 60
+    STATE.TELEOP_1: 60,
+    STATE.TELEOP_2: 10,
+    STATE.TELEOP_3: 90
 }
 
 class PROTOBUF_TYPES():

@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% block head_content %}
 <title>Alliance Selection</title>
+<head>
+</head>
 <style>
   * {
     margin: 0;
@@ -108,24 +110,181 @@
 </style>
 
 <script>
-  // this function is called when the page is loaded, from base.html
-  // socket: the main socketio websocket
-  // send: a function that sends a header through the socket, and also logs it
+  //GOOGLE SHEETS CODE for static page 
+  /* This function is called when the page is loaded from base.html
+  socket: the main socketio websocket
+  send: a function that sends a header through the socket, and also logs it
+  GOOGLE SHEETS CODE for static page 
+  The function get_teams handles loading the schools and divs in the inner container.
+  */
+  function gapiLoaded() {
+    const API_KEY = 'AIzaSyCtdsxq4_TWBoQU-gZEiA6YVQZUaweN6C8'; //CHANGE
+    const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+    console.log("gapi:", gapi);
+    gapi.load('client', async () => {
+        await gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: [DISCOVERY_DOC],
+        });
+        get_teams();
+    });
+  }
 
+  /* Loads the current state of the page if we have already retrieved the Google Sheets data
+  in this window session. Loads up the variable teamScores and loads the innerHTML.
+  If the data is not stored in this window session, use gapi to load the data from our Google Sheets
+  spredsheet under `Qualifiers`, where we read the schoolName, RankingPoints, and QualificationPoints
+  for each school.*/
+  async function get_teams() {
+    var teamScores;
+    if (window.sessionStorage.getItem("alliances")) {
+      document.getElementById("inner-container").innerHTML = window.sessionStorage.getItem("alliances"); //load the alliance HTML if it exists in this window session
+    }
+    if (window.sessionStorage.getItem("teamScores")) {
+      teamScores = JSON.parse(window.sessionStorage.getItem("teamScores")); //loads `teamScores` if it exists in this window session
+    } else { //otherwise read the data from Google Sheets and load the data into `teamScores`
+    try {
+      // fetching the 1 line 
+      console.log("Get teams function running");
+      response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: '1xyVzBbAxXMeSO4OUHljtZetXTwJGq7FGqOJpQUwW41k', //change this
+        range: 'Qualifiers!E4:G13', //the spreadsheet name to fetch the data from
+      });
+      console.log('t', response) //prints shows the spreadsheet values 
+    } catch (err) {
+      console.log("NOT WORKING")
+      document.getElementById('content').innerText = err.message;
+      return;
+    }
+
+    game_data = response.result.values // [[Albany, 2, 24], [teamName, rankingPoints, QualificationPoints],  ...]
+    console.log('here is the array', game_data) //printing the range 
+    
+    /* Creates an array of teamScore objects, which contain
+    @param name: the school's name
+    @param rankScore: the school's ranking points
+    @param qualScore: the school's qualification points */
+    teamScores = game_data.map((team) => {
+    return {
+        name: team[0],
+        rankScore: team[1],
+        qualScore: team[2]
+      };
+    });
+
+    /* Sorts each teamScore object by rankingPoints first, then qualificationPoints if there is a tie
+    between two schools in rankingPoints. In the case of a tie between both rankingPoints and QualificationPoints
+    between two schools, we flip a coin to break the tie. */
+    teamScores.sort((a, b) => {
+    return b.rankScore - a.rankScore || b.qualScore - a.qualScore || (Math.random() < 0.5) ? -1 : -2;
+  });
+
+    //var schools = teamScores.map(team => team.name);
+
+    //console.log(teamScores);
+
+    /* Store the variable teamScores in our browser if we reload the page. This 
+    saves us a few seconds to not reread data from Google Sheets upon reloading.*/
+    window.sessionStorage.setItem("teamScores", JSON.stringify(teamScores));
+  
+    makeTeamDivs(teamScores);
+    addSchools(teamScores);
+    saveStateOfAlliance()
+    }
+
+    const draggables = document.querySelectorAll('.draggable');
+    const containers = document.querySelectorAll('.drop-here');
+
+    /* Saves the alliance inner HTML information in the browser.
+    If we reload the webpage during our window session, we do not have to
+    read the data again from Google Sheets. */
+    function saveStateOfAlliance() {
+      window.sessionStorage.setItem("alliances", document.getElementById("inner-container").innerHTML);
+    }
+
+    draggables.forEach(draggable => {
+      draggable.addEventListener('dragstart', () => {
+        draggable.classList.add('dragging')
+      })
+
+      draggable.addEventListener('dragend', () => {
+        draggable.classList.remove('dragging');
+        saveStateOfAlliance(); //every time an item is dragged, we save this result. When we reload the page, the changes are restored
+      })
+    })
+
+
+    /* Allows for dragging schools to the alliance containers on the left side of the screen. */
+    containers.forEach(container => {
+      container.addEventListener('dragover', e => {
+        e.preventDefault()
+        const afterElement = getDragAfterElement(container, e.clientY);
+        const draggable = document.querySelector('.dragging');
+        if (afterElement == null) {
+          container.appendChild(draggable);
+        } else {
+          container.insertBefore(draggable, afterElement);
+        }
+
+      })
+
+    })
+
+    /* Cool dragging animation. */
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect()
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return {
+            offset: offset,
+            element: child
+          }
+        } else {
+          return closest;
+        }
+      }, {
+        offset: Number.NEGATIVE_INFINITY
+      }).element
+    }
+  }
 
   /* The schools to add to this year's competition */
-  let schools = ["Middle College", "Pinole Valley", "Oakland Tech", 
-    "Bishop O'Dowd", "El Cerrito", "Coliseum", "Live Oak", "ASTI", 
-    "LPS Richmond", "Albany", "Hayward", "ACLC", "ARISE", "Salesian",
-     "Hercules", "Skyline", "San Leandro"].sort();
+  // var schools = ["Middle College", "Pinole Valley", "Oakland Tech", 
+  //   "Bishop O'Dowd", "El Cerrito", "Coliseum", "Live Oak", "ASTI", 
+  //   "LPS Richmond", "Albany", "Hayward", "ACLC", "ARISE", "Salesian",
+  //    "Hercules", "Skyline", "San Leandro"];
+
+  /* Dummy data that will sort schools by their ranking points first and qualification points second
+  TODO: Use google Sheets to grab the actual data. */
+  // const rankPoints = [2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+  // const qualPoints = [5, 7, 4, 7, 5, 2, 6, 4, 8, 5, 4, 7, 5, 6, 3, 6, 2];
+
+
+    /* Create a dictionary that creates fields name, qualScore, and rankScore*/
+  //   const teamScores = schools.map((team, index) => {
+  //   return {
+  //     name: team,
+  //     qualScore: qualPoints[index],
+  //     rankScore: rankPoints[index]
+  //   };
+  // });
+
+
+  /* Button to sync the Google Spreadsheet */
+  const sync = $("sync");
 
   /* We create a div element and add it to right-container for each
   schools participating in this year's competition
    */
-  function addSchools() {
+  function addSchools(teamScores) {
     //the right-container div
     const parent1 = document.getElementsByClassName("right-container")[0];
-    for (var school of schools) {
+    for (var team of teamScores) {
+      let school = team.name 
+      console.log(school);
       //this is the container that stores the school name and score
       var container = document.createElement("div")
       container.classList.add("row", "rounded", "m-2", "p-2", "bg-primary", "text-center", "draggable");
@@ -139,7 +298,8 @@
       newDivScore.classList.add("col-md-3", "bg-warning", "rounded");
 
       var newSchool = document.createTextNode(school);
-      var divScore = document.createTextNode("0:3");
+    
+      var divScore = document.createTextNode(team.rankScore + ":" + team.qualScore);
 
       newDivSchool.appendChild(newSchool);
       newDivScore.appendChild(divScore);
@@ -151,11 +311,11 @@
     }
   }
 
-  /* Function to make the teamDivs in the left container */
-  function makeTeamDivs() {
+  /* Function to make the teamDiv containers in the left container. */
+  function makeTeamDivs(teamScores) {
     var innerContainer = document.getElementsByClassName("inner-container")[0]
     var leftContainer = innerContainer.getElementsByClassName("left-container")[0];
-    var numAlliances = Math.ceil(schools.length / 3);
+    var numAlliances = Math.ceil(teamScores.length / 3);
     //create a yellow container for num_schools/2 alliances
     for (let i= 1; i <= numAlliances; i++) {
       // Create the outer div element with the class "alliance"
@@ -186,86 +346,52 @@
   function main_js_content(socket, send) {
 
 
-    function saveStateOfAlliance() {
-      localStorage.setItem("alliances", document.getElementById("inner-container").innerHTML);
-    }
-
-    function loadStateOfAlliance() {
-      if (localStorage.getItem("alliances")) {
-        document.getElementById("inner-container").innerHTML = localStorage.getItem("alliances");
-      } else {
-        console.log("No key found");
-      }
-
-    }
-
+    /* When the clearSelection button is pressed,
+    we remove the teamScores and alliances data
+    stored in our sessionStorage and reload the page,
+    where we subsequently fetch the data from Google Sheets
+    and reinstantiate the page. */
     function clearSelection() {
-      if (localStorage.getItem("alliances")) {
-        localStorage.removeItem("alliances");
+      if (window.sessionStorage.getItem("alliances")) {
+        window.sessionStorage.removeItem("alliances");
+      }
+      if (window.sessionStorage.getItem("teamScores")) {
+        window.sessionStorage.removeItem("teamScores")
+      }
         location.reload();
       }
-    }
-    document.getElementById("clear").addEventListener("click", clearSelection);
-
-    // on reload this is called 
-    loadStateOfAlliance();
-    addSchools();
-    makeTeamDivs();
-
-    const draggables = document.querySelectorAll('.draggable')
-    const containers = document.querySelectorAll('.drop-here')
-
-
+    
     
 
-
-    draggables.forEach(draggable => {
-      draggable.addEventListener('dragstart', () => {
-        draggable.classList.add('dragging')
-      })
-
-      draggable.addEventListener('dragend', () => {
-        draggable.classList.remove('dragging');
-        saveStateOfAlliance();
-      })
-    })
-
-
-
-    containers.forEach(container => {
-      container.addEventListener('dragover', e => {
-        e.preventDefault()
-        const afterElement = getDragAfterElement(container, e.clientY);
-        const draggable = document.querySelector('.dragging');
-        if (afterElement == null) {
-          container.appendChild(draggable);
-        } else {
-          container.insertBefore(draggable, afterElement);
+    /* Sends a YDL call to shepherd. Sends data over containing 
+    the alliances to ultimately update in the Google Sheets.*/
+    function updateAlliance() {
+      const left_container = document.getElementsByClassName("left-container")[0];
+      var div_alliances = left_container.getElementsByClassName('alliance');
+      var all_alliances = [];
+      for (let i = 0; i < div_alliances.length; i++) {
+        var alliance_lst_div = div_alliances[i].querySelectorAll('.col-md-8');
+        var alliance_lst = []
+        for (let j = 0; j < alliance_lst_div.length; j++) {
+          alliance_lst.push(alliance_lst_div[j].innerHTML);
         }
-
-      })
-
-    })
-
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect()
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return {
-            offset: offset,
-            element: child
-          }
-        } else {
-          return closest;
-        }
-      }, {
-        offset: Number.NEGATIVE_INFINITY
-      }).element
+        all_alliances.push(alliance_lst);
+      }
+      // saveStateOfAlliance();
+      console.log("all_alliances");
+      console.log(all_alliances);
+      send("update_alliance_selection", JSON.stringify({ alliances: all_alliances }));
     }
+
+    document.getElementById("clear").addEventListener("click", clearSelection);
+    document.getElementById("sync").addEventListener("click", () => updateAlliance());
+
+    
+    // on reload this is called 
+    // loadStateOfAlliance();
   }
+
+  console.log("Starting script");
 </script>
 {% endblock %}
 {% block html_content %}

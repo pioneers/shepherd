@@ -6,6 +6,7 @@ from ydl import YDLClient
 from alliance import Alliance
 from timer import TimerGroup, Timer
 from utils import *
+# from whack_a_mole import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
@@ -36,6 +37,8 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
+# BLUE_WHACK_A_MOLE_SCORE = 0
+# GOLD_WHACK_A_MOLE_SCORE = 0
 
 
 ###########################################
@@ -160,6 +163,10 @@ def reset_match():
     CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
+    # global BLUE_WHACK_A_MOLE_SCORE
+    # BLUE_WHACK_A_MOLE_SCORE = 0
+    # global GOLD_WHACK_A_MOLE_SCORE
+    # GOLD_WHACK_A_MOLE_SCORE = 0
     send_state_to_ui()
     print("ENTERING SETUP STATE")
 
@@ -185,7 +192,7 @@ def to_auto():
     '''
     GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
-    play_sound("static/boxing-bell.wav")
+    YC.send(UI_HEADER.PLAY_START_SOUND())
     for n in [0,1,2,3]:
         YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=n))
     set_state(STATE.AUTO)
@@ -195,25 +202,21 @@ def to_teleop_1():
     BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
+    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.BLUE), daemon=True).start()
+    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.GOLD), daemon=True).start()
+    # whack_a_mole_start('blue')
+    # whack_a_mole_start('gold')
 
-def to_blizzard():
-    GAME_TIMER.start(STAGE_TIMES[STATE.BLIZZARD])
-    enable_robots(autonomous=False)
-    set_state(STATE.BLIZZARD)
-    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=4))
-    YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=5))
 
 def to_teleop_2():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
-    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=4))
-    YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=5))
 
-def to_endgame():
-    GAME_TIMER.start(STAGE_TIMES[STATE.ENDGAME])
+def to_teleop_3():
+    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_3])
     enable_robots(autonomous=False)
-    set_state(STATE.ENDGAME)
+    set_state(STATE.TELEOP_3)
 
 def to_end():
     '''
@@ -222,7 +225,7 @@ def to_end():
     global GAME_STATE
     GAME_STATE = STATE.END
     disable_robots()
-    play_sound("static/trim.wav")
+    YC.send(UI_HEADER.PLAY_END_SOUND())
     for n in [0,1,2,3]:
         YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     CLIENTS.close_all()
@@ -242,18 +245,14 @@ def go_to_state(state):
         STATE.SETUP: reset_match,
         STATE.AUTO: to_auto,
         STATE.TELEOP_1: to_teleop_1,
-        STATE.BLIZZARD: to_blizzard,
         STATE.TELEOP_2: to_teleop_2,
-        STATE.ENDGAME: to_endgame,
+        STATE.TELEOP_3: to_teleop_3,
         STATE.END: to_end
     }
     if state in transitions:
         transitions[state]()
     else:
         print(f"Sorry, {state} is not a valid state to move to.")
-
-
-
 
 def set_robot_ip(ind, robot_ip):
     '''
@@ -378,6 +377,27 @@ def disconnect_robot(ind):
     CLIENTS.clients[ind].close_connection()
 
 
+def update_alliance_selection(alliances: list):
+    '''
+    Updates the Google Sheets with the chosen alliances
+    where 3 schools are in each alliance.
+    '''
+    #Sheet.write_alliance_selections(alliances)
+    # print("Shepherd.py update alliance selection")
+    # Sheet.write_alliance_selections(alliances)
+    Sheet.write_alliance_selections(alliances)
+
+def update_whack_a_mole_score(alliance, score):
+    '''
+    Updates the whack a mole score and send updated score to sheet
+    '''
+    # blue_whack_a_mole_score = 0
+    # gold_whack_a_mole_score = 0
+    # if alliance == 'blue':
+    #     blue_whack_a_mole_score = score
+    # else: 
+    #     gold_whack_a_mole_score = score
+    Sheet.write_whack_a_mole_scores(MATCH_NUMBER, alliance, score)
 
 ###########################################
 # Spring 2022 Game
@@ -448,16 +468,12 @@ FUNCTION_MAPPINGS = {
         # SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
     },
     STATE.TELEOP_1: {
-        SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING.name: sound_blizzard_warning,
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_blizzard,
-    },
-    STATE.BLIZZARD: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
     },
     STATE.TELEOP_2: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_endgame,
+        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_3,
     },
-    STATE.ENDGAME: {
+    STATE.TELEOP_3: {
         SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
     },
     STATE.END: {
@@ -490,7 +506,8 @@ EVERYWHERE_FUNCTIONS = {
     # SHEPHERD_HEADER.UPDATE_SCORE.name: update_score,
     # temporary code for exhibition, remove later
     SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
-
+    SHEPHERD_HEADER.UPDATE_ALLIANCE_SELECTION.name: update_alliance_selection,
+    SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name: update_whack_a_mole_score,
 }
 
 if __name__ == '__main__':

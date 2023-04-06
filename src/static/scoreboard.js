@@ -6,28 +6,21 @@ var stageTimer = false;
 var myStageTimeout;
 var state_time;
 var state;
-var prevStateBlizzard = false;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
 
-var campsite_resource;
-var campsite_satellite_icon;
-var campsite_pioneer_icon;
-var endgame_pioneer_icon;
-var campsite_pioneer_icon_background;
-var timer_background;
+var progression_bar;
+var start_audio;
+var end_audio;
 
 socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
   socket.emit('join', 'scoreboard');
 
-  campsite_resource = individual($(".campsite-resource-icon, .campsite-resource-middle-icon"));
-  campsite_satellite_icon = individual($(".campsite-satellite-icon-circle-border"));
-  campsite_pioneer_icon = individual($(".campsite-pioneer-icon"));
-  endgame_pioneer_icon = individual($(".endgame-pioneer-blue-container, .endgame-pioneer-gold-container"));
-  campsite_pioneer_icon_background = individual($(".campsite-pioneer-icon-background"));
-  timer_background = $(".timer-container");
+  progression_bar = $(".progression-bar");
+  start_audio = new Audio('/static/boxing-bell.wav');
+  end_audio = new Audio('/static/trim.wav')
 });
 
 socket.on('teams_info', (match_info) => {
@@ -55,11 +48,6 @@ socket.on('state', (state_info) => {
   state = state_info.state;
   state_time = state_info.state_time;
 
-  if (prevStateBlizzard && !(state === "blizzard")) {
-    prevStateBlizzard = false;
-    setSpaceBackground();
-  }
-
   if (state === "setup") {
     setStageName(state);
     setTime(0);
@@ -72,10 +60,6 @@ socket.on('state', (state_info) => {
     stageTimer = false;
     is_timer_paused = null;
   } else {
-    if (state === "blizzard") {
-      prevStateBlizzard = true;
-      setBlizzardBackground();
-    }
     setStageName(state);
     clearTimeout(myStageTimeout);
     prev_curr_time = new Date().getTime() / 1000;
@@ -100,138 +84,8 @@ socket.on("scores_for_icons", (score_info) => {
   score_info = JSON.parse(score_info);
   blue_score = score_info.blue_score;
   gold_score = score_info.gold_score;
-
   setBlueScore(blue_score["score"]);
   setGoldScore(gold_score["score"]);
-
-  const blue_resource = [
-    blue_score["campsite-resource-top-left-leftside"],
-    blue_score["campsite-resource-bottom-left-leftside"],
-    blue_score["campsite-resource-top-middle-leftside"],
-    blue_score["campsite-resource-bottom-middle-leftside"],
-    blue_score["campsite-resource-top-right-leftside"],
-    blue_score["campsite-resource-bottom-right-leftside"]
-  ];
-  const blue_satellite = [
-    blue_score["campsite-satellite-top-left"],
-    blue_score["campsite-satellite-bottom-left"],
-    blue_score["campsite-satellite-top-middle"],
-    blue_score["campsite-satellite-bottom-middle"],
-    blue_score["campsite-satellite-top-right"],
-    blue_score["campsite-satellite-bottom-right"]
-  ];
-  const blue_pioneer = [
-    blue_score["campsite-pioneer-top-left"],
-    blue_score["campsite-pioneer-bottom-left"],
-    blue_score["campsite-pioneer-top-middle"],
-    blue_score["campsite-pioneer-bottom-middle"],
-    blue_score["campsite-pioneer-top-right"],
-    blue_score["campsite-pioneer-bottom-right"]
-  ];
-  
-  const gold_resource = [
-    gold_score["campsite-resource-top-left-rightside"],
-    gold_score["campsite-resource-bottom-left-rightside"],
-    gold_score["campsite-resource-top-middle-rightside"],
-    gold_score["campsite-resource-bottom-middle-rightside"],
-    gold_score["campsite-resource-top-right-rightside"],
-    gold_score["campsite-resource-bottom-right-rightside"]    
-  ];
-  const gold_satellite = [
-    gold_score["campsite-satellite-top-left"],
-    gold_score["campsite-satellite-bottom-left"],
-    gold_score["campsite-satellite-top-middle"],
-    gold_score["campsite-satellite-bottom-middle"],
-    gold_score["campsite-satellite-top-right"],
-    gold_score["campsite-satellite-bottom-right"]
-  ];
-  const gold_pioneer = [
-    gold_score["campsite-pioneer-top-left"],
-    gold_score["campsite-pioneer-bottom-left"],
-    gold_score["campsite-pioneer-top-middle"],
-    gold_score["campsite-pioneer-bottom-middle"],
-    gold_score["campsite-pioneer-top-right"],
-    gold_score["campsite-pioneer-bottom-right"]
-  ];
-
-  const blue_endgame_pioneer = blue_score["endgame-pioneer-blue"];
-  const gold_endgame_pioneer = gold_score["endgame-pioneer-gold"];
-
-  for (let a = 0; a < blue_resource.length; a++) {
-    for (let b = 0, c = blue_resource[a] > 3 ? 3 : blue_resource[a]; b < c ; b++) {
-      campsite_resource[a * 6 + b].css("background-color", "var(--blue500)");
-    }
-    for (let b = blue_resource[a] > 3 ? 3 : blue_resource[a]; b < 3 ; b++) {
-      campsite_resource[a * 6 + b].css("background-color", "var(--grey500)");
-    }
-  }
-  for (let a = 0; a < gold_resource.length; a++) {
-    for (let b = 0, c = gold_resource[a] > 3 ? 3 : gold_resource[a]; b < c ; b++) {
-      campsite_resource[a * 6 + 3 + b].css("background-color", "var(--gold500)");
-    }
-    for (let b = gold_resource[a] > 3 ? 3 : gold_resource[a]; b < 3 ; b++) {
-      campsite_resource[a * 6 + 3 + b].css("background-color", "var(--grey500)");
-    }
-  }
-
-  for (let a = 0; a < blue_satellite.length && a < gold_satellite.length; a++) {
-    if (blue_satellite[a] == true && gold_satellite[a] == true) {
-      console.log("ERROR: Both Blue and Gold teams cannot control the same satellite!");
-      campsite_satellite_icon[a].css("background-color", "black");
-      continue;
-    }
-    if (blue_satellite[a]) {
-      campsite_satellite_icon[a].css("background-color", "var(--blue500)");
-    }
-    else if (gold_satellite[a]) {
-      campsite_satellite_icon[a].css("background-color", "var(--gold500)");
-    }
-    else {
-      campsite_satellite_icon[a].css("background-color", "black");
-    }
-  }
-
-  for (let a = 0; a < blue_pioneer.length && a < gold_pioneer.length; a++) {
-    if (blue_pioneer[a] == true && gold_pioneer[a] == true) {
-      campsite_pioneer_icon[a].css("background-color", "rgba(0, 0, 0, 0)");
-      campsite_pioneer_icon_background[a].css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) 50%, var(--gold500) 50%, var(--gold500) 100%)")
-    }
-    else if (blue_pioneer[a]) {
-      campsite_pioneer_icon_background[a].css("background", "transparent")
-      campsite_pioneer_icon[a].css("background-color", "var(--blue500)");
-    }
-    else if (gold_pioneer[a]) {
-      campsite_pioneer_icon_background[a].css("background", "transparent")
-      campsite_pioneer_icon[a].css("background-color", "var(--gold500)");
-    }
-    else {
-      campsite_pioneer_icon_background[a].css("background", "transparent")
-      campsite_pioneer_icon[a].css("background-color", "black");
-    }
-  }
-
-  if (state !== "endgame") {
-    if (blue_endgame_pioneer != 0 || gold_endgame_pioneer != 0) {
-      console.log("ERROR: Cannot set endgame pioneer scores until endgame has started!");
-    }
-    for (let a = 0; a < endgame_pioneer_icon.length; a++) {
-      endgame_pioneer_icon[a].hide();
-    }
-  }
-  else {
-    for (let a = 0; a < blue_endgame_pioneer; a++) {
-      endgame_pioneer_icon[a].show();
-    }
-    for (let a = blue_endgame_pioneer; a < 4; a++) {
-      endgame_pioneer_icon[a].hide();
-    }
-    for (let a = 0; a < gold_endgame_pioneer; a++) {
-      endgame_pioneer_icon[a + 4].show();
-    }
-    for (let a = gold_endgame_pioneer; a < 4; a++) {
-      endgame_pioneer_icon[a + 4].hide();
-    }  
-  }
 });
 
 socket.on("pause_timer", () => {
@@ -256,6 +110,16 @@ socket.on("resume_timer", (time) => {
   }
 });
 
+socket.on("play_start_sound", () => {
+  console.log("Successful ydl message: play_start_sound");
+  start_audio.play();
+});
+
+socket.on("play_end_sound", () => {
+  console.log("Successful ydl message: play_end_sound");
+  end_audio.play();
+});
+
 function individual(jq_obj) {
   console.log("Inside function: individual");
   let res = Array(jq_obj.length);
@@ -268,7 +132,7 @@ function individual(jq_obj) {
 function setTime(time) {
   stageTimer = false;
   // globaltime = time;
-  $('#stage-timer').html(secondsToTimeString(time));
+  $('#timer').html(secondsToTimeString(time));
 }
 
 function setBlueScore(score) {
@@ -279,30 +143,20 @@ function setGoldScore(score) {
   $('#score-gold').html(score);
 }
 
-function setBlizzardBackground() {
-  $('body').css('background-image', 'url(../static/test-blizzard-background-2.jpg)');
-}
-
-function setSpaceBackground() {
-  $('body').css('background-image', 'url(../static/space-background.png)');
-}
-
 // these are the stages for the code 
 SETUP = "setup"
-AUTO_WAIT = "auto_wait"
 AUTO = "auto"
-WAIT = "wait"
-TELEOP = "teleop"
+TELEOP_1 = "teleop_1"
+TELEOP_2 = "teleop_2"
+TELEOP_3 = "teleop_3"
 END = "end"
 
 stage_names = {
   "setup": "Setup",
-  "auto_wait": "Autonomous Wait", 
-  "auto": "Autonomous Period",
-  "teleop_1": "Teleop (Pre-Blizzard)",
-  "blizzard": "Blizzard",
-  "teleop_2": "Teleop (Post-Blizzard)", 
-  "endgame": "Endgame Period",
+  "auto": "Mini-Game Period 1 (Auto)",
+  "teleop_1": "Mini-Game Period 1 (Teleop)",
+  "teleop_2": "Transition",
+  "teleop_3": "Mini-Game Period 2",
   "end": "Post-Match"
 }
 
@@ -314,30 +168,17 @@ function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2,
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   console.log("Inside function: updateTeam");
   $('#team-name-b1').html(team_name_b1);
-  $('#team-num-b1').html("Team " + team_num_b1);
+  $('#team-num-b1').html(team_num_b1);
   $('#team-name-b2').html(team_name_b2);
-  $('#team-num-b2').html("Team " + team_num_b2);
+  $('#team-num-b2').html(team_num_b2);
   $('#team-name-g1').html(team_name_g1);
-  $('#team-num-g1').html("Team " + team_num_g1);
+  $('#team-num-g1').html(team_num_g1);
   $('#team-name-g2').html(team_name_g2);
-  $('#team-num-g2').html("Team " + team_num_g2);
+  $('#team-num-g2').html(team_num_g2);
 }
 
 function setSetupState() {
-  for (let a = 0; a < campsite_resource.length; a++) {
-    campsite_resource[a].css("background-color", "var(--grey500)");
-  }
-  for (let a = 0; a < campsite_satellite_icon.length; a++) {
-    campsite_satellite_icon[a].css("background-color", "rgba(0, 0, 0, 0.5)");
-  }
-  for (let a = 0; a < campsite_pioneer_icon.length; a++) {
-    campsite_pioneer_icon_background[a].css("background", "transparent")
-    campsite_pioneer_icon[a].css("background-color", "rgba(0, 0, 0, 0.5)");
-  }
-  for (let a = 0; a < endgame_pioneer_icon.length; a++) {
-    endgame_pioneer_icon[a].show();
-  }
-  timer_background.css("background", "rgb(195, 195, 195)");
+  progression_bar.css("background", "rgb(195, 195, 195)");
 }
 
 function setStartTime(start_time) {
@@ -364,11 +205,11 @@ function runStageTimer(startTime) {
     if (time < 0 || isNaN(time)) {
       time = 0;
     }
-    $('#stage-timer').html(secondsToTimeString(time));
+    $('#timer').html(secondsToTimeString(time));
 
     total_game_time += currTime - prev_curr_time;
-    total_game_time = total_game_time > 180 ? 180 : total_game_time;
-    timer_background.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 180) + "%, var(--gold500) " + (100 * total_game_time / 180) + "%, var(--gold500) 100%)")
+    total_game_time = total_game_time > 190 ? 190 : total_game_time;
+    progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
@@ -383,6 +224,9 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
+function buttonHide() {
+  $('.audio-button').hide();
+}
 
 // not used???
 // function setImageVisible(id, visible) {

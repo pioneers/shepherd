@@ -107,6 +107,27 @@ class Sheet:
                 print("Unable to write match info to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
+    
+    @staticmethod
+    def write_alliance_selections(alliances: list):
+        def bg_thread_work():
+            try:
+                Sheet.__write_alliance_selections(alliances)
+            except Exception as error: # pylint: disable=bare-except
+                print(f'[error!] Google API has changed yet again, please fix Sheet.py', error)
+                print("Unable to write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+
+    @staticmethod
+    def write_whack_a_mole_scores(match_number, alliance, score):
+        def bg_thread_work():
+            try:
+                Sheet.__write_whack_a_mole_scores(match_number, alliance, score)
+            except: # pylint: disable=bare-excepts
+                print(f'[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+
     @staticmethod
     def __get_authorized_sheet():
         """
@@ -138,9 +159,13 @@ class Sheet:
         """
         Sends (blue score, gold score)
         """
+        print("Start read online score")
         spreadsheet = Sheet.__get_authorized_sheet()
+        print("auth")
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:C").execute()['values']
+            range="Ref!A4:C").execute()['values']
+        print("Middle of read online score")
+
 
         blue = None
         gold = None
@@ -214,7 +239,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:BL").execute()['values']
+            range="Ref!A4:BL").execute()['values']
         
         blue = None
         gold = None
@@ -222,52 +247,14 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 if row[1] == "Blue":
                     blue = {
-                        "score" : int(row[2]),
-                        "campsite-resource-top-left-leftside" : 0 if row[10] == "" else int(row[10]),
-                        "campsite-resource-bottom-left-leftside" : 0 if row[12] == "" else int(row[12]),
-                        "campsite-resource-top-middle-leftside" : 0 if row[14] == "" else int(row[14]),
-                        "campsite-resource-bottom-middle-leftside" : 0 if row[16] == "" else int(row[16]),
-                        "campsite-resource-top-right-leftside" : 0 if row[18] == "" else int(row[18]),
-                        "campsite-resource-bottom-right-leftside" : 0 if row[20] == "" else int(row[20]),
-                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
-                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
-                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
-                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
-                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
-                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
-                        "campsite-pioneer-top-left" : row[28] == "TRUE",
-                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
-                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
-                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
-                        "campsite-pioneer-top-right" : row[44] == "TRUE",
-                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
-                        "endgame-pioneer-blue" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                        "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = {
-                        "score" : int(row[2]),
-                        "campsite-resource-top-left-rightside" : 0 if row[10] == "" else int(row[10]),
-                        "campsite-resource-bottom-left-rightside" : 0 if row[12] == "" else int(row[12]),
-                        "campsite-resource-top-middle-rightside" : 0 if row[14] == "" else int(row[14]),
-                        "campsite-resource-bottom-middle-rightside" : 0 if row[16] == "" else int(row[16]),
-                        "campsite-resource-top-right-rightside" : 0 if row[18] == "" else int(row[18]),
-                        "campsite-resource-bottom-right-rightside" : 0 if row[20] == "" else int(row[20]),
-                        "campsite-satellite-top-left" : (row[26] == "TRUE" or row[27] == "TRUE"),
-                        "campsite-satellite-bottom-left" : (row[30] == "TRUE" or row[31] == "TRUE"),
-                        "campsite-satellite-top-middle" : (row[34] == "TRUE" or row[35] == "TRUE"),
-                        "campsite-satellite-bottom-middle" : (row[38] == "TRUE" or row[39] == "TRUE"),
-                        "campsite-satellite-top-right" : (row[42] == "TRUE" or row[43] == "TRUE"),
-                        "campsite-satellite-bottom-right" : (row[46] == "TRUE" or row[47] == "TRUE"),
-                        "campsite-pioneer-top-left" : row[28] == "TRUE",
-                        "campsite-pioneer-bottom-left" : row[32] == "TRUE",
-                        "campsite-pioneer-top-middle" : row[36] == "TRUE",
-                        "campsite-pioneer-bottom-middle" : row[40] == "TRUE",
-                        "campsite-pioneer-top-right" : row[44] == "TRUE",
-                        "campsite-pioneer-bottom-right" : row[48] == "TRUE",
-                        "endgame-pioneer-gold" : int(0 if (row[57] == "") else 1) + int(0 if (row[58] == "") else 1)
+                        "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
@@ -286,8 +273,7 @@ class Sheet:
             if teams[i]["team_num"] < 0:
                 YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
                 return False
-        
-
+    
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
             range="Match Database!A2:A").execute()['values']
@@ -310,7 +296,7 @@ class Sheet:
 
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:B").execute()['values']
+            range="Ref!A4:B").execute()['values']
         row_num = -1
         blue = False
         gold = False
@@ -336,16 +322,67 @@ class Sheet:
                     empty_cell_gold = i
 
         if not blue:
-            range_name = f"Ref Scoring!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
+            range_name = f"Ref!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
             body = {
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
         if not gold:
-            range_name = f"Ref Scoring!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
+            range_name = f"Ref!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
             body = {
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
+    
+    @staticmethod
+    def __write_alliance_selections(alliances: list):
+        """
+        Updates the Google Sheets where each alliance is composed of 3 schools.
+        alliances: list of lists of schools, i.e list of alliances
+        Example usage:
+        >>> alliances = ['Albany', 'ACLC', 'ARISE'], ['San Leandro', 'Hayward'], ['Coliseum', 'Salesian', 'ASTI']]
+        >>> __write_alliance_selections(alliances) #updates the google sheets filling in the values for the 3 alliances
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        
+        #the cells to update where each mappings[i] contains one alliance
+        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10", "D8:D10", "F8:F10"]
+
+        for i, alliance in enumerate(alliances):
+            if len(alliance) > 3:
+                raise Exception(f"Error: Alliance located at index {i} is greater than length 3")
+            range_name = f"Alliances!{mappings[i]}"
+            new_alliance = [[x] for x in alliance] #[[team1], [team2], [team3]]
+            while len(new_alliance) < 3: #append a column containing the empty string until alliance size == 3
+                new_alliance.append([""])
+            body = {
+                'values': new_alliance
+            }
+            spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                range=range_name, body=body, valueInputOption="RAW").execute()
+            
+    @staticmethod
+    def __write_whack_a_mole_scores(match_number, alliance, score):
+        """
+        A method that writes the scores to the sheet
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Ref!A4:A").execute()['values']
+
+        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        for i, row in enumerate(ref_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                row_num = i
+                break
+        if alliance == ALLIANCE_COLOR.BLUE:
+            range_name = f"Ref!T{row_num + 4}"
+        else:
+            range_name = f"Ref!T{row_num + 5}"
+        body = {
+            'values': [[str(score)]]
+        }
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range=range_name, body=body, valueInputOption="RAW").execute()
