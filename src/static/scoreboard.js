@@ -111,6 +111,12 @@ socket.on("resume_timer", (time) => {
   }
 });
 
+socket.on("set_match_ui", (match_number) => {
+    console.log("Successful ydl message: set_match");
+    match_number = JSON.parse(match_number);
+    $('#match-text').html(match_number);
+});
+
 socket.on("play_start_sound", () => {
   console.log("Successful ydl message: play_start_sound");
   start_audio.play();

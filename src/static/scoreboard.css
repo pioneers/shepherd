@@ -145,7 +145,7 @@ body {
   /* border: solid 2px blueviolet ;
   background-color: rgb(255, 0, 0); */
 
-  /*background-color: var(--grey400);*/
+  background-color: var(--grey400);
   margin-left: auto;
   margin-right: auto;
   text-align: center;
@@ -154,7 +154,6 @@ body {
   column-gap: 5px;
   row-gap: 5px;
   padding: 5px calc(calc(100% - var(--scoreboardContentSize)) / 2);
-  margin-top: -60px; /* temporary, change later */
 }
 
 .alliance-container {
@@ -237,22 +236,25 @@ body {
   /*color: black;*/
 }
 
+/*.minigame-text {*/
+/*  font-size: 80%;*/
+/*}*/
+
 .timer-inner-container {
   background-color: var(--grey400);
   font-size: 190%;
   width: 20%;
   height: 8%;
-  padding-bottom: 60px; /* temporary, change later */
-  border-radius: 2rem; /* temporary, change later */
-  /*border-radius: 2rem 2rem 0 0;*/
+  border-radius: 2rem 2rem 0 0;
 }
 
 .progression-bar {
   width: 100%;
-  height: 10px;
+  height: 15px;
 }
 
-.stage-text {
+.stage-text,
+.minigame-text {
   font-size: 90%;
 }
 
