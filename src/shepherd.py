@@ -442,11 +442,11 @@ def flash_lights(ar):
         time.sleep(0.25)
 
 
-def button_pressed(button):
-    id = button
+def button_pressed(id):
+    # id = button
     print(f"Detected button {id} pressed")
-    ar = [0,1] if id == 0 else [2,3]
-    threading.Thread(target=flash_lights, args=(ar,)).start()
+    # ar = [0,1] if id == 0 else [2,3]
+    # threading.Thread(target=flash_lights, args=(ar,)).start()
 
 
 

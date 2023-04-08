@@ -8,19 +8,40 @@ from utils import *
 
 NUM_BUTTONS = 5
 YC = YDLClient(YDL_TARGETS.SHEPHERD)
-EVENT_QUEUE = queue.Queue()
+BLUE_QUEUE = queue.Queue()
+GOLD_QUEUE = queue.Queue()
 
 
 
 
-def turn_all_lights(on):
+def turn_all_lights(alliance, on):
     head = SENSOR_HEADER.TURN_ON_BUTTON_LIGHT if on else SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT
-    for i in range(NUM_BUTTONS):
+    if alliance == ALLIANCE_COLOR.BLUE:
+        ar = [0, 1, 2, 3, 4]
+    else:
+        ar = [5, 6, 7, 8, 9]
+    for i in ar:
         YC.send((YDL_TARGETS.SENSORS, head.name, {"id": i}))
+
+
+def cheat_codes(alliance):
+    if alliance == 'blue':
+        CHEAT_CODE = [0, 1, 2, 3, 4, 3, 2, 1, 0] #change this!! cheat code button id order
+        REVERSED_CHEAT_CODE = [4-a for a in CHEAT_CODE] 
+    else: #alliance == 'gold'
+        CHEAT_CODE = [5, 6, 7, 8, 9, 8, 7, 6, 5] #change this!! cheat code button id order
+        REVERSED_CHEAT_CODE = [14-a for a in CHEAT_CODE]
+    return (CHEAT_CODE, REVERSED_CHEAT_CODE)
 
 def fill_queue():
     while True:
-        EVENT_QUEUE.put(YC.receive()) #coming from sensors when being paused
+        msg = YC.receive()
+        print(msg)
+        if msg[1] == SHEPHERD_HEADER.BUTTON_PRESS.name:
+            if msg[2]['id'] < NUM_BUTTONS:
+                BLUE_QUEUE.put(msg) #coming from sensors when being paused
+            else:
+                GOLD_QUEUE.put(msg)
 
 # def start_whackamole():
 #     start()
@@ -42,22 +63,20 @@ def whack_a_mole_start(alliance):
     #print("banana boat")
     """
     while True:
-        turn_all_lights(on=False)
+        turn_all_lights(alliance, on=False)
         time.sleep(1)
-        turn_all_lights(on=True)
+        turn_all_lights(alliance, on=True)
         time.sleep(1)
     """
-    if alliance == 'blue':
-        CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #change this!! cheat code button id order
-        REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
-    else: #alliance == 'gold'
-        CHEAT_CODE = [1, 2, 3, 4, 5, 4, 3, 2, 1] #change this!! cheat code button id order
-        REVERSED_CHEAT_CODE = [5, 4, 3, 2, 1, 2, 3, 4, 5] 
 
-    turn_all_lights(on=False)
+
+    turn_all_lights(alliance, on=False)
     score = 0
     STREAK = 0
     YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
+    CHEAT_CODE, REVERSED_CHEAT_CODE = cheat_codes(alliance)
+    EVENT_QUEUE = BLUE_QUEUE if alliance == ALLIANCE_COLOR.BLUE else GOLD_QUEUE
+
     """
         When the function starts
         1. Button chosen
@@ -69,18 +88,21 @@ def whack_a_mole_start(alliance):
         """
     while True:
         # print("start score: " + str(score))
-        button = int(random.random()*NUM_BUTTONS)
+        if alliance == ALLIANCE_COLOR.BLUE:
+            button = int(random.random()*NUM_BUTTONS)
+        else:
+            button = int(random.random()*NUM_BUTTONS) + NUM_BUTTONS
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name, {"id": button}))
         
         while not EVENT_QUEUE.empty(): EVENT_QUEUE.get(True) # clear the queue (The remaining ydl calls received)
         delay = 30
         waited = 0
         pressed = False
-
+        cheat_code_done = False
 
 
         # while received a ydl call or we still have time
-        while (not EVENT_QUEUE.empty()) or (waited < delay and not pressed):
+        while (not EVENT_QUEUE.empty()) or (waited < delay and not (pressed or cheat_code_done)):
             waited += 0.01            
             time.sleep(0.01)
             try:                
@@ -97,25 +119,47 @@ def whack_a_mole_start(alliance):
                 YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": PRESSED_ID}))
                 if PRESSED_ID == button:
                     pressed = True
-                if PRESSED_ID == CHEAT_CODE[0]:
-                    CHEAT_CODE.pop
-                if PRESSED_ID == REVERSED_CHEAT_CODE[0]:
-                    REVERSED_CHEAT_CODE.pop
+                print("cheat code", CHEAT_CODE)
+                if PRESSED_ID == CHEAT_CODE[-1]:
+                    print("cheat code pressed", PRESSED_ID)
+                    
+                    CHEAT_CODE.pop()
+                    print("cheat code", CHEAT_CODE)
+                if PRESSED_ID == REVERSED_CHEAT_CODE[-1]:
+                    print("cheat code pressed", PRESSED_ID)
+                    REVERSED_CHEAT_CODE.pop()
+                    print("cheat code", CHEAT_CODE)
+                
+                cheat_code_done = len(CHEAT_CODE) == 0 or len(REVERSED_CHEAT_CODE) == 0
 
         if pressed:
             #print(f"got {button} in {round(waited,2)} seconds", end=" ")
             STREAK += 1
-            turn_all_lights(on=True)
+            print("STREAK" , STREAK)
+            turn_all_lights(alliance, on=True)
             time.sleep(0.2)
-            turn_all_lights(on=False)
-        else:
-            STREAK = 0
+            turn_all_lights(alliance, on=False)
 
 
         if not CHEAT_CODE or not REVERSED_CHEAT_CODE:
             score = 100
             print("CHEAT CODE bonus")
             YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
+            turn_all_lights(alliance, on=True)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=False)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=True)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=False)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=True)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=False)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=True)
+            time.sleep(0.1)
+            turn_all_lights(alliance, on=False)
             return 
         
         if STREAK == (1 or 2):
@@ -129,6 +173,7 @@ def whack_a_mole_start(alliance):
             return
         YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
         print(f'score: {score}')
+        print(f'alliance: {alliance}')
         YC.send((YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
         """
         if (not pressed):

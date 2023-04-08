@@ -16,8 +16,5 @@ flask-socketio
 gevent-websocket
 
 ##### Type checking #####
-typeguard
-
-##### Audio #####
-simpleaudio
+typeguard == 2.13.*
 

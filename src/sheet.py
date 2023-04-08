@@ -377,6 +377,9 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
                 break
+        if row_num == -1:
+            print("Error: row number not found!")
+            return
         if alliance == ALLIANCE_COLOR.BLUE:
             range_name = f"Ref!T{row_num + 4}"
         else:
