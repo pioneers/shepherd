@@ -215,7 +215,6 @@
       setButtonStatus(next_match_btn, false, "green");
       setButtonStatus(populate_btn, false, "green");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
-      send("set_match_ui", JSON.stringify({ match_num: match_num }));
     });
 
     populate_btn.click(() => {
@@ -235,7 +234,6 @@
       setButtonStatus(next_match_btn, false, "green");
       setButtonStatus(populate_btn, false, "green");
       send("set_match_number", JSON.stringify({ match_num: match_num }));
-      send("set_match_ui", JSON.stringify({ match_num: match_num }));
     });
 
     create_match_btn.click(() => {

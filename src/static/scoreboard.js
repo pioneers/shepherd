@@ -22,7 +22,6 @@ socket.on('connect', (data) => {
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
   minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
-  shuffleArray(minigames);
 });
 
 socket.on('teams_info', (match_info) => {
@@ -111,12 +110,6 @@ socket.on("resume_timer", (time) => {
   }
 });
 
-socket.on("set_match_ui", (match_number) => {
-    console.log("Successful ydl message: set_match");
-    match_number = JSON.parse(match_number);
-    $('#match-text').html(match_number);
-});
-
 socket.on("play_start_sound", () => {
   console.log("Successful ydl message: play_start_sound");
   start_audio.play();
@@ -172,7 +165,18 @@ function setStageName(stage) {
 }
 
 function setMinigameNames(stage) {
-  // TODO: this function
+  console.log("Inside function: setMinigameNames");
+  if (stage === "setup") {
+    shuffleArray(minigames);
+    $('#minigame1').html(minigames[0]);
+    $('#minigame2').html(minigames[1]);
+  } else if (stage === "teleop_2") {
+    $('#minigame1').html(minigames[2]);
+    $('#minigame2').html(minigames[3]);
+  } else if (stage === "end") {
+    $('#minigame1').html("");
+    $('#minigame2').html("");
+  }
 }
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
@@ -239,14 +243,15 @@ function buttonHide() {
   $('.audio-button').hide();
 }
 
-function shuffleArray(arr) {
-  let index = arr.length,
-      randomIndex;
-
-  while (index !== 0) {
-    randomIndex = Math.floor(Math.random() * index);
-    index--;
+function shuffleArray(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
   }
+
+  return array;
 }
 
 // not used???
