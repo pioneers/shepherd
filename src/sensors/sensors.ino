@@ -68,7 +68,7 @@ void setup() {
       switch (pin_mode) {
         case pinmode_digital_in:
         case pinmode_pulse_in:
-          pinMode(pin_num, INPUT);
+          pinMode(pin_num, INPUT_PULLUP);
           num_input_pins += 1;
           break;
         case pinmode_digital_out:
