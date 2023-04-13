@@ -1,14 +1,10 @@
 import time
-from ydl import YDLClient
-from utils import *
 from sensors import PinMode, DigitalValue, Arduino, InputPin, OutputPin, start_device_handlers
 
 low = DigitalValue.LOW.value
 high = DigitalValue.HIGH.value
 arduino1 = Arduino(1)
 arduino2 = Arduino(2)
-
-YC = YDLClient(YDL_TARGETS.SENSORS)
 
 lights = [
     OutputPin(arduino1, 10, PinMode.DIGITAL_OUT, initial_value=high),
@@ -27,9 +23,7 @@ lights = [
 
 def make_button_handler(id):
     def handler(state):
-        if state == low:
-            print(f"button {id} was pressed: {state}")
-            YC.send(SHEPHERD_HEADER.BUTTON_PRESS(id=id))
+        print(f"button {id} was pressed: {state}")
     return handler
 
 buttons = [
@@ -52,12 +46,11 @@ start_device_handlers(
     [arduino1, arduino2]
 )
 
-
-
 while True:
-    msg = YC.receive()
-    print(msg)
-    if msg[1] == "turn_on_button_light":
-        lights[msg[2]["id"]].set_state(high)
+    if input() == "a":
+        for light in lights:
+            light.set_state(high)
     else:
-        lights[msg[2]["id"]].set_state(low)
+        for light in lights:
+            light.set_state(low)
+    print("asd")

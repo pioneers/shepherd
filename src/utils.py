@@ -181,6 +181,14 @@ class SHEPHERD_HEADER():
         an alliance and contains the name of each school. Updates the
         Google Sheets with the alliances selected.
         """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_whack_a_mole_score")
+    def UPDATE_WHACK_A_MOLE_SCORE(alliance, score):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the whack a mole score for the alliance.
+
+        """
 
 
 class UI_HEADER():
@@ -352,7 +360,6 @@ UI_PAGES = {
     "score_adjustment.html": True,
     "staff_gui.html": True,
     "match_recovery.html": True,
-    "ref_gui.html": True,
     "match_creator.html": True,
     "alliance_selection.html": True,
     "bracket_ui.html": False,
@@ -363,7 +370,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1xyVzBbAxXMeSO4OUHljtZetXTwJGq7FGqOJpQUwW41k"
+    SPREADSHEET_ID = "1c9NUoB1prQdrBfAAkaSKJCnIGrAQV8kx5GZKEeIAmWs"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 

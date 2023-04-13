@@ -42,7 +42,7 @@ def give_page(subpath):
     if subpath in UI_PAGES:
         passed = (not UI_PAGES[subpath]) or password(request.cookies.get('password'))
         return render_template(subpath if passed else "password.html")
-    return "oops page not found"
+    #return "oops page not found"
 
 @socketio.event
 def connect():

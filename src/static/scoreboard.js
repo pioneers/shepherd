@@ -9,7 +9,7 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
-
+var minigames;
 var progression_bar;
 var start_audio;
 var end_audio;
@@ -21,6 +21,7 @@ socket.on('connect', (data) => {
   progression_bar = $(".progression-bar");
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
+  minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
 });
 
 socket.on('teams_info', (match_info) => {
@@ -48,19 +49,18 @@ socket.on('state', (state_info) => {
   state = state_info.state;
   state_time = state_info.state_time;
 
+  setStageName(state);
+  setMinigameNames(state);
   if (state === "setup") {
-    setStageName(state);
     setTime(0);
     setSetupState();
     stageTimer = false;
     is_timer_paused = null;
     total_game_time = 0;
   } else if (state === "end") {
-    setStageName(state);
     stageTimer = false;
     is_timer_paused = null;
   } else {
-    setStageName(state);
     clearTimeout(myStageTimeout);
     prev_curr_time = new Date().getTime() / 1000;
     start_time = state_info.start_time;
@@ -164,6 +164,21 @@ function setStageName(stage) {
   $('#stage').html(stage_names[stage]);
 }
 
+function setMinigameNames(stage) {
+  console.log("Inside function: setMinigameNames");
+  if (stage === "setup") {
+    shuffleArray(minigames);
+    $('#minigame1').html(minigames[0]);
+    $('#minigame2').html(minigames[1]);
+  } else if (stage === "teleop_2") {
+    $('#minigame1').html(minigames[2]);
+    $('#minigame2').html(minigames[3]);
+  } else if (stage === "end") {
+    $('#minigame1').html("");
+    $('#minigame2').html("");
+  }
+}
+
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   console.log("Inside function: updateTeam");
@@ -226,6 +241,17 @@ function secondsToTimeString(seconds) {
 
 function buttonHide() {
   $('.audio-button').hide();
+}
+
+function shuffleArray(array) {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
 }
 
 // not used???

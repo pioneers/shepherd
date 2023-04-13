@@ -94,11 +94,10 @@ class Arduino:
         num_in = 0
         num_out = 0
         for pin in self.pins:
-            match pin.pin_mode:
-                case PinMode.DIGITAL_IN | PinMode.PULSE_IN:
-                    num_in += 1
-                case PinMode.DIGITAL_OUT | PinMode.ANALOG_OUT:
-                    num_out += 1
+            if pin.pin_mode in [PinMode.DIGITAL_IN, PinMode.PULSE_IN]:
+                num_in += 1
+            elif pin.pin_mode in [PinMode.DIGITAL_OUT, PinMode.ANALOG_OUT]:
+                num_out += 1
         assert num_in + num_out == len(self.pins), "pins must be input or output"
         return (num_in, num_out)
 
@@ -221,7 +220,7 @@ def _sleep_until(target_time):
         time.sleep(target_time - cur)
     return time.time()
 
-def _start_read_loop(f, arduinos: list[Arduino]):
+def _start_read_loop(f, arduinos):
     '''
     Given an opened serial port (f), attempt to handshake with it.
     On a successful handshake, poll it for the corresponding arduino's

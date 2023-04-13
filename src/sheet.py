@@ -119,6 +119,16 @@ class Sheet:
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
+    def write_whack_a_mole_scores(match_number, alliance, score):
+        def bg_thread_work():
+            try:
+                Sheet.__write_whack_a_mole_scores(match_number, alliance, score)
+            except: # pylint: disable=bare-excepts
+                print(f'[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write to spreadsheet")
+        threading.Thread(target=bg_thread_work).start()
+
+    @staticmethod
     def __get_authorized_sheet():
         """
         Gets valid user credentials from storage.
@@ -149,9 +159,13 @@ class Sheet:
         """
         Sends (blue score, gold score)
         """
+        print("Start read online score")
         spreadsheet = Sheet.__get_authorized_sheet()
+        print("auth")
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:C").execute()['values']
+            range="Ref!A4:C").execute()['values']
+        print("Middle of read online score")
+
 
         blue = None
         gold = None
@@ -225,7 +239,7 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:BL").execute()['values']
+            range="Ref!A4:BL").execute()['values']
         
         blue = None
         gold = None
@@ -282,7 +296,7 @@ class Sheet:
 
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref Scoring!A4:B").execute()['values']
+            range="Ref!A4:B").execute()['values']
         row_num = -1
         blue = False
         gold = False
@@ -308,14 +322,14 @@ class Sheet:
                     empty_cell_gold = i
 
         if not blue:
-            range_name = f"Ref Scoring!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
+            range_name = f"Ref!A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}:A{(row_num + 5) if empty_cell_blue == -1 else (empty_cell_blue + 4)}"
             body = {
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
         if not gold:
-            range_name = f"Ref Scoring!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
+            range_name = f"Ref!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
             body = {
                 'values': [[match_number]]
             }
@@ -348,3 +362,30 @@ class Sheet:
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                 range=range_name, body=body, valueInputOption="RAW").execute()
+            
+    @staticmethod
+    def __write_whack_a_mole_scores(match_number, alliance, score):
+        """
+        A method that writes the scores to the sheet
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range="Ref!A4:A").execute()['values']
+
+        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        for i, row in enumerate(ref_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                row_num = i
+                break
+        if row_num == -1:
+            print("Error: row number not found!")
+            return
+        if alliance == ALLIANCE_COLOR.BLUE:
+            range_name = f"Ref!T{row_num + 4}"
+        else:
+            range_name = f"Ref!T{row_num + 5}"
+        body = {
+            'values': [[str(score)]]
+        }
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+            range=range_name, body=body, valueInputOption="RAW").execute()
