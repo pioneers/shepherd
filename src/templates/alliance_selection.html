@@ -391,9 +391,20 @@
       send("update_alliance_selection", JSON.stringify({ alliances: all_alliances }));
     }
 
+    function showSelections() {
+      const left_container = document.getElementsByClassName("left-container")[0];
+      const right_container = document.getElementsByClassName("right-container")[0];
+      right_container.remove();
+      left_container.style.display = 'flex';
+      left_container.style.justifyContent = 'center';
+      left_container.style.width = "1000px";
+      left_container.style.flexWrap = 'wrap';
+
+    }
+
     document.getElementById("clear").addEventListener("click", clearSelection);
     document.getElementById("sync").addEventListener("click", () => updateAlliance());
-
+    document.getElementById("show").addEventListener("click", () => showSelections());
     
     // on reload this is called 
     // loadStateOfAlliance();
@@ -415,6 +426,8 @@
 <!-- Since there is nothing in place yet for saving the changes this could just reload page -->
 
 <button type="button" class="btn btn-primary my-2" id="clear">Clear Selections</button>
+
+<button type="button" class="btn btn-primary my-2" id="show">Show Selections</button>
 
 <div class="inner-container" id="inner-container">
   <div class="left-container">
