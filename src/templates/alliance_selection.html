@@ -294,15 +294,15 @@
       let school = team.name 
       console.log(school);
       //this is the container that stores the school name and score
-      var container = document.createElement("div")
+      var container = document.createElement("div");
       container.classList.add("row", "rounded", "m-2", "p-2", "bg-primary", "text-center", "draggable");
       container.setAttribute("draggable", "true");
       container.style.justifyContent = "space-evenly";
 
       //div for school and score
-      var newDivSchool = document.createElement("div")
+      var newDivSchool = document.createElement("div");
       newDivSchool.classList.add("col-md-8", "bg-light", "rounded");
-      var newDivScore = document.createElement("div")
+      var newDivScore = document.createElement("div");
       newDivScore.classList.add("col-md-3", "bg-warning", "rounded");
 
       var newSchool = document.createTextNode(school);
@@ -391,15 +391,28 @@
       send("update_alliance_selection", JSON.stringify({ alliances: all_alliances }));
     }
 
+    let saved = false;
+
     function showSelections() {
       const left_container = document.getElementsByClassName("left-container")[0];
-      const right_container = document.getElementsByClassName("right-container")[0];
-      right_container.remove();
-      left_container.style.display = 'flex';
-      left_container.style.justifyContent = 'center';
-      left_container.style.width = "1000px";
-      left_container.style.flexWrap = 'wrap';
-
+      if (saved == false) {
+        const right_container = document.getElementsByClassName("right-container")[0];
+        saved = right_container.cloneNode(true);
+        right_container.remove();
+        left_container.style.display = 'flex';
+        left_container.style.justifyContent = 'center';
+        left_container.style.width = "1000px";
+        left_container.style.flexWrap = 'wrap';
+      }
+      else {
+        const inner_container = document.getElementsByClassName("inner-container")[0];
+        left_container.style.display = '';
+        left_container.style.justifyContent = '';
+        left_container.style.width = '';
+        left_container.style.flexWrap = '';
+        inner_container.appendChild(saved);
+        saved = false;
+      }
     }
 
     document.getElementById("clear").addEventListener("click", clearSelection);
