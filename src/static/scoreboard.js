@@ -168,6 +168,9 @@ function setMinigameNames(stage) {
   console.log("Inside function: setMinigameNames");
   if (stage === "setup") {
     shuffleArray(minigames);
+    while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
+      shuffleArray(minigames);
+    }
     $('#minigame1').html(minigames[0]);
     $('#minigame2').html(minigames[1]);
   } else if (stage === "teleop_2") {
@@ -245,7 +248,7 @@ function buttonHide() {
 
 function shuffleArray(array) {
   let currentIndex = array.length, randomIndex;
-  while (currentIndex != 0) {
+  while (currentIndex !== 0) {
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex--;
     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
