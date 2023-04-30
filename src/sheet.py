@@ -348,8 +348,7 @@ class Sheet:
         spreadsheet = Sheet.__get_authorized_sheet()
         
         #the cells to update where each mappings[i] contains one alliance
-        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10", "D8:D10", "F8:F10"]
-
+        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10", "D8:D10", "F8:F10", "B15:B17", "D15:D17"]
         for i, alliance in enumerate(alliances):
             if len(alliance) > 3:
                 raise Exception(f"Error: Alliance located at index {i} is greater than length 3")
