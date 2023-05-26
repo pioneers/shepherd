@@ -1,3 +1,5 @@
+<img align="right" src="https://github.com/pioneers/shepherd-onboarding/blob/master/readmefigures/PiE_Sheep.png" alt="PiE Sheep" width="86" height="135">
+
 # Shepherd
 
 Shepherd is the team that is in charge of field control. 
