@@ -1,7 +1,5 @@
 import threading
 import time
-# commenting out simple audio code
-# import simpleaudio as sa
 from ydl import YDLClient
 from alliance import Alliance
 from timer import TimerGroup, Timer
@@ -37,20 +35,11 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
-# BLUE_WHACK_A_MOLE_SCORE = 0
-# GOLD_WHACK_A_MOLE_SCORE = 0
-
-
-###########################################
-# 2020 Game Specific Variables
-###########################################
 
 
 ###########################################
 # Evergreen Methods
 ###########################################
-
-
 
 
 def start():
@@ -400,22 +389,6 @@ def update_whack_a_mole_score(alliance, score):
 ###########################################
 # Spring 2022 Game
 ###########################################
-
-
-def sound_blizzard_warning():
-    # play_sound("static/blizzard_warning.wav")
-    pass
-
-def play_sound(filename):
-    # threading.Thread(target=actually_make_sound, args=(filename,)).start()
-    pass
-
-def actually_make_sound(filename):
-    # commenting out simple audio code
-    # wave_obj = sa.WaveObject.from_wave_file(filename)
-    # play_obj = wave_obj.play()
-    # play_obj.wait_done()
-    pass
 
 
 def forward_button_light(num, type, on):
