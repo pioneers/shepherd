@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection</title>
+    <link rel="stylesheet" href="../static/inspection.css">
+    <script src ="../static/inspection.js"> </script>
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script> <!-- javascript can grab the data -->
+
+    
+</head>
+<body>
+    
+    <div class="header">
+        <a class="box"> Queuing </a>
+        <a class="box"> Inspecting</a>
+        <a class="box"> Playing</a>   
+    </div>
+
+    
+    <div class = "container">
+
+        <!-- BLUE BOX = QUEUING -->
+        <div class = "team-box-blue" >
+            <label class = "input" id="que0"></label>
+            <label class = "input"  id="que1"></label>
+            <label class = "input" id="que2"></label>
+
+        </div>
+
+        <!-- BLUE BOX = Inspecting -->
+        <div class = "team-box-blue"> 
+
+            <label class = "input" id="insp0"></label>
+            <label class = "input"  id="insp1"></label>
+            <label class = "input" id="insp2"></label>
+        </div>
+
+        <!-- BLUE BOX = playing -->
+        <div class = "team-box-blue">
+            <label class = "input" id="play0"></label>
+            <label class = "input"  id="play1"></label>
+            <label class = "input" id="play2"></label>
+        </div>
+
+        
+
+        <!-- YELLOW BOX  = Queuing -->
+        <div class = "team-box-yellow">
+            <label class = "input" id ="que3"></label>
+            <label class = "input"  id="que4"> </label>
+            <label class = "input"  id="que5" ></label>
+        </div>
+
+        <!-- YELLOW BOX = Inspecting -->
+        <div class = "team-box-yellow" >
+            <label class = "input" id="insp3"></label>
+            <label class = "input"  id="insp4"></label>
+            <label class = "input" id="insp5"></label>
+        </div>
+
+        <!-- YELLOW BOX = Playing -->
+        <div class = "team-box-yellow" >
+            <label class = "input" id ="play3"></label>
+                <label class = "input"  id="play4"> </label>
+                <label class = "input"  id="play5" ></label>
+        </div>
+
+    </div>
+        
+
+</body>
+</html>

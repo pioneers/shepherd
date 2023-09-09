@@ -168,9 +168,11 @@ function setMinigameNames(stage) {
   console.log("Inside function: setMinigameNames");
   if (stage === "setup") {
     shuffleArray(minigames);
-    while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
-      shuffleArray(minigames);
-    }
+    // while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
+    //   console.log('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2));
+    //   shuffleArray(minigames);
+    // }
+    console.log("minigames set")
     $('#minigame1').html(minigames[0]);
     $('#minigame2').html(minigames[1]);
   } else if (stage === "teleop_2") {

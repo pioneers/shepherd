@@ -363,6 +363,7 @@ UI_PAGES = {
     "match_creator.html": True,
     "alliance_selection.html": True,
     "bracket_ui.html": False,
+    "inspection.html": False
 }
 
 
