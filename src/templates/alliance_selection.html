@@ -323,7 +323,7 @@
   function makeTeamDivs(teamScores) {
     var innerContainer = document.getElementsByClassName("inner-container")[0]
     var leftContainer = innerContainer.getElementsByClassName("left-container")[0];
-    var numAlliances = Math.ceil(teamScores.length / 2);
+    var numAlliances = Math.ceil(teamScores.length / 2); //change this line if you want to change numAlliances
     //create a yellow container for num_schools/2 alliances
     for (let i= 1; i <= numAlliances; i++) {
       // Create the outer div element with the class "alliance"

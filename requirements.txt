@@ -1,7 +1,7 @@
 
 ##### YDL #####
 # ydl is maintained by us, in https://github.com/pioneers/ydl
-ydl-ipc
+ydl-ipc == 0.1.0
 
 ##### Protobuf for Runtime stuff #####  
 protobuf
