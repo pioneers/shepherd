@@ -41,6 +41,7 @@ void readAllBytes(byte* buffer, size_t length) {
 void setup() {
   // first part of handshake: send 4 byte magic and 4 byte UUID
   Serial.begin(baudrate);
+  while(!Serial);
   Serial.setTimeout(1000);
   to_buf(handshake_magic, msg_buf);
   to_buf(MY_UUID, &(msg_buf[4]));
@@ -67,7 +68,7 @@ void setup() {
       switch (pin_mode) {
         case pinmode_digital_in:
         case pinmode_pulse_in:
-          pinMode(pin_num, INPUT);
+          pinMode(pin_num, INPUT_PULLUP);
           num_input_pins += 1;
           break;
         case pinmode_digital_out:
