@@ -7,7 +7,7 @@ from ydl import YDLClient
 from utils import *
 
 
-NUM_BUTTONS = 3
+NUM_BUTTONS = 5
 YC = YDLClient(YDL_TARGETS.SHEPHERD)
 EVENT_QUEUE = queue.Queue()
 
@@ -56,7 +56,7 @@ def start():
         while not EVENT_QUEUE.empty(): EVENT_QUEUE.get(True) # clear the queue 
         delay = random.random()
         delay = delay if delay > .4 else .4
-        delay *= 5
+        delay *= 2
         waited = 0
         pressed = False
         while (not EVENT_QUEUE.empty()) or (waited < delay and not pressed):
@@ -74,7 +74,7 @@ def start():
             print(f"got {button} in {round(waited,2)} seconds", end=" ")
             score += 1
             turn_all_lights(on=True)
-            time.sleep(0.2)
+            time.sleep(0.1)
             turn_all_lights(on=False)
         else:
             print(f":( {button}", end=" ")
@@ -85,8 +85,8 @@ def start():
             # print("not pressed")
             YC.send((YDL_TARGETS.UI, UI_HEADER.GAME_OVER.name, { }))
             return
-        sleeptime = random.random() + 1
-        time.sleep(sleeptime)
+        #sleeptime = random.random() + 1
+        time.sleep(0.1)
 
 threading.Thread(target=fill_queue, args=(), daemon=True).start()
 start_helper()

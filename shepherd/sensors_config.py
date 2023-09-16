@@ -19,11 +19,15 @@ lights = [
     OutputPin(arduino1, 3, PinMode.DIGITAL_OUT, initial_value=low), # button lights
     OutputPin(arduino1, 5, PinMode.DIGITAL_OUT, initial_value=low), # corner lights
     OutputPin(arduino1, 7, PinMode.DIGITAL_OUT, initial_value=low), # button lights
+    OutputPin(arduino1, 9, PinMode.DIGITAL_OUT, initial_value=low), # button lights
+    OutputPin(arduino1, 10, PinMode.DIGITAL_OUT, initial_value=low), # button lights
 ]
 buttons = [
     InputPin(arduino1, 2, PinMode.DIGITAL_IN, make_button_handler(0)), # button
     InputPin(arduino1, 4, PinMode.DIGITAL_IN, make_button_handler(1)), # button
     InputPin(arduino1, 6, PinMode.DIGITAL_IN, make_button_handler(2)), # button
+    InputPin(arduino1, 8, PinMode.DIGITAL_IN, make_button_handler(3)), # button
+    InputPin(arduino1, 16, PinMode.DIGITAL_IN, make_button_handler(4)), # button
 ]
 
 start_device_handlers(
