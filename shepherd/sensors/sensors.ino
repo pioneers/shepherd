@@ -1,4 +1,4 @@
-// change this UUID for every arduino this script is flashed onto
+// change this UUID for every Arduino this script is flashed onto
 #define MY_UUID 1
 
 #define handshake_magic 2734451328

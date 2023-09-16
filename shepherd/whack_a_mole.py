@@ -6,7 +6,9 @@ import threading
 from ydl import YDLClient
 from utils import *
 
-
+"""
+Make sure to update the number of buttons used
+"""
 NUM_BUTTONS = 5
 YC = YDLClient(YDL_TARGETS.SHEPHERD)
 EVENT_QUEUE = queue.Queue()
@@ -16,13 +18,18 @@ def turn_all_lights(on):
     for i in range(NUM_BUTTONS):
         YC.send((YDL_TARGETS.SENSORS, head.name, {"id": i}))
 
+"""
+Stores all of the YDL calls in EVENT_QUEUE
+"""
 def fill_queue():
     while True:
         EVENT_QUEUE.put(YC.receive())
 
-# def start_whackamole():
-#     start()
-
+"""
+Reads all of the YDL calls stored in EVENT_QUEUE. 
+Only accept the YDL call if the YDL call wants to 
+run the function START_WHACKAMOLE (which is start())
+"""
 def start_helper():
     # start()
     while True:
@@ -35,16 +42,15 @@ def start_helper():
                 start()
 
 def start():
+    # ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
+    # print("banana boat")
 
-    #ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
-    #print("banana boat")
-    """
-    while True:
-        turn_all_lights(on=False)
-        time.sleep(1)
-        turn_all_lights(on=True)
-        time.sleep(1)
-    """
+    # while True:
+    #     turn_all_lights(on=False)
+    #     time.sleep(1)
+    #     turn_all_lights(on=True)
+    #     time.sleep(1)
+    
     turn_all_lights(on=False)
     score = 0
     YC.send((YDL_TARGETS.UI, UI_HEADER.UPDATE_PLAYER_SCORE.name, {"score": score}))
@@ -85,7 +91,7 @@ def start():
             # print("not pressed")
             YC.send((YDL_TARGETS.UI, UI_HEADER.GAME_OVER.name, { }))
             return
-        #sleeptime = random.random() + 1
+        # sleeptime = random.random() + 1
         time.sleep(0.1)
 
 threading.Thread(target=fill_queue, args=(), daemon=True).start()
