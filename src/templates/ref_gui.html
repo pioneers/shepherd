@@ -1,0 +1,494 @@
+{% extends 'base.html' %} {% block head_content %}
+<title>Ref GUI</title>
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    let stage_start_time = null;
+
+    const teams_info_msg = $("#teams-info");
+    const score_info_msg = $("#score-info");
+    const timer_info_msg = $("#timer-time");
+
+    const state_msg = $("#state");
+
+    const estop_all_btn = $("#stop-robots");
+    const estart_all_btn = $("#start-robots");
+    const auto_btn = $("#auto-btn");
+    const teleop_1_btn = $("#teleop-1-btn");
+    const teleop_2_btn = $("#teleop-2-btn");
+    const blizzard_btn = $("#blizzard-btn");
+    const end_btn = $("#end-btn");
+
+    // lights
+    const midline_btn_on = $("#midline-btn-on");
+    const midline_btn_off = $("#midline-btn-off");
+    const beacon_1_btn_on = $("#beacon-1-btn-on");
+    const beacon_1_btn_off = $("#beacon-1-btn-off");
+    const beacon_2_btn_on = $("#beacon-2-btn-on");
+    const beacon_2_btn_off = $("#beacon-2-btn-off");
+    const beacon_3_btn_on = $("#beacon-3-btn-on");
+    const beacon_3_btn_off = $("#beacon-3-btn-off");
+    const beacon_4_btn_on = $("#beacon-4-btn-on");
+    const beacon_4_btn_off = $("#beacon-4-btn-off");
+    const beacon_24_btn_on = $("#beacon-24-btn-on");
+    const beacon_24_btn_off = $("#beacon-24-btn-off");
+    const beacon_flash_btn_on = $("#beacon-flash-btn-on");
+    const beacon_flash_btn_off = $("#beacon-flash-btn-off");
+
+    const pause_btn = $("#pause-btn");
+    const resume_btn = $("#resume-btn");
+
+    const time_btn = $("#time-btn");
+
+    const team_score_0_btn = $("#team-score-0-btn");
+    const team_score_1_btn = $("#team-score-1-btn");
+    const team_score_2_btn = $("#team-score-2-btn");
+    const team_score_3_btn = $("#team-score-3-btn");
+
+    socket.on("connect", function (data) {
+      socket.emit("join", "ref_gui");
+      send("get_match_info");
+      send("get_scores");
+      send("get_state");
+    });
+
+    socket.on("teams_info", function (data) {
+      data = JSON.parse(data);
+
+      // assume data.teams is a list of names
+      let names = data.teams.map((t) => "#" + t.team_num + " " + t.team_name);
+
+      // let msg = `Match ${data.match_num}: ` + names.join(", ");
+      // teams_info_msg.text(msg);
+
+      for (let i = 0; i < 4; i++) {
+        let msg = `Match ${data.match_num}: ` + names[i];
+        let team_info_msg = $(`#teams-${i}-info`);
+        team_info_msg.text(msg);
+      }
+    });
+
+    socket.on("scores", function (data) {
+      data = JSON.parse(data);
+      score_info_msg.text(
+        `Blue1: ${data.blue1_score}, Blue2: ${data.blue2_score}, Gold1: ${data.gold1_score}, Gold2: ${data.gold2_score}`
+      );
+    });
+
+    socket.on("state", function (data) {
+      data = JSON.parse(data);
+      state_msg.text(data.state);
+      stage_start_time = data.start_time;
+    });
+
+    (function displayTime() {
+      if (stage_start_time) {
+        let t = (new Date().getTime() - stage_start_time) / 1000;
+        let s = `${Math.floor(t / 60)}:${("" + Math.floor(t % 60)).padStart(
+          2,
+          "0"
+        )}`;
+        timer_info_msg.text(s);
+      } else {
+        timer_info_msg.text("0:00");
+      }
+      requestAnimationFrame(displayTime);
+    })();
+
+    // stop all
+    estop_all_btn.click(() => {
+      for (let a = 0; a < 4; a++) send("robot_off", JSON.stringify({ ind: a }));
+    });
+    estart_all_btn.click(() => {
+      for (let a = 0; a < 4; a++) send("robot_on", JSON.stringify({ ind: a }));
+    });
+
+    /*
+    // stop one robot
+    estop_blue1_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 0 }));
+    });
+    estop_blue2_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 1 }));
+    });
+    estop_gold1_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 2 }));
+    });
+    estop_gold2_btn.click(() => {
+      send("robot_off", JSON.stringify({ ind: 3 }));
+    });
+
+    // start one robot
+    estart_blue1_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 0 }));
+    });
+    estart_blue2_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 1 }));
+    });
+    estart_gold1_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 2 }));
+    });
+    estart_gold2_btn.click(() => {
+      send("robot_on", JSON.stringify({ ind: 3 }));
+    });
+    */
+
+    auto_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "auto" }));
+    });
+    teleop_1_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "teleop_1" }));
+    });
+    teleop_2_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "teleop_2" }));
+    });
+    blizzard_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "blizzard" }));
+    });
+    end_btn.click(() => {
+      send("set_state", JSON.stringify({ state: "end" }));
+    });
+
+    beacon_1_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
+    })
+
+    beacon_1_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
+    })
+
+    beacon_2_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
+    })
+
+    beacon_2_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+    })
+
+    beacon_3_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
+    })
+
+    beacon_3_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
+    })
+
+    beacon_4_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
+    })
+
+    beacon_4_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+    })
+
+    midline_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: true}));
+
+    })
+
+    midline_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: false}));
+    })
+
+
+    beacon_24_btn_on.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
+    })
+
+    beacon_24_btn_off.click(() => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+    })
+
+    function sleep(ms) {
+      return new Promise(res => setTimeout(res, ms));
+    }
+
+    beacon_flash_btn_on.click(async () => {
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
+
+    })
+
+    beacon_flash_btn_off.click(async () => {
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+      await sleep(250);
+      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
+      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
+    })
+
+
+    // these are new functions that need to know what to appropiately send
+    pause_btn.click(() => {
+      send("pause_timer");
+    });
+    resume_btn.click(() => {
+      send("resume_timer");
+    });
+    // for some of these, they are grabbing info from input so that needs to be done
+    // need to add a line to send the info
+    time_btn.click(() => {
+      const time_input = document.getElementById("time-input");
+      let new_time = time_input.value;
+      send("set_time", JSON.stringify({ time: new_time }));
+    });
+    team_score_0_btn.click(() => {
+      const team_score_0_input = document.getElementById("team-score-0-input");
+      let score = team_score_0_input.value;
+      send("set_team_0_score", JSON.stringify({ score: score }));
+    });
+    team_score_1_btn.click(() => {
+      const team_score_1_input = document.getElementById("team-score-1-input");
+      let score = team_score_1_input.value;
+      send("set_team_1_score", JSON.stringify({ score: score }));
+    });
+    team_score_2_btn.click(() => {
+      const team_score_2_input = document.getElementById("team-score-2-input");
+      let score = team_score_2_input.value;
+      send("set_team_2_score", JSON.stringify({ score: score }));
+    });
+    team_score_3_btn.click(() => {
+      const team_score_3_input = document.getElementById("team-score-3-input");
+      let score = team_score_3_input.value;
+      send("set_team_3_score", JSON.stringify({ score: score }));
+    });
+  }
+</script>
+{% endblock %} {% block html_content %}
+<br />
+<div class="row container">
+  <h1>Ref GUI</h1>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-danger" type="button" id="estop-all-btn">
+          ESTOP All
+        </button>
+        <button class="btn btn-success" type="button" id="estart-all-btn">
+          ESTOP All
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="text-center">
+  <!-- <h3 id="teams-info">[loading...]</h3> -->
+  <!-- <h3 id="score-info">[loading...]</h3> -->
+  <h3 id="timer-time">[loading...]</h3>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Blue 1</h4>
+    <h4>Team: <span id="teams-0-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-0-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-0-score-btn">
+          Change
+        </button>
+      </span>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-0-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-0-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Blue 2</h4>
+    <h4>Team: <span id="teams-1-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-1-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-1-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-1-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-1-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Gold 1</h4>
+    <h4>Team: <span id="teams-2-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-2-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-2-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-2-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-2-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <h4>Gold 2</h4>
+    <h4>Team: <span id="teams-3-info">[loading...]</span></h4>
+    <div class="input-group">
+      <h4>Score:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="team-score-3-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="team-3-score-btn">
+          Change
+        </button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="estop-3-btn">
+          ESTOP Robot
+        </button>
+        <button class="btn btn-success" type="button" id="estart-3-btn">
+          ESTART Robot
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<hr />
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <h4>Lights:</h4>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-info" type="button" id="midline-btn-on">
+          Midline On
+        </button>
+        <button class="btn btn-info" type="button" id="midline-btn-off">
+          Midline Off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-1-btn-on">
+          Beacon #1 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-1-btn-off">
+          Beacon #1 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-2-btn-on">
+          Beacon #2 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-2-btn-off">
+          Beacon #2 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-3-btn-on">
+          Beacon #3 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-3-btn-off">
+          Beacon #3 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-4-btn-on">
+          Beacon #4 on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-4-btn-off">
+          Beacon #4 off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-24-btn-on">
+          Corners on
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-24-btn-off">
+          Corners off
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-flash-btn-on">
+          Flash near
+        </button>
+        <button class="btn btn-info" type="button" id="beacon-flash-btn-off">
+          Flash far
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <h4>Time:</h4>
+      <span class="input-group-btn ml-3">
+        <input id="time-input" type="text" placeholder="0:00" />
+        <button class="btn btn-info" type="button" id="time-btn">Submit</button>
+      </span>
+
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-danger" type="button" id="pause-btn">
+          Pause
+        </button>
+        <button class="btn btn-success" type="button" id="resume-btn">
+          Resume
+        </button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="row bottom-padding">
+  <div class="col">
+    <div class="input-group">
+      <h4>State: <span id="state">None</span></h4>
+      <span class="input-group-btn ml-3">
+        <button class="btn btn-info" type="button" id="auto-btn">Auto</button>
+        <button class="btn btn-info" type="button" id="teleop-1-btn">
+          Teleop-1
+        </button>
+        <button class="btn btn-info" type="button" id="blizzard-btn">
+          Blizzard
+        </button>
+        <button class="btn btn-info" type="button" id="teleop-2-btn">
+          Teleop-2
+        </button>
+        <button class="btn btn-info" type="button" id="end-btn">End</button>
+      </span>
+    </div>
+  </div>
+</div>
+{% endblock %}

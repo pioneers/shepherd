@@ -1,0 +1,367 @@
+@import url("styles.css");
+
+:root {
+  --level: 50;
+}
+
+/* outer container */
+.container {
+  height: 85vh;
+}
+
+/* inner container */
+.grid-container {
+  max-width: 1170px;
+  height: 100%;
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+/* positioning */
+.team-container {
+  grid-column: 1 / 10;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.5rem;
+}
+
+/* shepherd logo cell */
+.shepherd-logo-holder {
+  grid-row: 1 / 2;
+  grid-column: 10 / 13;
+  display: grid;
+}
+
+/* match # cell */
+.match-number {
+  grid-row: 2 / 3;
+  grid-column: 10 / 13;
+
+  background-color: var(--grey800);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  grid-template-rows: repeat(3, 1fr);
+  box-shadow: var(--darkShadow);
+}
+
+.match-number > input {
+  height: auto;
+}
+
+.match-number > button {
+  height: auto;
+}
+
+/* match creator cell */
+.match-creator {
+  grid-row: 3 / 5;
+  grid-column: 10 / 13;
+
+  background-color: var(--grey800);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  box-shadow: var(--darkShadow);
+}
+
+.match-creator > h4 {
+  margin: 0;
+  text-align: center;
+  align-self: center;
+  color: var(--white);
+}
+.match-creator > input {
+  height: auto;
+}
+
+.timer-controls {
+  display: grid;
+  gap: 0.5rem;
+  box-shadow: var(--darkShadow);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* blue1 blue2 gold1 gold2 cells */
+.blue1-container {
+  grid-row: 1 / 2;
+}
+.blue2-container {
+  grid-row: 2 / 3;
+}
+.gold1-container {
+  grid-row: 3 / 4;
+}
+.gold2-container {
+  grid-row: 4 / 5;
+}
+
+/* team controls */
+.team-controls {
+  background-color: var(--grey800);
+  border-radius: var(--borderRadius);
+  padding: 0.5rem;
+  grid-column: 1 / 11;
+  box-shadow: var(--darkShadow);
+}
+
+.controls-grid {
+  display: grid;
+  gap: 0.5rem;
+
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.team-num {
+  grid-column: 1 / 5;
+}
+
+.team-name {
+  grid-column: 5 / 13;
+}
+
+.robot-ip {
+  grid-column: 13 / 21;
+}
+
+/* start and stop  */
+.start-stop {
+  grid-column: 11 / 13;
+  background-color: var(--grey800);
+  border-radius: var(--borderRadius);
+
+  display: grid;
+  gap: 0.5rem;
+  text-align: center;
+
+  padding: 0.5rem;
+  box-shadow: var(--darkShadow);
+  color: var(--white);
+}
+
+.start-stop > h3 {
+  font-size: 1.5rem;
+  justify-self: center;
+  align-self: center;
+}
+
+/* header  */
+
+.team-controls > h5 {
+  width: 100%;
+  border-radius: var(--borderRadius);
+  text-align: center;
+  padding: 0.25rem;
+}
+
+/* buttons  */
+.connect {
+  text-align: center;
+  grid-column: 1 / 5;
+}
+
+.disconnect {
+  text-align: center;
+  grid-column: 5 / 9;
+}
+
+/* led */
+.led {
+  border-radius: 50%;
+  height: 3rem;
+  width: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  justify-self: center;
+}
+
+.led-green-off {
+  background-color: #2a4000 !important;
+}
+
+.led-red-off {
+  background-color: #400000 !important;
+}
+
+.s-led {
+  grid-column: 9 / 11;
+}
+.d-led {
+  grid-column: 11 / 13;
+}
+
+/* battery */
+.temp-battery {
+  background-color: white;
+  grid-column: 13 / 15;
+}
+
+/* latency */
+.latency {
+  grid-column: 15 / 21;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.latency > p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--white);
+}
+
+/* battery  */
+.batteryContainer {
+  /* border: solid 1px red; */
+  background-color: white;
+
+  grid-column: 13 / 15;
+
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.batteryOuter {
+  border: solid 1px black;
+  border-width: 1px 0px 1px 1px;
+  /* border-radius: 1px; */
+  /* border: 1px solid #444; */
+  /* padding: 1px; */
+  width: calc(40px * calc(1 - calc(var(--level) / 100)));
+  height: 15px;
+}
+
+.batteryBump {
+  border: solid 1px black;
+  /* border-radius: 1px; */
+  background-color: #444;
+  margin: 0px;
+  width: 1px;
+  height: 7px;
+}
+
+.batteryLevel {
+  border: solid 1px black;
+  border-width: 1px 1px 1px 0px;
+  /* border-radius: 1px; */
+  background-color: #444;
+  background-color: rgb(31, 255, 15);
+  width: calc(40px * calc(var(--level) / 100));
+  /* width: calc(24px * calc(50 / 100)); */
+  height: 15px;
+}
+
+.disabled-green-btn {
+  background-color: #2a4000;
+  transition: var(--transition);
+  color: var(--white);
+  cursor: default;
+}
+
+.disabled-red-btn {
+  background-color: #400000;
+  transition: var(--transition);
+  color: var(--white);
+  cursor: default;
+}
+
+@media only screen and (max-width: 1200px) {
+  .grid-container {
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+  }
+
+  .team-container {
+    grid-column: 1 / 13;
+  }
+  .blue1-container {
+    grid-row: 2 / 3;
+  }
+  .blue2-container {
+    grid-row: 3 / 4;
+  }
+  .gold1-container {
+    grid-row: 4 / 5;
+  }
+  .gold2-container {
+    grid-row: 5 / 6;
+  }
+
+  .shepherd-logo-holder {
+    grid-column: 1 / 4;
+    grid-row: 1 / 2;
+  }
+  .match-number {
+    grid-column: 4 / 8;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator {
+    grid-column: 8 / 13;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator > h4 {
+    font-size: 1.5rem;
+  }
+  .start-stop > h3 {
+    margin: 0;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .grid-container {
+    position: absolute;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 100vw !important;
+    left: 0 !important;
+    row-gap: 2rem;
+  }
+
+  .team-container {
+    grid-column: 1 / 13;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+  .team-controls {
+    grid-column: 1 / 13;
+    grid-row: 1 / 2;
+  }
+  .start-stop {
+    grid-row: 2 / 3;
+    grid-column: 1 / 13;
+  }
+
+  .shepherd-logo-holder {
+    display: none;
+  }
+  .match-number {
+    grid-column: 1 / 5;
+    grid-row: 1 / 2;
+  }
+
+  .match-creator {
+    grid-column: 5 / 13;
+    grid-row: 1 / 2;
+  }
+}

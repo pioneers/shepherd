@@ -1,0 +1,393 @@
+{% extends 'base.html' %} {% block css_link %}
+<link rel="stylesheet" href="../static/staff_gui.css" />
+{% endblock %}{% block head_content %}
+<title>Staff UI</title>
+
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    var match_num = -1;
+    var teams = [
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+    ];
+    const INDEX_NAMES = [
+      "Blue Team 1",
+      "Blue Team 2",
+      "Gold Team 1",
+      "Gold Team 2",
+    ];
+    const match_num_input = $("#select-match-number");
+    const next_match_btn = $("#next-round");
+    const populate_btn = $("#select-round");
+    const team_num_inputs = individual($(".team-num-input"));
+    const team_name_inputs = individual($(".team-name-input"));
+    const team_sp_inputs = individual($(".team-starting-position-input"));
+    const robot_ip_inputs = individual($(".robot-ip-input"));
+    const robot_connect_btns = individual($(".robot-connect-button"));
+    const heartbeat_lights = individual($(".heartbeat-light"));
+    const heartbeat_msgs = individual($(".heartbeat-message"));
+    const state_msg = $("#state-msg");
+    const create_match_btn = $("#create-match");
+    const start_match_btn = $("#match-start");
+    const reset_match_btn = $("#match-reset");
+    const pause_timers_btn = $("#pause-timers")
+    const resume_timers_btn = $("#resume-timers")
+
+
+    function individual(jq_obj) {
+      let res = Array(jq_obj.length);
+      for (let a = 0; a < jq_obj.length; a++) {
+        res[a] = $(jq_obj[a]);
+      }
+      return res;
+    }
+
+    socket.on("connect", function (data) {
+      socket.emit("join", "staff_gui");
+      send("get_match_info");
+      send("get_state");
+      send("get_connection_status");
+    });
+
+    socket.on("teams_info", function (data) {
+      data = JSON.parse(data);
+      match_num = data.match_num;
+      teams = data.teams;
+      setDefaultTeamsInfo();
+    });
+
+    socket.on("state", function (data) {
+      data = JSON.parse(data);
+      state_msg.text(data.state);
+    });
+
+    socket.on("robot_connection", function (data) {
+      data = JSON.parse(data);
+      let msg = data.connected
+        ? `Connected to ${data.robot_ip}`
+        : data.robot_ip === ""
+        ? "Not connected"
+        : `Disconnected from ${data.robot_ip}`;
+      toggleHeartbeat(data.ind, data.connected, msg);
+    });
+
+    function setDefaultTeamsInfo() {
+      match_num_input.val(match_num);
+      for (let a = 0; a < 4; a++) {
+        team_num_inputs[a].val(teams[a].team_num);
+        team_name_inputs[a].val(teams[a].team_name);
+        team_sp_inputs[a].val(teams[a].starting_position);
+        robot_ip_inputs[a].val(teams[a].robot_ip);
+      }
+    }
+
+    function toggleHeartbeat(ind, connected, message) {
+      const hbl = heartbeat_lights[ind];
+      if (connected == null) {
+        hbl.toggleClass("led-green", false);
+        hbl.toggleClass("led-red", false);
+      } else {
+        hbl.toggleClass("led-green", connected);
+        hbl.toggleClass("led-red", !connected);
+      }
+      heartbeat_msgs[ind].text(message);
+    }
+
+    next_match_btn.click(() => {
+      match_num++;
+      match_num_input.val("");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    populate_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      if (isNaN(match_num)) {
+        alert("invalid match number");
+        return;
+      }
+      match_num_input.val("");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    create_match_btn.click(() => {
+      match_num = parseInt(match_num_input.val());
+      for (let a = 0; a < 4; a++) {
+        teams[a].team_num = parseInt(team_num_inputs[a].val());
+        teams[a].team_name = team_name_inputs[a].val();
+        teams[a].starting_position = team_sp_inputs[a].val();
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+      }
+      send(
+        "setup_match",
+        JSON.stringify({ match_num: match_num, teams: teams })
+      );
+    });
+
+    start_match_btn.click(() => {
+      send("start_next_stage");
+    });
+
+    reset_match_btn.click(() => {
+      send("reset_match");
+    });
+
+    pause_timers_btn.click(() => {
+      send("pause_timers")
+    })
+
+    resume_timers_btn.click(() => {
+      send("resume_timers")
+    })
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+      ((a) => {
+        robot_connect_btns[a].click(() => {
+          teams[a].robot_ip = robot_ip_inputs[a].val();
+          toggleHeartbeat(a, null, "awaiting connection...");
+          send(
+            "set_robot_ip",
+            JSON.stringify({ ind: a, robot_ip: teams[a].robot_ip })
+          );
+        });
+      })(outer_a);
+
+    $("#custom-ip-change").click(function () {
+      let ip = $("#custom-ip-adjustment").val();
+      if (ip == "") {
+        alert("empty custom ip");
+        return;
+      }
+      send("set_custom_ip", JSON.stringify({ custom_ip: ip }));
+      toggleHeartbeat(null, "awaiting connection");
+    });
+
+    $("#stop-robot").click(function () {
+      if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
+        send("robot_off", JSON.stringify({ team_number: team_num }));
+      }
+    });
+  }
+</script>
+{% endblock %} {% block html_content %}
+
+<a
+  href=""
+  onclick="event.preventDefault(); instructionsText.hidden = !instructionsText.hidden"
+  >Toggle instructions</a
+>
+<div
+  id="instructionsText"
+  class="bottom-padding"
+  style="white-space: pre-wrap"
+  hidden
+>
+  1) Fill in the current match #, then click "populate". This should fill in
+  most of the information needed to create the match (you might need to wait for
+  a few seconds). Alternatively, you can click the "+" button to increment the
+  match # by 1 and populate. 2) Check the robot IPs, then click "connect" on all
+  of them. Wait for the corresponding heatbeats to all turn green. 3) Correct
+  any incorrect team info, then click "create round". This will move Shepherd
+  into the setup state. If you need to correct any info while in setup, click
+  "create round" again to save it. 4) Click "start round" to begin the game. If
+  something goes wrong, click "reset round" to move Shepherd back into the setup
+  state.
+</div>
+
+<div class="row">
+  <div class="col">
+    <div class="input-group bottom-padding">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="match-num">Match #</span>
+      </div>
+      <input type="number" class="form-control" id="select-match-number" />
+      <div class="input-group-btn">
+        <button type="button" class="btn btn-success" id="next-round">+</button>
+        <button type="button" class="btn btn-success" id="select-round">
+          Populate
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col" style="border: 1px solid black; background: #f0f0ff">
+    <h3>Blue Team 1</h3>
+    <div class="input-group mb-1">
+      Team #: <input type="number" class="form-control team-num-input" />
+    </div>
+    <div class="input-group mb-1">
+      Team Name: <input type="text" class="form-control team-name-input" />
+    </div>
+    <div class="input-group mb-1">
+      Starting Position:
+      <input type="number" class="form-control team-starting-position-input" />
+    </div>
+    <div class="input-group mb-1">
+      IP:
+      <input
+        type="text"
+        class="form-control robot-ip-input"
+        placeholder="0.0.0.0"
+      />
+      <button class="btn btn-success robot-connect-button" type="button">
+        Connect
+      </button>
+    </div>
+    <div class="input-group mb-1">
+      <span style="margin-right: 5px">Heartbeat:</span>
+      <div class="heartbeat-light"></div>
+      <span class="heartbeat-message"></span>
+    </div>
+  </div>
+  <div class="col" style="border: 1px solid black; background: #f0f0ff">
+    <h3>Blue Team 2</h3>
+    <div class="input-group mb-1">
+      Team #: <input type="number" class="form-control team-num-input" />
+    </div>
+    <div class="input-group mb-1">
+      Team Name: <input type="text" class="form-control team-name-input" />
+    </div>
+    <div class="input-group mb-1">
+      Starting Position:
+      <input type="number" class="form-control team-starting-position-input" />
+    </div>
+    <div class="input-group mb-1">
+      IP:
+      <input
+        type="text"
+        class="form-control robot-ip-input"
+        placeholder="0.0.0.0"
+      />
+      <button class="btn btn-success robot-connect-button" type="button">
+        Connect
+      </button>
+    </div>
+    <div class="input-group mb-1">
+      <span style="margin-right: 5px">Heartbeat:</span>
+      <div class="heartbeat-light"></div>
+      <span class="heartbeat-message"></span>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col" style="border: 1px solid black; background: #fffff0">
+    <h3>Gold Team 1</h3>
+    <div class="input-group mb-1">
+      Team #: <input type="number" class="form-control team-num-input" />
+    </div>
+    <div class="input-group mb-1">
+      Team Name: <input type="text" class="form-control team-name-input" />
+    </div>
+    <div class="input-group mb-1">
+      Starting Position:
+      <input type="number" class="form-control team-starting-position-input" />
+    </div>
+    <div class="input-group mb-1">
+      IP:
+      <input
+        type="text"
+        class="form-control robot-ip-input"
+        placeholder="0.0.0.0"
+      />
+      <button class="btn btn-success robot-connect-button" type="button">
+        Connect
+      </button>
+    </div>
+    <div class="input-group mb-1">
+      <span style="margin-right: 5px">Heartbeat:</span>
+      <div class="heartbeat-light"></div>
+      <span class="heartbeat-message"></span>
+    </div>
+  </div>
+  <div class="col" style="border: 1px solid black; background: #fffff0">
+    <h3>Gold Team 2</h3>
+    <div class="input-group mb-1">
+      Team #: <input type="number" class="form-control team-num-input" />
+    </div>
+    <div class="input-group mb-1">
+      Team Name: <input type="text" class="form-control team-name-input" />
+    </div>
+    <div class="input-group mb-1">
+      Starting Position:
+      <input type="number" class="form-control team-starting-position-input" />
+    </div>
+    <div class="input-group mb-1">
+      IP:
+      <input
+        type="text"
+        class="form-control robot-ip-input"
+        placeholder="0.0.0.0"
+      />
+      <button class="btn btn-success robot-connect-button" type="button">
+        Connect
+      </button>
+    </div>
+    <div class="input-group mb-1">
+      <span style="margin-right: 5px">Heartbeat:</span>
+      <div class="heartbeat-light"></div>
+      <span class="heartbeat-message"></span>
+    </div>
+  </div>
+</div>
+
+<div class="row bottom-padding">
+  <div class="col" style="border: 1px solid black">
+    <h3>Meta</h3>
+    <div class="input-group">
+      <span>State: <span id="state-msg">None</span></span>
+    </div>
+  </div>
+</div>
+
+<div class="row bottom-padding">
+  <div class="btn-group" role="group" aria-label="...">
+    <button type="button" class="btn btn-success spaced" id="create-match">
+      <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Create
+      Match
+    </button>
+    <button type="button" class="btn btn-success spaced" id="match-start">
+      <span class="glyphicon glyphicon-play" aria-hidden="true"></span>Start
+      Match
+    </button>
+    <button type="button" class="btn btn-danger spaced" id="match-reset">
+      <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span
+      >Reset Match
+    </button>
+    <button type="button" class="btn btn-danger spaced" id="pause-timers">
+      <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span
+      >Pause Timers
+    </button>
+    <button type="button" class="btn btn-danger spaced" id="resume-timers">
+      <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span
+      >Resume Timers
+    </button>
+  </div>
+</div>
+
+{% endblock %}

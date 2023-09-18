@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<!-- One thing to do is replace the scores - example Lousville 85 with the time acheived -->
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script async defer src='https://apis.google.com/js/api.js' onload='gapiLoaded()'> </script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <title>Bracket UI</title>
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Comic Sans MS, Comic Sans, cursive;
+        }
+
+        .bracket-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            background-color: lightgray;
+            height: 95vh;
+            border: 2px solid black;
+            overflow: hidden;
+            margin-bottom: .5rem;
+            margin-top: 1rem;
+        }
+
+        .matches-container {
+            background-color: white;
+            height: 35vh;
+            overflow-y: auto;
+            border: 2px solid black;
+        }
+
+
+
+        /* Styling for the bracket  */
+        .score {
+            height: 60%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border: 1px solid black;
+            background-color: goldenrod;
+            color: black;
+            border-radius: 10px;
+            margin-inline: .1rem;
+        }
+
+
+        .school {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 95%;
+            background-color: rgb(43, 88, 236);
+            border: 1px solid black;
+            border-radius: 10px;
+            margin-inline: .1rem;
+        }
+
+        .single-match {
+            display: flex;
+            flex-direction: row;
+            background-color: blue;
+            height: 30%;
+            border: 1px solid black;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            background-color: lightgrey;
+        }
+
+
+
+
+
+        .tournament-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 200px;
+            list-style: none;
+            padding: 0;
+        }
+
+        .words-at-top {
+            position: absolute;
+        }
+
+
+        .round-final {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            justify-content: center;
+            width: 200px;
+            list-style: none;
+            padding: 0;
+
+        }
+
+
+        .round .spacer {
+            flex-grow: 1;
+        }
+
+        .round .spacer:first-child,
+        .round .spacer:last-child {
+            flex-grow: .5;
+        }
+
+        .round .game-spacer {
+            flex-grow: 1;
+        }
+
+        .round .game-spacer-flip {
+            flex-grow: 1;
+        }
+
+
+        li.game {
+            padding-left: 20px;
+        }
+
+        li.game.winner {
+            font-weight: bold;
+        }
+
+        li.game span {
+            float: right;
+            margin-right: 5px;
+        }
+
+        li.game-top {
+            border-bottom: 1px solid #aaa;
+            border-color: black;
+            background-color: gold;
+            border-radius: 10px;
+            color: black;
+
+        }
+
+        li.game-spacer {
+            border-right: 2px solid #aaa;
+            min-height: 40px;
+        }
+
+        li.game-spacer-flip {
+            border-left: 1px solid #aaa;
+            min-height: 40px;
+        }
+
+        li.game-bottom {
+            border-top: 1px solid #aaa;
+            border-color: black;
+            background-color: blue;
+            border-radius: 10px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="bracket-container">
+
+
+            <h1 class="words-at-top">Elimination Matches</h1>
+            <div class="tournament-container" id="tournament">
+
+                <ul class="round round-3">
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top" id = "quarter-finals-1">Lousville <span>77</span></li>
+                    <li class="game game-spacer">&nbsp;</li>
+                    <li class="game game-bottom" id = "quarter-finals-2">Oregon <span>69</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top " id = "quarter-finals-3">Mich St <span>61</span></li>
+                    <li class="game game-spacer">&nbsp;</li>
+                    <li class="game game-bottom" id = "quarter-finals-4">Duke <span>71</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+                </ul>
+
+
+
+                <ul class="round round-4">
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top" id = "semi-finals-1">Lousville <span>85</span></li>
+                    <li class="game game-spacer">&nbsp;</li>
+                    <li class="game game-bottom " id = "semi-finals-2">Duke <span>63</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+                </ul>
+
+                <ul class="round-final final">
+
+                    <li style="width: 200px;" class="game left game-top" id = "finals-1">Lousville<br>(Time)</li>
+                    <li style="width: 200px;" class="game right game-top" id = "finals-2">Oregon<br>(Time)</li>
+
+
+                </ul>
+
+                <ul class="round round-4">
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top" id = "semi-finals-3">Lousville <span>85</span></li>
+                    <li class="game game-spacer-flip">&nbsp;</li>
+                    <li class="game game-bottom" id = "semi-finals-4">Duke <span>63</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+                </ul>
+                <ul class="round round-3">
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top" id = "quarter-finals-5">Lousville <span>77</span></li>
+                    <li class="game game-spacer-flip">&nbsp;</li>
+                    <li class="game game-bottom" id = "quarter-finals-6">Oregon <span>69</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+
+                    <li class="game game-top" id = "quarter-finals-7">Mich St <span>61</span></li>
+                    <li class="game game-spacer-flip">&nbsp;</li>
+                    <li class="game game-bottom" id = "quarter-finals-8">Duke <span>71</span></li>
+
+                    <li class="spacer">&nbsp;</li>
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        
+
+
+
+
+
+
+    </div>
+    <script>
+        function gapiLoaded() {
+  const API_KEY = 'AIzaSyCtdsxq4_TWBoQU-gZEiA6YVQZUaweN6C8'; //CHANGE
+  const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
+  gapi.load('client', async () => {
+      await gapi.client.init({
+          apiKey: API_KEY,
+          discoveryDocs: [DISCOVERY_DOC],
+      });
+      get_teams();
+  });
+}
+//issue? We need to reload the page, each time we make a change to the google sheet
+async function get_teams() {
+  try {
+    // fetching the 1 line
+    response = await gapi.client.sheets.spreadsheets.values.get({
+      spreadsheetId: '1c9NUoB1prQdrBfAAkaSKJCnIGrAQV8kx5GZKEeIAmWs',
+      range: 'BracketUI!A1:B25', // change this to set range you're pulling from TODO
+    });
+    console.log('t', response) //prints shows the spreadsheet values
+  } catch (err) {
+    console.log('NOT WORKING')
+    
+    return;
+  }
+    //Getting Everything from Google SHeet
+      //1. make two arrays - one for blue and yello box =-
+      //2. get the ranges for blu queue.
+  game_data = response.result.values
+  console.log('here is the array', game_data) //printing the range
+    const qf1 = game_data.at(0).at(0);
+    const qf2 = game_data.at(1).at(0);
+    const qf3 = game_data.at(2).at(0);
+    const qf4 = game_data.at(3).at(0);
+    const qf5 = game_data.at(4).at(0); 
+    const qf6 = game_data.at(5).at(0);
+    const qf7 = game_data.at(6).at(0);
+    const qf8 = game_data.at(7).at(0);
+    //***************************
+    //semi-finalists
+    const sf1 = game_data.at(9).at(0);
+    const sf2 = game_data.at(10).at(0);
+    const sf3 = game_data.at(11).at(0);
+    const sf4 = game_data.at(12).at(0);
+    //***************************
+    //finalists
+    const f1 = game_data.at(14).at(0);
+    const f2 = game_data.at(15).at(0);
+    //***************************
+
+        const quarter_finalists = [qf1, qf2, qf3, qf4, qf5, qf6, qf7, qf8];
+        const quarter_finalists_scores = [game_data.at(0).at(1), game_data.at(1).at(1), game_data.at(2).at(1), game_data.at(3).at(1), game_data.at(4).at(1), game_data.at(5).at(1), game_data.at(6).at(1), game_data.at(7).at(1)]
+        for (let i = 0; i < quarter_finalists.length; i++) {
+            document.getElementById("quarter-finals-"+(i+1).toString()).innerHTML = quarter_finalists[i].toString() + "<span>" + quarter_finalists_scores[i].toString() + "</span>"
+        }
+        const semi_scores = [game_data.at(9).at(1), game_data.at(10).at(1), game_data.at(11).at(1), game_data.at(12).at(1)];
+        const semi_finalists = [sf1, sf2, sf3, sf4];
+        for (let i = 0; i < semi_finalists.length; i++) {
+            document.getElementById("semi-finals-"+(i+1).toString()).innerHTML = semi_finalists[i].toString() + "<span>" + semi_scores[i].toString() + "</span>"
+        }
+        const finalists = [f1, f2];
+        const final_scores = [game_data.at(14).at(1), game_data.at(15).at(1)];
+        for (let i = 0; i < finalists.length; i++) {
+            document.getElementById("finals-"+(i+1).toString()).innerHTML = finalists[i].toString() + "<br>" + final_scores[i].toString();
+        }
+}
+//function to keep refreshing
+setInterval('get_teams()', 100000);
+        //quarter-finalists
+        
+    </script>
+
+
+</body>
+
+
+
+<!-- Optional JavaScript; choose one of the two! -->
+
+<!-- Option 1: Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+</script>
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    -->
+
+</html>

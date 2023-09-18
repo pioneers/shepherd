@@ -1,3 +1,8 @@
+
+##### YDL #####
+# ydl is maintained by us, in https://github.com/pioneers/ydl
+ydl-ipc
+
 ##### Protobuf for Runtime stuff #####  
 protobuf
 
@@ -11,6 +16,5 @@ flask-socketio
 gevent-websocket
 
 ##### Type checking #####
-typeguard
-
+typeguard == 2.13.*
 

@@ -1,0 +1,674 @@
+{% extends 'base.html' %} {% block head_content %}
+<title>Match Creator</title>
+<link rel="stylesheet" href="../static/match_creator.css" />
+
+<script>
+  // this function is called when the page is loaded, from base.html
+  // socket: the main socketio websocket
+  // send: a function that sends a header through the socket, and also logs it
+  function main_js_content(socket, send) {
+    //add socket listeners and javascript stuff here
+    console.log("Inside function: main_js_content");
+    var match_num = -1;
+    var teams = [
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+      {
+        team_name: "[loading]",
+        team_num: -1,
+        robot_ip: "[loading]",
+        starting_position: null,
+      },
+    ];
+    const INDEX_NAMES = [
+      "Blue Team 1",
+      "Blue Team 2",
+      "Gold Team 1",
+      "Gold Team 2",
+    ];
+    const match_num_input = $("#select-match-number");
+    const next_match_btn = $("#next-round");
+    const populate_btn = $("#select-round");
+    const team_num_inputs = individual($(".team-num"));
+    const team_name_inputs = individual($(".team-name"));
+    // const team_sp_inputs = individual($(".team-starting-position-input"));
+    const robot_ip_inputs = individual($(".robot-ip"));
+    const robot_connect_btns = individual($(".connect"));
+    const robot_disconnect_btns = individual($(".disconnect"));
+    const heartbeat_lights_green = individual($(".led-green"));
+    const heartbeat_lights_red = individual($(".led-red"));
+    const robot_start_btns = individual($(".start"));
+    const robot_stop_btns = individual($(".stop"));
+    const state_msg = individual($(".state-msg"));
+    const match_phase_input = $("#select-match-phase");
+    const create_match_btn = $("#create-match");
+    const start_match_btn = $("#match-start");
+    const reset_match_btn = $("#match-reset");
+    const pause_timers_btn = $("#pause-timers")
+    const resume_timers_btn = $("#resume-timers")
+
+    function individual(jq_obj) {
+      console.log("Inside function: individual");
+      let res = Array(jq_obj.length);
+      for (let a = 0; a < jq_obj.length; a++) {
+        res[a] = $(jq_obj[a]);
+      }
+      return res;
+    }
+
+    socket.on("connect", function (data) {
+      console.log("Inside function: connect");
+      socket.emit("join", "staff_gui");
+      send("get_match_info");
+      send("get_state");
+      send("get_connection_status");
+    });
+
+    socket.on("teams_info", function (data) {
+      console.log("Inside function: teams_info");
+      data = JSON.parse(data);
+      match_num = data.match_num;
+      teams = data.teams;
+      setDefaultTeamsInfo();
+      // next_match_btn.prop("disabled", false);
+      // next_match_btn.removeClass("disabled-btn");
+      // next_match_btn.addClass("green-btn");
+      // populate_btn.prop("disabled", false);
+      // populate_btn.removeClass("disabled-btn");
+      // populate_btn.addClass("green-btn");
+      setButtonStatus(next_match_btn, true, "green");
+      setButtonStatus(populate_btn, true, "green");
+    });
+
+    socket.on("state", function (data) {
+      console.log("Inside function: state");
+      data = JSON.parse(data);
+      for (let a = 0; a < 4; a++) {
+        state_msg[a].text(data.state);
+      }
+      setButtonStatus(create_match_btn, true, "green");
+      setButtonStatus(start_match_btn, true, "green");
+      setButtonStatus(reset_match_btn, true, "red");
+    });
+
+    socket.on("robot_connection", function (data) {
+      console.log("Inside function: robot_connection");
+      data = JSON.parse(data);
+      let msg = data.connected
+        ? `Connected to ${data.robot_ip}`
+        : data.robot_ip === ""
+        ? "Not connected"
+        : `Disconnected from ${data.robot_ip}`;
+      toggleHeartbeat(data.ind, data.connected, msg);
+    });
+
+    socket.on("invalid_write_match", (match) => {
+      console.log("Successful ydl message: invalid_write_match");
+      match_num_info = JSON.parse(match);
+      match_num = match_num_info.match_num;
+      reason = match_num_info.reason;
+      if (reason == 1) {
+        msg1 = "The match number cannot be negative";
+        alert(msg1);
+        return;
+      }
+      else if (reason == 2) {
+        msg1 = "The team numbers cannot be negative";
+        alert(msg1);
+        return;
+      }
+      else if (reason == 3) {
+        msg1 = "Warning: The match number " + match_num + " was already found in the spreadsheet under the Ref Scoring tab. ";
+        msg2 = "The match data was correctly set but please reset the scores in the spreadsheet."
+        alert(msg1 + msg2);
+      }
+      else {
+        msg1 = "Warning: The match number " + match_num + " was already found in the spreadsheet under the Match Database tab. ";
+        msg2 = "If you are intending to start a new match, please delete the existing row in the spreadsheet and press the create match button again. "
+        msg3 = "Or you can use a different match number. "
+        alert(msg1 + msg2);
+      }
+    });
+
+    function setDefaultTeamsInfo() {
+      console.log("Inside function: setDefaultTeamsInfo");
+      match_num_input.val(match_num);
+      for (let a = 0; a < 4; a++) {
+        team_num_inputs[a].val(teams[a].team_num);
+        team_name_inputs[a].val(teams[a].team_name);
+        // team_sp_inputs[a].val(teams[a].starting_position);
+        robot_ip_inputs[a].val(teams[a].robot_ip);
+      }
+    }
+
+    function toggleHeartbeat(ind, connected, message) {
+      console.log("Inside function: toggleHeartbeat");
+      if (connected == null) {
+        heartbeat_lights_green[ind].toggleClass("led-green", false);
+        heartbeat_lights_green[ind].toggleClass("led-green-off", true);
+        heartbeat_lights_red[ind].toggleClass("led-red", false);
+        heartbeat_lights_red[ind].toggleClass("led-red-off", true);
+      } else {
+        heartbeat_lights_green[ind].toggleClass("led-green", connected);
+        heartbeat_lights_green[ind].toggleClass("led-green-off", !connected);
+        heartbeat_lights_red[ind].toggleClass("led-red", !connected);
+        heartbeat_lights_red[ind].toggleClass("led-red-off", connected);
+      }
+    }
+
+    function setButtonStatus(id, status, color) {
+      console.log("Inside function: setButtonStatus");
+      if (status == true) {
+        $(id).prop("disabled", false);
+        if (color == "green") {
+          $(id).removeClass("disabled-green-btn");
+          $(id).addClass("green-btn");
+        }
+        else if (color == "red") {
+          $(id).removeClass("disabled-red-btn");
+          $(id).addClass("green-btn");
+        }
+      }
+      else if (status == false) {
+        $(id).prop("disabled", true);
+        $(id).removeClass("green-btn");
+        $(id).addClass("disabled-btn");
+        if (color == "green") {
+          $(id).removeClass("green-btn");
+          $(id).addClass("disabled-green-btn");
+        }
+        else if (color == "red") {
+          $(id).removeClass("green-btn");
+          $(id).addClass("disabled-red-btn");
+        }
+      }
+
+      
+    }
+
+    next_match_btn.click(() => {
+      console.log("Inside onClick function: next_match_btn");
+      match_num++;
+      match_num_input.val("");
+      // next_match_btn.prop("disabled", true);
+      // next_match_btn.removeClass("green-btn");
+      // next_match_btn.addClass("disabled-btn");
+      // populate_btn.prop("disabled", true);
+      // populate_btn.removeClass("green-btn");
+      // populate_btn.addClass("disabled-btn");
+      setButtonStatus(next_match_btn, false, "green");
+      setButtonStatus(populate_btn, false, "green");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    populate_btn.click(() => {
+      console.log("Inside onClick function: populate_btn");
+      match_num = parseInt(match_num_input.val());
+      if (isNaN(match_num)) {
+        alert("invalid match number");
+        return;
+      }
+      match_num_input.val("");
+      // next_match_btn.prop("disabled", true);
+      // next_match_btn.removeClass("green-btn");
+      // next_match_btn.addClass("disabled-btn");
+      // populate_btn.prop("disabled", true);
+      // populate_btn.removeClass("green-btn");
+      // populate_btn.addClass("disabled-btn");
+      setButtonStatus(next_match_btn, false, "green");
+      setButtonStatus(populate_btn, false, "green");
+      send("set_match_number", JSON.stringify({ match_num: match_num }));
+    });
+
+    create_match_btn.click(() => {
+      console.log("Inside onClick function: create_match_btn");
+      match_num = parseInt(match_num_input.val());
+      if (isNaN(match_num)) {
+        alert("invalid match number");
+        return;
+      }
+      for (let a = 0; a < 4; a++) {
+        if (isNaN(parseInt(team_num_inputs[a].val()))) {
+          let error_message = "Invalid team number for robot ";
+          error_message += ((a == 0 || a == 1) ? "Blue" : "Gold") + " " + (a % 2 + 1);
+          alert(error_message);
+          return;
+        }
+      }
+      for (let a = 0; a < 4; a++) {
+        teams[a].team_num = parseInt(team_num_inputs[a].val());
+        teams[a].team_name = team_name_inputs[a].val();
+        // teams[a].starting_position = team_sp_inputs[a].val();
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+      }
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
+      send(
+        "setup_match",
+        JSON.stringify({ match_num: match_num, teams: teams })
+      );
+    });
+
+    start_match_btn.click(() => {
+      console.log("Inside onClick function: start_match_btn");      
+      let match_phase = match_phase_input.val();
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
+      if (match_phase == "") {
+        send("start_next_stage");
+      } else {
+        send(
+          "set_state",
+          JSON.stringify({ state: match_phase })
+        );
+      }
+    });
+
+    reset_match_btn.click(() => {
+      console.log("Inside onClick function: reset_match_btn");
+      setButtonStatus(create_match_btn, false, "green");
+      setButtonStatus(start_match_btn, false, "green");
+      setButtonStatus(reset_match_btn, false, "red");
+      send("reset_match");
+    });
+
+    pause_timers_btn.click(() => {
+      console.log("Inside onClick function: pause_timers_btn");
+      send("pause_timer")
+    })
+
+    resume_timers_btn.click(() => {
+      console.log("Inside onClick function: resume_timers_btn");
+      send("resume_timer")
+    })
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+      ((a) => {
+        robot_connect_btns[a].click(() => {
+          console.log("Inside onClick function: robot_connect_btns");
+          teams[a].robot_ip = robot_ip_inputs[a].val();
+          toggleHeartbeat(a, null, "awaiting connection...");
+          send(
+            "set_robot_ip",
+            JSON.stringify({ ind: a, robot_ip: teams[a].robot_ip })
+          );
+        });
+      })(outer_a);
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+    ((a) => {
+      robot_disconnect_btns[a].click(() => {
+        console.log("Inside onClick function: robot_disconnect_btns");
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+        toggleHeartbeat(a, null, "awaiting connection...");
+        send(
+          "disconnect_robot",
+          JSON.stringify({ ind: a })
+        );
+      });
+    })(outer_a);
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+      ((a) => {
+        robot_start_btns[a].click(() => {
+          console.log("Inside onClick function: robot_start_btns");
+          teams[a].robot_ip = robot_ip_inputs[a].val();
+          send(
+            "robot_on",
+            JSON.stringify({ ind: a })
+          );
+        });
+      })(outer_a);
+
+    for (let outer_a = 0; outer_a < 4; outer_a++)
+    ((a) => {
+      robot_stop_btns[a].click(() => {
+        console.log("Inside onClick function: robot_stop_btns");
+        teams[a].robot_ip = robot_ip_inputs[a].val();
+          send(
+            "robot_off",
+            JSON.stringify({ ind: a })
+          );
+      });
+    })(outer_a);
+
+    /* not used */
+    /*
+    $("#custom-ip-change").click(function () {
+      console.log("Inside onClick function: custom-ip-change");
+      let ip = $("#custom-ip-adjustment").val();
+      if (ip == "") {
+        alert("empty custom ip");
+        return;
+      }
+      send("set_custom_ip", JSON.stringify({ custom_ip: ip }));
+      toggleHeartbeat(null, "awaiting connection");
+    });
+
+    $("#stop-robot").click(function () {
+      console.log("Inside onClick function: stop-robot");
+      if (robot_connected || confirm("Not connected to a robot. Try anyway?")) {
+        send("robot_off", JSON.stringify({ team_number: team_num }));
+      }
+    });
+    */
+
+  }
+</script>
+{% endblock %} {% block html_content %}
+<br />
+<div class="grid-container">
+  <div class="team-container blue1-container">
+    <div class="team-controls">
+      <h5 class="blue-header">Blue 1</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3 class="state-msg">
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container blue2-container">
+    <div class="team-controls">
+      <h5 class="blue-header">Blue 2</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3 class="state-msg">
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container gold1-container">
+    <div class="team-controls">
+      <h5 class="gold-header">Gold 1</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3 class="state-msg">
+          TELEOP
+        </h3>
+    </div>
+  </div>
+  <div class="team-container gold2-container">
+    <div class="team-controls">
+      <h5 class="gold-header">Gold 2</h5>
+      <div class="controls-grid">
+        <input
+          class="team-num"
+          type=" text"
+          placeholder="Team #"
+          aria-label="Team #"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="team-name"
+          type="text"
+          placeholder="Team Name"
+          aria-label="Team Name"
+          aria-describedby="basic-addon2"
+        />
+        <input
+          class="robot-ip"
+          type="text"
+          placeholder="Robot IP"
+          aria-label="Robot IP"
+          aria-describedby="basic-addon2"
+        />
+
+        <button class="connect green-btn" type="button">Connect</button>
+        <button class="disconnect red-btn" type="button">Disconnect</button>
+
+        <div class="led-green s-led led">S</div>
+        <div class="led-red d-led led">D</div>
+
+        <!-- <div class="temp-battery">battery</div> -->
+        <div class="batteryContainer">
+          <div class="batteryBump"></div>
+          <div class="batteryOuter"></div>
+          <div class="batteryLevel"></div>
+        </div>
+
+        <div class="latency">
+          <p>Shepherd latency: N/A</p>
+          <p>Dawn latency: N/A</p>
+        </div>
+      </div>
+    </div>
+    <div class="start-stop">
+      <button class="start green-btn" type="button">start</button>
+        <button class="stop red-btn" type="button">stop</button>
+        <h3 class="state-msg">
+          TELEOP
+        </h3>
+    </div>
+    
+  </div>
+  <div class="shepherd-logo-holder">
+      <img style="width: 8rem;" src="../static/logo-border-20px-v3.png" alt="Pie Logo">
+      <h4>Shepherd Match Creator</h4>
+  </div>
+  <div class="match-number">
+    <input type=" text" placeholder="Match #" aria-label="Match #" aria-describedby="basic-addon2" id="select-match-number">
+  
+    <button class="green-btn" type="button" id="select-round">Populate</button>
+    <button class="green-btn" type="button" id="next-round">Next</button>
+  </div>
+  <div class="match-creator">
+    <h4>Match Control</h4>
+    <input
+
+      type=" text" placeholder="Match Phase" aria-label="Match Phase" aria-describedby="basic-addon2" id="select-match-phase">
+    <button class="green-btn" type="button" id="create-match"
+      >Create
+      Match</button>
+    <button class="green-btn" type="button" id="match-start"
+      >Start
+      Match</button>
+    <button class="red-btn" type="button" id="match-reset"
+    >Reset
+      Match</button>
+    <div class="timer-controls">
+      <button class="red-btn" type="button" id="pause-timers"
+      >Pause
+        Timer</button>
+      <button class="red-btn" type="button" id="resume-timers"
+      >Resume
+        Timer</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+      <!-- Battery -->
+      <div>
+        <div class="batteryContainer" style="--level: 100">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+      <div>
+        <div class="batteryContainer" style="--level: 75">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="batteryContainer" style="--level: 50">
+          <div class="batteryOuter">
+            <div class="batteryLevel"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="batteryContainer" style="--level: 25">
+          <div class="batteryOuter">
+            <div class="batteryLevel warn"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+      <div>
+        <div class="batteryContainer" style="--level: 0">
+          <div class="batteryOuter">
+            <div class="batteryLevel warn"></div>
+          </div>
+          <div class="batteryBump"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
