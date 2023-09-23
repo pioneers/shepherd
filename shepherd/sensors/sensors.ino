@@ -1,4 +1,4 @@
-// change this UUID for every Arduino this script is flashed onto
+// change this UUID for every arduino this script is flashed onto
 #define MY_UUID 1
 
 #define handshake_magic 2734451328
@@ -41,7 +41,7 @@ void readAllBytes(byte* buffer, size_t length) {
 void setup() {
   // first part of handshake: send 4 byte magic and 4 byte UUID
   Serial.begin(baudrate);
-  while(!Serial);
+  while (!Serial);
   Serial.setTimeout(1000);
   to_buf(handshake_magic, msg_buf);
   to_buf(MY_UUID, &(msg_buf[4]));
@@ -62,8 +62,8 @@ void setup() {
     num_input_pins = 0;
     num_output_pins = 0;
     for (int a = 0; a < num_pins_used; a++) {
-      int pin_num = configuration[2*a];
-      int pin_mode = configuration[2*a + 1];
+      int pin_num = configuration[2 * a];
+      int pin_mode = configuration[2 * a + 1];
       checksum = checksum ^ pin_num ^ pin_mode;
       switch (pin_mode) {
         case pinmode_digital_in:
@@ -95,12 +95,16 @@ void loop() {
   // process all outputs
   int idx = 1; // first byte is dummy
   for (int a = 0; a < num_pins_used; a++) {
-    int pin_num = configuration[2*a];
+    int pin_num = configuration[2 * a];
     byte val = msg_buf[idx];
-    switch (configuration[2*a + 1]) {
+    switch (configuration[2 * a + 1]) {
       case pinmode_digital_out:
-        if (val == digital_val_high) {digitalWrite(pin_num, HIGH);}
-        if (val == digital_val_low)  {digitalWrite(pin_num, LOW);}
+        if (val == digital_val_high) {
+          digitalWrite(pin_num, HIGH);
+        }
+        if (val == digital_val_low)  {
+          digitalWrite(pin_num, LOW);
+        }
         idx += 1;
         break;
       case pinmode_analog_out:
@@ -114,8 +118,8 @@ void loop() {
   msg_buf[0] = 42; // dummy byte
   idx = 1;
   for (int a = 0; a < num_pins_used; a++) {
-    int pin_num = configuration[2*a];
-    switch (configuration[2*a + 1]) {
+    int pin_num = configuration[2 * a];
+    switch (configuration[2 * a + 1]) {
       case pinmode_digital_in:
         msg_buf[idx] = digitalRead(pin_num) == HIGH ? digital_val_high : digital_val_low;
         idx += 1;
@@ -133,6 +137,6 @@ void loop() {
         break;
     }
   }
-  
+
   Serial.write(msg_buf, 1 + num_input_pins);
 }
