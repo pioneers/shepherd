@@ -1,5 +1,5 @@
 # pylint: disable=invalid-name
-from ydl import header
+from ydl import Handler, header
 
 class YDL_TARGETS():
     SHEPHERD = "ydl_target_shepherd"
@@ -393,6 +393,24 @@ class STATE():
     TELEOP_2 = "teleop_2"
     TELEOP_3 = "teleop_3"
     END = "end"
+
+class SHEPHERD_HANDLER():
+    EVERYWHERE = Handler()
+    SETUP = Handler()
+    AUTO = Handler()
+    TELEOP_1 = Handler()
+    TELEOP_2 = Handler()
+    TELEOP_3 = Handler()
+    END = Handler()
+
+STATE_HANDLERS = {
+    STATE.SETUP: SHEPHERD_HANDLER.SETUP,
+    STATE.AUTO: SHEPHERD_HANDLER.AUTO,
+    STATE.TELEOP_1: SHEPHERD_HANDLER.TELEOP_1,
+    STATE.TELEOP_2: SHEPHERD_HANDLER.TELEOP_2,
+    STATE.TELEOP_3: SHEPHERD_HANDLER.TELEOP_3,
+    STATE.END: SHEPHERD_HANDLER.END
+}
 
 STAGE_TIMES = {
     STATE.AUTO: 30,

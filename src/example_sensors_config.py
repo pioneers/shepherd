@@ -1,9 +1,10 @@
-from ydl import YDLClient
+from ydl import Client, Handler
 from sensors import PinMode, DigitalValue, Arduino, InputPin, OutputPin, start_device_handlers
 from utils import YDL_TARGETS, SHEPHERD_HEADER, SENSOR_HEADER
 
 
-yc = YDLClient(YDL_TARGETS.SENSORS)
+yc = Client(YDL_TARGETS.SENSORS)
+yh = Handler()
 arduino1 = Arduino(1)
 arduino2 = Arduino(2)
 dummy_arduino = Arduino(123456)
@@ -48,15 +49,14 @@ start_device_handlers(
     [arduino1, arduino2]
 )
 
-incoming_headers = {
-    SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name: lambda id: lights[id].set_state(high),
-    SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name: lambda id: lights[id].set_state(low),
-}
+@yh.on(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT)
+def set_high(id):
+    lights[id].set_state(high)
+
+@yh.on(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT)
+def set_low(id):
+    lights[id].set_state(low)
 
 while True:
-    _, header_name, args = yc.receive()
-    if header_name in incoming_headers:
-        print(f"Processing {(header_name, args)}")
-        incoming_headers[header_name](**args)
-    else:
-        print(f"Unknown header: {(header_name, args)}")
+    data = yc.receive()
+    yh.handle(data)
