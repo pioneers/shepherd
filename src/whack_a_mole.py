@@ -2,12 +2,12 @@ import time
 import random
 import queue
 import threading
-from ydl import YDLClient
+from ydl import Client
 from utils import *
 
 
 NUM_BUTTONS = 5
-YC = YDLClient(YDL_TARGETS.SHEPHERD)
+YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
 

@@ -1,8 +1,8 @@
-from ydl import YDLClient
+from ydl import Client
 from utils import YDL_TARGETS, SHEPHERD_HEADER, SENSOR_HEADER
 import threading
 
-yc = YDLClient(YDL_TARGETS.SENSORS)
+yc = Client(YDL_TARGETS.SENSORS)
 lights = [False] * 10
 
 def format_lights(ar):

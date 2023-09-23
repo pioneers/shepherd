@@ -1,5 +1,5 @@
 import time
-from ydl import YDLClient
+from ydl import Client
 from utils import *
 from sensors import PinMode, DigitalValue, Arduino, InputPin, OutputPin, start_device_handlers
 
@@ -8,7 +8,7 @@ high = DigitalValue.HIGH.value
 arduino1 = Arduino(1)
 arduino2 = Arduino(2)
 
-YC = YDLClient(YDL_TARGETS.SENSORS)
+YC = Client(YDL_TARGETS.SENSORS)
 
 lights = [
     OutputPin(arduino1, 10, PinMode.DIGITAL_OUT, initial_value=high),

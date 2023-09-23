@@ -1,6 +1,6 @@
 import threading
 import time
-from ydl import YDLClient
+from ydl import Client, Handler
 from alliance import Alliance
 from timer import TimerGroup, Timer
 from utils import *
@@ -15,7 +15,7 @@ from robot import Robot
 ###########################################
 # Evergreen Variables
 ###########################################
-YC = YDLClient(YDL_TARGETS.SHEPHERD)
+YC = Client(YDL_TARGETS.SHEPHERD)
 MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
 TIMERS = TimerGroup()
@@ -41,7 +41,6 @@ CLIENTS = RuntimeClientManager(YC)
 # Evergreen Methods
 ###########################################
 
-
 def start():
     '''
     Main loop which processes the event queue and calls the appropriate function
@@ -51,14 +50,10 @@ def start():
         payload = YC.receive()
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         print(payload)
-
-        if GAME_STATE in FUNCTION_MAPPINGS:
-            func_list = FUNCTION_MAPPINGS.get(GAME_STATE)
-            func = func_list.get(payload[1]) or EVERYWHERE_FUNCTIONS.get(payload[1])
-            if func is not None:
-                func(**payload[2]) #deconstructs dictionary into arguments
-            else:
-                print(f"Invalid Event in {GAME_STATE}")
+        
+        if GAME_STATE in STATE_HANDLERS:
+            handler = STATE_HANDLERS.get(GAME_STATE)
+            handler.handle(payload)
         else:
             print(f"Invalid State: {GAME_STATE}")
 
@@ -68,7 +63,8 @@ def pull_from_sheets():
             Sheet.send_scores_for_icons(MATCH_NUMBER)
         time.sleep(2.0)
 
-
+@SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SET_MATCH_NUMBER)
+@SHEPHERD_HANDLER.END.on(SHEPHERD_HEADER.SET_MATCH_NUMBER)
 def set_match_number(match_num):
     '''
     Retrieves all match info based on match number and sends this information to the UI.
@@ -85,7 +81,8 @@ def set_match_number(match_num):
     Sheet.get_match(match_num)
 
 
-
+@SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SET_TEAMS_INFO)
+@SHEPHERD_HANDLER.END.on(SHEPHERD_HEADER.SET_TEAMS_INFO)
 def set_teams_info(teams):
     '''
     Caches info and sends it to any open UIs.
@@ -99,6 +96,7 @@ def set_teams_info(teams):
     # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.PAUSE_TIMER)
 def pause_timer():
     '''
     Pauses a running match. Invalid to call during setup and end.
@@ -108,6 +106,7 @@ def pause_timer():
         disable_robots()
         YC.send(UI_HEADER.PAUSE_TIMER())
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESUME_TIMER)
 def resume_timer():
     '''
     Resumes a running match. Invalid to call during setup and end.
@@ -123,7 +122,8 @@ def resume_timer():
 # Transition Methods
 ###########################################
 
-
+@SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SETUP_MATCH)
+@SHEPHERD_HANDLER.END.on(SHEPHERD_HEADER.SETUP_MATCH)
 def to_setup(match_num, teams):
     '''
     loads the match information for the upcoming match, then
@@ -139,6 +139,7 @@ def to_setup(match_num, teams):
     reset_match()
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESET_MATCH)
 def reset_match():
     '''
     Resets the current match, moving back to the setup stage but with the current teams loaded in.
@@ -173,6 +174,8 @@ def set_state(state):
     send_state_to_ui()
     print(f"ENTERING {state} STATE")
 
+
+@SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.START_NEXT_STAGE)
 def to_auto():
     '''
     Move to the autonomous stage where robots should begin autonomously.
@@ -184,6 +187,8 @@ def to_auto():
     YC.send(UI_HEADER.PLAY_START_SOUND())
     set_state(STATE.AUTO)
 
+
+@SHEPHERD_HANDLER.AUTO.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_teleop_1():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_1])
     BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
@@ -195,16 +200,21 @@ def to_teleop_1():
     # whack_a_mole_start('gold')
 
 
+@SHEPHERD_HANDLER.TELEOP_1.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_teleop_2():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_2)
+    
 
+@SHEPHERD_HANDLER.TELEOP_2.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_teleop_3():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_3])
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_3)
 
+
+@SHEPHERD_HANDLER.TELEOP_3.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_end():
     '''
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
@@ -227,6 +237,7 @@ def to_end():
     print("ENTERING END STATE")
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_STATE)
 def go_to_state(state):
     transitions = {
         STATE.SETUP: reset_match,
@@ -241,6 +252,8 @@ def go_to_state(state):
     else:
         print(f"Sorry, {state} is not a valid state to move to.")
 
+
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_ROBOT_IP)
 def set_robot_ip(ind, robot_ip):
     '''
     Sets the given client ip, and attempts to connect to it
@@ -278,6 +291,7 @@ def flush_scores():
     # )
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_MATCH_INFO)
 def send_match_info_to_ui():
     '''
     Sends all match info to the UI
@@ -290,6 +304,8 @@ def send_match_info_to_ui():
     ]))
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_SCORES)
+
 def send_score_to_ui():
     '''
     Sends the current score to the UI
@@ -300,7 +316,7 @@ def send_score_to_ui():
     #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
     # ))
 
-
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_STATE)
 def send_state_to_ui():
     '''
     Sends the GAME_STATE to the UI
@@ -314,6 +330,7 @@ def send_state_to_ui():
         YC.send(UI_HEADER.STATE(state=GAME_STATE))
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_CONNECTION_STATUS)
 def send_connection_status_to_ui():
     '''
     Sends the connection status of all runtime clients to the UI
@@ -326,7 +343,6 @@ def send_connection_status_to_ui():
 # Game Specific Methods
 ###########################################
 
-
 def enable_robots(autonomous):
     '''
     Sends message to Runtime to enable all robots. The argument should be a boolean
@@ -335,13 +351,13 @@ def enable_robots(autonomous):
     CLIENTS.send_mode(AUTO if autonomous else TELEOP)
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.ROBOT_ON)
 def enable_robot(ind):
     '''
     Send message to Runtime to enable the robot of team
     '''
     mode = AUTO if GAME_STATE == STATE.AUTO else TELEOP
     CLIENTS.clients[ind].send_mode(mode)
-
 
 def disable_robots():
     '''
@@ -350,6 +366,7 @@ def disable_robots():
     CLIENTS.send_mode(IDLE)
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.ROBOT_OFF)
 def disable_robot(ind):
     '''
     Send message to Runtime to disable the robot of team
@@ -357,6 +374,7 @@ def disable_robot(ind):
     CLIENTS.clients[ind].send_mode(IDLE)
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.DISCONNECT_ROBOT)
 def disconnect_robot(ind):
     '''
     Send message to Runtime to disconnect the robot of team
@@ -364,6 +382,7 @@ def disconnect_robot(ind):
     CLIENTS.clients[ind].close_connection()
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_ALLIANCE_SELECTION)
 def update_alliance_selection(alliances: list):
     '''
     Updates the Google Sheets with the chosen alliances
@@ -373,7 +392,9 @@ def update_alliance_selection(alliances: list):
     # print("Shepherd.py update alliance selection")
     # Sheet.write_alliance_selections(alliances)
     Sheet.write_alliance_selections(alliances)
+    
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE)
 def update_whack_a_mole_score(alliance, score):
     '''
     Updates the whack a mole score and send updated score to sheet
@@ -391,6 +412,7 @@ def update_whack_a_mole_score(alliance, score):
 ###########################################
 
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.TURN_LIGHT_FROM_UI)
 def forward_button_light(num, type, on):
     if type == "button":
         if on:
@@ -412,7 +434,7 @@ def flash_lights(ar):
             YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
         time.sleep(0.25)
 
-
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.BUTTON_PRESS)
 def button_pressed(id):
     # id = button
     print(f"Detected button {id} pressed")
@@ -426,60 +448,6 @@ def button_pressed(id):
 ###########################################
 
 # pylint: disable=no-member
-FUNCTION_MAPPINGS = {
-    STATE.SETUP: {
-        SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
-        SHEPHERD_HEADER.SET_TEAMS_INFO.name: set_teams_info,
-        SHEPHERD_HEADER.SETUP_MATCH.name: to_setup,
-        SHEPHERD_HEADER.START_NEXT_STAGE.name: to_auto,
-    },
-    STATE.AUTO: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_1,
-        # SHEPHERD_HEADER.RESET_CURRENT_STAGE.name: to_auto,
-        # SHEPHERD_HEADER.START_NEXT_STAGE.name: to_teleop,
-    },
-    STATE.TELEOP_1: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_2,
-    },
-    STATE.TELEOP_2: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_teleop_3,
-    },
-    STATE.TELEOP_3: {
-        SHEPHERD_HEADER.STAGE_TIMER_END.name: to_end,
-    },
-    STATE.END: {
-        SHEPHERD_HEADER.SET_MATCH_NUMBER.name: set_match_number,
-        SHEPHERD_HEADER.SET_TEAMS_INFO.name: set_teams_info,
-        SHEPHERD_HEADER.SETUP_MATCH.name: to_setup,
-        # temporary code for exhibition, uncomment later
-        # SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
-    }
-}
-
-EVERYWHERE_FUNCTIONS = {
-    SHEPHERD_HEADER.GET_MATCH_INFO.name: send_match_info_to_ui,
-    SHEPHERD_HEADER.GET_SCORES.name: send_score_to_ui,
-    SHEPHERD_HEADER.GET_STATE.name: send_state_to_ui,
-    SHEPHERD_HEADER.GET_CONNECTION_STATUS.name: send_connection_status_to_ui,
-
-    SHEPHERD_HEADER.SET_STATE.name: go_to_state,
-    SHEPHERD_HEADER.ROBOT_OFF.name: disable_robot,
-    SHEPHERD_HEADER.ROBOT_ON.name: enable_robot,
-    SHEPHERD_HEADER.SET_ROBOT_IP.name: set_robot_ip,
-    SHEPHERD_HEADER.DISCONNECT_ROBOT.name: disconnect_robot,
-    SHEPHERD_HEADER.RESET_MATCH.name: reset_match,
-
-    SHEPHERD_HEADER.TURN_LIGHT_FROM_UI.name: forward_button_light,
-    SHEPHERD_HEADER.BUTTON_PRESS.name: button_pressed,
-    SHEPHERD_HEADER.PAUSE_TIMER.name: pause_timer,
-    SHEPHERD_HEADER.RESUME_TIMER.name: resume_timer,
-    # SHEPHERD_HEADER.TURN_BUTTON_LIGHT_FROM_UI.name: forward_button_light,
-    # SHEPHERD_HEADER.UPDATE_SCORE.name: update_score,
-    # temporary code for exhibition, remove later
-    SHEPHERD_HEADER.SET_SCORES.name: score_adjust,
-    SHEPHERD_HEADER.UPDATE_ALLIANCE_SELECTION.name: update_alliance_selection,
-    SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name: update_whack_a_mole_score,
-}
 
 if __name__ == '__main__':
     threading.Thread(target=pull_from_sheets, daemon=True).start()

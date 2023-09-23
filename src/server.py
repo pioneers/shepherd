@@ -3,7 +3,7 @@ import hashlib
 import gevent
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-from ydl import YDLClient
+from ydl import Client
 from utils import YDL_TARGETS, UI_PAGES, CONSTANTS
 
 HOST_URL = "0.0.0.0"
@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
-YC = YDLClient(YDL_TARGETS.UI)
+YC = Client(YDL_TARGETS.UI)
 
 @app.route('/')
 def hello_world():

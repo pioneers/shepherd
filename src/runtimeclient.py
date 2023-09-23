@@ -2,7 +2,7 @@ import time
 import threading
 import socket
 import sys
-from ydl import YDLClient
+from ydl import Client
 from utils import PROTOBUF_TYPES, UI_HEADER
 sys.path.append("protos") # needed so protos can import each other
 from protos import run_mode_pb2
@@ -48,7 +48,7 @@ class RuntimeClient:
     reconnect. If close_connection is called, the socket will close and the
     thread will end.
     """
-    def __init__(self, ind, robot_ip, yc:YDLClient):
+    def __init__(self, ind, robot_ip, yc: Client):
         self.ind = ind
         self.robot_ip = robot_ip
         self.yc = yc
@@ -202,7 +202,7 @@ class RuntimeClient:
 
 
 class RuntimeClientManager:
-    def __init__(self, yc:YDLClient):
+    def __init__(self, yc: Client):
         self.yc = yc
         self.clients = [RuntimeClient(i, "", yc) for i in range(4)]
 

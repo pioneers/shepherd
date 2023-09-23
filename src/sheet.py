@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from ydl import YDLClient
+from ydl import Client
 from utils import *
 
 # If modifying these scopes, delete your previously saved credentials
@@ -17,7 +17,7 @@ from utils import *
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'sheets/client_secret.json'
 USER_TOKEN_FILE = "sheets/user_token.json" # user token; do not upload to github (.gitignore it)
-YC = YDLClient()
+YC = Client()
 
 """
 Sheet structure: [match #, blue 1 #, blue 1 name, blue 1 ip, blue 2 #, ...]
