@@ -71,7 +71,7 @@ def start():
             try:
                 message = EVENT_QUEUE.get(False)
             except queue.Empty:
-                continue
+                continue  
             if message[1] == SHEPHERD_HEADER.BUTTON_PRESS.name:
                 # print("III pressed: " + str(message[2]["id"]))
                 if int(message[2]["id"]) == button:
