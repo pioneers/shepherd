@@ -37,17 +37,17 @@ def cheat_codes(alliance):
 def send_score(alliance, max_streak, cheat_code_done):
     score = 0
     if max_streak in [1, 2]:
-        score = 20
+        score = 20 / 2
     if max_streak in [3, 4]:
-        score = 40
+        score = 40 / 2
     if max_streak in [5, 6]:
-        score = 60
+        score = 60 / 2
     if max_streak >= 7:
-        score = 80
+        score = 80 / 2
         # return # do we actually want to end the game if streak 7? 
     
     if cheat_code_done:
-        score += 100
+        score += 100 / 2
         
     YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
     print(f'score: {score}')

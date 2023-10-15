@@ -14,6 +14,7 @@ lights = [
     OutputPin(arduino1, 3, PinMode.DIGITAL_OUT, initial_value=high),
 
     OutputPin(arduino2, 16, PinMode.DIGITAL_OUT, initial_value=high),
+    # OutputPin(arduino2, 9, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino2, 9, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino2, 7, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino2, 5, PinMode.DIGITAL_OUT, initial_value=high),
@@ -34,6 +35,7 @@ buttons = [
     InputPin(arduino1, 2, PinMode.DIGITAL_IN, make_button_handler(4)),
 
     InputPin(arduino2, 10, PinMode.DIGITAL_IN, make_button_handler(5)),
+    # InputPin(arduino2, 8, PinMode.DIGITAL_IN, make_button_handler(5)),
     InputPin(arduino2, 8, PinMode.DIGITAL_IN, make_button_handler(6)),
     InputPin(arduino2, 6, PinMode.DIGITAL_IN, make_button_handler(7)),
     InputPin(arduino2, 4, PinMode.DIGITAL_IN, make_button_handler(8)),
