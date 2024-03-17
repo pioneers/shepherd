@@ -6,7 +6,8 @@ from ydl import Client
 from utils import *
 
 
-NUM_BUTTONS = 5
+NUM_BUTTONS = 6
+REQUIREMENT = 5
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
@@ -17,41 +18,44 @@ GOLD_QUEUE = queue.Queue()
 def turn_all_lights(alliance, on):
     head = SENSOR_HEADER.TURN_ON_BUTTON_LIGHT if on else SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT
     if alliance == ALLIANCE_COLOR.BLUE:
-        ar = [0, 1, 2, 3, 4]
+        ar = [0, 1, 2, 3, 4, 5]
     else:
-        ar = [5, 6, 7, 8, 9]
+        ar = [6, 7, 8, 9, 10, 11]
     for i in ar:
         YC.send((YDL_TARGETS.SENSORS, head.name, {"id": i}))
 
 
-def cheat_codes(alliance):
+def cheat_codes(alliance, code):
     if alliance == 'blue':
-        CHEAT_CODE = [0, 1, 2, 3, 4] #change this!! cheat code button id order
-        REVERSED_CHEAT_CODE = [4-a for a in CHEAT_CODE] 
+        CHEAT_CODE = [hash(c) % NUM_BUTTONS for c in code] #change this!! cheat code button id order
     else: #alliance == 'gold'
-        CHEAT_CODE = [5, 6, 7, 8, 9] #change this!! cheat code button id order
-        REVERSED_CHEAT_CODE = [14-a for a in CHEAT_CODE]
-    return (CHEAT_CODE, REVERSED_CHEAT_CODE)
+        CHEAT_CODE = [hash(c) % NUM_BUTTONS + NUM_BUTTONS for c in code] #change this!! cheat code button id order
+    return CHEAT_CODE
 
 
-def send_score(alliance, max_streak, cheat_code_done):
-    score = 0
-    if max_streak in [1, 2]:
-        score = 20
-    if max_streak in [3, 4]:
-        score = 40
-    if max_streak in [5, 6]:
-        score = 60
-    if max_streak >= 7:
-        score = 80
-        # return # do we actually want to end the game if streak 7? 
-    
-    if cheat_code_done:
-        score += 100
-        
-    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
-    print(f'score: {score}')
-    print(f'alliance: {alliance}')
+# def send_score(alliance, max_streak, cheat_code_done):
+#     score = 0
+#     if max_streak in [1, 2]:
+#         score = 20
+#     if max_streak in [3, 4]:
+#         score = 40
+#     if max_streak in [5, 6]:
+#         score = 60
+#     if max_streak >= 7:
+#         score = 80
+#         # return # do we actually want to end the game if streak 7? 
+#     
+#     if cheat_code_done:
+#         score += 100
+#         
+#     YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, {"alliance": alliance, "score": score})) 
+#     print(f'score: {score}')
+#     print(f'alliance: {alliance}')
+
+def send_score(alliance, num_whack_pressed, num_cheat_pressed):
+    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE.name, \
+             {"alliance": alliance, "outcome": (num_whack_pressed >= REQUIREMENT, num_cheat_pressed >= REQUIREMENT)}))
+
 
 def fill_queue():
     while True:
@@ -83,9 +87,9 @@ def fill_queue():
 #                 whack_a_mole_start()
 
 def whack_a_mole_start(alliance):
-    #alliance: blue or gold
-    #ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
-    #print("banana boat")
+    # alliance: blue or gold
+    # ydl_send(YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_LIGHT.name, {"id": 1})
+    # print("banana boat")
     """
     while True:
         turn_all_lights(alliance, on=False)
