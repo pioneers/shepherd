@@ -60,7 +60,8 @@ def start():
 
 def pull_from_sheets():
     while True:
-        if GAME_STATE not in [STATE.SETUP]:
+        # if GAME_STATE not in [STATE.SETUP]:
+        if not TIMERS.is_paused() and GAME_STATE not in [STATE.END, STATE.SETUP]:
             Sheet.send_scores_for_icons(MATCH_NUMBER)
         time.sleep(2.0)
 
@@ -195,17 +196,13 @@ def to_auto():
 
 @SHEPHERD_HANDLER.AUTO.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_teleop():
-    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP])
+    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_1])
     # BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
-    set_state(STATE.TELEOP)
-    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.BLUE), daemon=True).start()
-    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.GOLD), daemon=True).start()
-    # whack_a_mole_start('blue')
-    # whack_a_mole_start('gold')
+    set_state(STATE.TELEOP_1)
 
 
-@SHEPHERD_HANDLER.TELEOP.on(SHEPHERD_HEADER.STAGE_TIMER_END)
+@SHEPHERD_HANDLER.TELEOP_1.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_end():
     '''
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
@@ -219,11 +216,6 @@ def to_end():
     CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
-    # send_score_to_ui()
-    # flush_scores()
-
-    # # temporary code for scrimmage, comment later
-    # Sheet.write_scores_from_read_scores(MATCH_NUMBER)
 
     print("ENTERING END STATE")
 
@@ -233,7 +225,7 @@ def go_to_state(state):
     transitions = {
         STATE.SETUP: reset_match,
         STATE.AUTO: to_auto,
-        STATE.TELEOP: to_teleop,
+        STATE.TELEOP_1: to_teleop,
         STATE.END: to_end
     }
     if state in transitions:

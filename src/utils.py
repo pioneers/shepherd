@@ -68,12 +68,12 @@ class SHEPHERD_HEADER():
         source: UI. Resets the match, moving back to setup.
         """
 
-    # @staticmethod
-    # @header(YDL_TARGETS.SHEPHERD, "get_scores")
-    # def GET_SCORES():
-    #     """
-    #     source: UI. Asks Shepherd what the current scores are.
-    #     """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "get_scores")
+    def GET_SCORES():
+        """
+        source: UI. Asks Shepherd what the current scores are.
+        """
 
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "set_scores")
@@ -152,12 +152,12 @@ class SHEPHERD_HEADER():
         source: UI. Takes in index and enables their robot.
         """
 
-    # @staticmethod
-    # @header(YDL_TARGETS.SHEPHERD, "sound_blizzard_warning")
-    # def SOUND_BLIZZARD_WARNING():
-    #     """
-    #     source: Timer. Plays the blizzard warning sound.
-    #     """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "sound_blizzard_warning")
+    def SOUND_BLIZZARD_WARNING():
+        """
+        source: Timer. Plays the blizzard warning sound.
+        """
 
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "pause_timer")
@@ -390,7 +390,7 @@ class INDICES():
 class STATE():
     SETUP = "setup"
     AUTO = "auto"
-    TELEOP = "teleop"
+    TELEOP_1 = "teleop_1"
     END = "end"
 
 
@@ -398,20 +398,20 @@ class SHEPHERD_HANDLER():
     EVERYWHERE = Handler()
     SETUP = Handler()
     AUTO = Handler()
-    TELEOP = Handler()
+    TELEOP_1 = Handler()
     END = Handler()
 
 
 STATE_HANDLERS = {
     STATE.SETUP: SHEPHERD_HANDLER.SETUP,
     STATE.AUTO: SHEPHERD_HANDLER.AUTO,
-    STATE.TELEOP: SHEPHERD_HANDLER.TELEOP,
+    STATE.TELEOP_1: SHEPHERD_HANDLER.TELEOP_1,
     STATE.END: SHEPHERD_HANDLER.END
 }
 
 STAGE_TIMES = {
     STATE.AUTO: 10,
-    STATE.TELEOP: 180,
+    STATE.TELEOP_1: 180,
 }
 
 
