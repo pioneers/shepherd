@@ -1,10 +1,12 @@
 # pylint: disable=invalid-name
 from ydl import Handler, header
 
+
 class YDL_TARGETS():
     SHEPHERD = "ydl_target_shepherd"
     UI = "ydl_target_ui"
     SENSORS = "ydl_target_sensors"
+
 
 class SHEPHERD_HEADER():
     @staticmethod
@@ -225,8 +227,8 @@ class UI_HEADER():
 
     @staticmethod
     @header(YDL_TARGETS.UI, "runtime_status")
-    def RUNTIME_STATUS(ind: int, shep_connected: bool, dawn_connected: bool, \
-        mode, battery: float, version: str):
+    def RUNTIME_STATUS(ind: int, shep_connected: bool, dawn_connected: bool,
+                       mode, battery: float, version: str):
         """
         source: runtimeclient. runtime status
         """
@@ -310,44 +312,44 @@ class SENSOR_HEADER():
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "turn_on_button_light")
     def TURN_ON_BUTTON_LIGHT(id: int):
-      """
-      example header doc string
-      """
+        """
+        example header doc string
+        """
 
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "turn_off_button_light")
     def TURN_OFF_BUTTON_LIGHT(id: int):
-      """
-      example header doc string
-      """
+        """
+        example header doc string
+        """
 
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_on_midline")
-    def TURN_ON_MIDLINE(id: int):
-      """
-      example header doc string
-      """
+    # @staticmethod
+    # @header(YDL_TARGETS.SENSORS, "turn_on_midline")
+    # def TURN_ON_MIDLINE(id: int):
+    #     """
+    #     example header doc string
+    #     """
 
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_off_midline")
-    def TURN_OFF_MIDLINE(id: int):
-      """
-      example header doc string
-      """
+    # @staticmethod
+    # @header(YDL_TARGETS.SENSORS, "turn_off_midline")
+    # def TURN_OFF_MIDLINE(id: int):
+    #     """
+    #     example header doc string
+    #     """
 
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
-    def TURN_ON_LASERS():
-      """
-      example header doc string
-      """
+    # @staticmethod
+    # @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
+    # def TURN_ON_LASERS():
+    #     """
+    #     example header doc string
+    #     """
 
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
-    def TURN_OFF_LASERS():
-      """
-      example header doc string
-      """
+    # @staticmethod
+    # @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
+    # def TURN_OFF_LASERS():
+    #     """
+    #     example header doc string
+    #     """
 
 
 # A dictionary of pages -> whether page is password protected
@@ -366,11 +368,10 @@ UI_PAGES = {
 }
 
 
-
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1c9NUoB1prQdrBfAAkaSKJCnIGrAQV8kx5GZKEeIAmWs"
+    SPREADSHEET_ID = "1cgt5r4ABchCqxiZYUUJc7kKLSZTQKHQB_9SHeZo2Gbg"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
@@ -390,38 +391,33 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     TELEOP_1 = "teleop_1"
-    TELEOP_2 = "teleop_2"
-    TELEOP_3 = "teleop_3"
     END = "end"
+
 
 class SHEPHERD_HANDLER():
     EVERYWHERE = Handler()
     SETUP = Handler()
     AUTO = Handler()
     TELEOP_1 = Handler()
-    TELEOP_2 = Handler()
-    TELEOP_3 = Handler()
     END = Handler()
+
 
 STATE_HANDLERS = {
     STATE.SETUP: SHEPHERD_HANDLER.SETUP,
     STATE.AUTO: SHEPHERD_HANDLER.AUTO,
     STATE.TELEOP_1: SHEPHERD_HANDLER.TELEOP_1,
-    STATE.TELEOP_2: SHEPHERD_HANDLER.TELEOP_2,
-    STATE.TELEOP_3: SHEPHERD_HANDLER.TELEOP_3,
     STATE.END: SHEPHERD_HANDLER.END
 }
 
 STAGE_TIMES = {
-    STATE.AUTO: 30,
-    STATE.TELEOP_1: 60,
-    STATE.TELEOP_2: 10,
-    STATE.TELEOP_3: 90
+    STATE.AUTO: 10,
+    STATE.TELEOP_1: 180,
 }
+
 
 class PROTOBUF_TYPES():
     RUN_MODE = 0
     START_POS = 1
     LOG = 2  # text proto
     DEVICE_DATA = 3
-    GAME_STATE = 4
+    GAME_STATE = 2

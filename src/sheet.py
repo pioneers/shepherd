@@ -16,12 +16,14 @@ from utils import *
 # at USER_TOKEN_FILE
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_FILE = 'sheets/client_secret.json'
-USER_TOKEN_FILE = "sheets/user_token.json" # user token; do not upload to github (.gitignore it)
+# user token; do not upload to github (.gitignore it)
+USER_TOKEN_FILE = "sheets/user_token.json"
 YC = Client()
 
 """
 Sheet structure: [match #, blue 1 #, blue 1 name, blue 1 ip, blue 2 #, ...]
 """
+
 
 class Sheet:
     @staticmethod
@@ -35,9 +37,10 @@ class Sheet:
             try:
                 spreadsheet = Sheet.__get_authorized_sheet()
                 game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                    range="Match Database!A2:M").execute()['values']
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                                                     range="Match Database!A2:M").execute()['values']
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Fetching data from offline csv file")
                 with open(CONSTANTS.CSV_FILE_NAME) as csv_file:
                     game_data = list(csv.reader(csv_file, delimiter=','))[1:]
@@ -48,9 +51,10 @@ class Sheet:
                 if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                     lst = row[1:return_len+1] + [""]*(return_len+1-len(row))
                     break
-            teams = [{},{},{},{}]
+            teams = [{}, {}, {}, {}]
             for a in range(4):
-                teams[a]["team_num"] = int(lst[3*a]) if lst[3*a].isdigit() else -1
+                teams[a]["team_num"] = int(
+                    lst[3*a]) if lst[3*a].isdigit() else -1
                 teams[a]["team_name"] = lst[3*a+1]
                 teams[a]["robot_ip"] = lst[3*a+2]
             YC.send(SHEPHERD_HEADER.SET_TEAMS_INFO(teams=teams))
@@ -62,8 +66,9 @@ class Sheet:
         def bg_thread_work():
             try:
                 Sheet.__read_online_scores(match_number)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to read from spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
@@ -71,50 +76,55 @@ class Sheet:
     def write_scores(match_number, blue_score, gold_score):
         def bg_thread_work():
             try:
-                Sheet.__write_online_scores(match_number, blue_score, gold_score)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+                Sheet.__write_online_scores(
+                    match_number, blue_score, gold_score)
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
-    
+
     @staticmethod
     def write_scores_from_read_scores(match_number):
         def bg_thread_work():
             try:
                 Sheet.__write_scores_from_read_scores(match_number)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to read & write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
-    
+
     @staticmethod
     def send_scores_for_icons(match_number):
         def bg_thread_work():
             try:
                 Sheet.__send_online_scores_for_icons(match_number)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to send score from spreadsheet")
         threading.Thread(target=bg_thread_work).start()
-    
+
     @staticmethod
     def write_match_info(match_number, teams):
         def bg_thread_work():
             try:
                 Sheet.__write_match_info(match_number, teams)
-            except: # pylint: disable=bare-except
-                print('[error!] Google API has changed yet again, please fix Sheet.py')
+            except:  # pylint: disable=bare-except
+                print(
+                    '[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write match info to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
-    
     @staticmethod
     def write_alliance_selections(alliances: list):
         def bg_thread_work():
             try:
                 Sheet.__write_alliance_selections(alliances)
-            except Exception as error: # pylint: disable=bare-except
-                print(f'[error!] Google API has changed yet again, please fix Sheet.py', error)
+            except Exception as error:  # pylint: disable=bare-except
+                print(
+                    f'[error!] Google API has changed yet again, please fix Sheet.py', error)
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
@@ -122,9 +132,11 @@ class Sheet:
     def write_whack_a_mole_scores(match_number, alliance, score):
         def bg_thread_work():
             try:
-                Sheet.__write_whack_a_mole_scores(match_number, alliance, score)
-            except: # pylint: disable=bare-excepts
-                print(f'[error!] Google API has changed yet again, please fix Sheet.py')
+                Sheet.__write_whack_a_mole_scores(
+                    match_number, alliance, score)
+            except:  # pylint: disable=bare-excepts
+                print(
+                    f'[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write to spreadsheet")
         threading.Thread(target=bg_thread_work).start()
 
@@ -140,19 +152,22 @@ class Sheet:
         """
         creds = None
         if os.path.exists(USER_TOKEN_FILE):
-            creds = Credentials.from_authorized_user_file(USER_TOKEN_FILE, SCOPES)
+            creds = Credentials.from_authorized_user_file(
+                USER_TOKEN_FILE, SCOPES)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    CLIENT_SECRET_FILE, SCOPES)
                 creds = flow.run_local_server(port=0)
                 with open(USER_TOKEN_FILE, 'w') as token:
-                    print(f"Storing google auth credentials to {USER_TOKEN_FILE}")
+                    print(
+                        f"Storing google auth credentials to {USER_TOKEN_FILE}")
                     token.write(creds.to_json())
         service = build('sheets', 'v4', credentials=creds)
-        return service.spreadsheets() # pylint: disable=no-member
+        return service.spreadsheets()  # pylint: disable=no-member
 
     @staticmethod
     def __read_online_scores(match_number):
@@ -163,9 +178,8 @@ class Sheet:
         spreadsheet = Sheet.__get_authorized_sheet()
         print("auth")
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref!A4:C").execute()['values']
+                                             range="Ref!A4:C").execute()['values']
         print("Middle of read online score")
-
 
         blue = None
         gold = None
@@ -174,12 +188,14 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = row[2]
                     if blue is not None and gold is not None:
-                        YC.send(SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+                        YC.send(SHEPHERD_HEADER.SET_SCORES(
+                            blue_score=blue, gold_score=gold))
                         return blue, gold
                 elif row[1] == "Gold":
                     gold = row[2]
                     if blue is not None and gold is not None:
-                        YC.send(SHEPHERD_HEADER.SET_SCORES(blue_score=blue, gold_score=gold))
+                        YC.send(SHEPHERD_HEADER.SET_SCORES(
+                            blue_score=blue, gold_score=gold))
                         return blue, gold
 
     @staticmethod
@@ -189,9 +205,9 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Match Database!A2:A").execute()['values']
+                                             range="Match Database!A2:A").execute()['values']
 
-        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        row_num = -1  # if this fails, it'll overwrite the header which is fine
         for i, row in enumerate(game_data):
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
@@ -202,8 +218,8 @@ class Sheet:
             'values': [[str(blue_score), str(gold_score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range=range_name, body=body, valueInputOption="RAW").execute()
-    
+                                    range=range_name, body=body, valueInputOption="RAW").execute()
+
     @staticmethod
     def __write_scores_from_read_scores(match_number):
         """
@@ -217,9 +233,9 @@ class Sheet:
 
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Match Database!A2:A").execute()['values']
+                                             range="Match Database!A2:A").execute()['values']
 
-        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        row_num = -1  # if this fails, it'll overwrite the header which is fine
         for i, row in enumerate(game_data):
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
@@ -230,7 +246,7 @@ class Sheet:
             'values': [[str(blue_score), str(gold_score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range=range_name, body=body, valueInputOption="RAW").execute()
+                                    range=range_name, body=body, valueInputOption="RAW").execute()
 
     @staticmethod
     def __send_online_scores_for_icons(match_number):
@@ -239,8 +255,8 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref!A4:BL").execute()['values']
-        
+                                             range="Ref!A4:BL").execute()['values']
+
         blue = None
         gold = None
         for _, row in enumerate(game_data):
@@ -250,16 +266,17 @@ class Sheet:
                         "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
-                        YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        YC.send(UI_HEADER.SCORES_FOR_ICONS(
+                            blue_score=blue, gold_score=gold))
                         return
                 elif row[1] == "Gold":
                     gold = {
                         "score": int(row[2]),
                     }
                     if blue is not None and gold is not None:
-                        YC.send(UI_HEADER.SCORES_FOR_ICONS(blue_score=blue, gold_score=gold))
+                        YC.send(UI_HEADER.SCORES_FOR_ICONS(
+                            blue_score=blue, gold_score=gold))
                         return
-
 
     @staticmethod
     def __write_match_info(match_number, teams):
@@ -267,21 +284,24 @@ class Sheet:
         Writes the match info to the spreadsheet
         """
         if (match_number < 0):
-            YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=1))
+            YC.send(UI_HEADER.INVALID_WRITE_MATCH(
+                match_num=match_number, reason=1))
             return False
         for i in range(len(teams)):
             if teams[i]["team_num"] < 0:
-                YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=2))
+                YC.send(UI_HEADER.INVALID_WRITE_MATCH(
+                    match_num=match_number, reason=2))
                 return False
-    
+
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Match Database!A2:A").execute()['values']
+                                             range="Match Database!A2:A").execute()['values']
         row_num = -1
         for i, row in enumerate(game_data):
             row_num = i
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=0))
+                YC.send(UI_HEADER.INVALID_WRITE_MATCH(
+                    match_num=match_number, reason=0))
                 return False
         range_name = f"Match Database!A{row_num + 3}:M{row_num + 3}"
         body = {
@@ -291,12 +311,11 @@ class Sheet:
                         teams[3]["team_num"], teams[3]["team_name"], teams[3]["robot_ip"]]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range=range_name, body=body, valueInputOption="RAW").execute()
-        
+                                    range=range_name, body=body, valueInputOption="RAW").execute()
 
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref!A4:B").execute()['values']
+                                             range="Ref!A4:B").execute()['values']
         row_num = -1
         blue = False
         gold = False
@@ -307,12 +326,14 @@ class Sheet:
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 if row[1] == "Blue":
                     blue = True
-                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(
+                        match_num=match_number, reason=3))
                     if blue is True and gold is True:
                         return
                 elif row[1] == "Gold":
                     gold = True
-                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(match_num=match_number, reason=3))
+                    YC.send(UI_HEADER.INVALID_WRITE_MATCH(
+                        match_num=match_number, reason=3))
                     if blue is True and gold is True:
                         return
             elif len(row) > 0 and row[0] == "":
@@ -327,15 +348,15 @@ class Sheet:
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                range=range_name, body=body, valueInputOption="RAW").execute()
+                                        range=range_name, body=body, valueInputOption="RAW").execute()
         if not gold:
             range_name = f"Ref!A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}:A{(row_num + 5 + (0 if blue else 1)) if empty_cell_gold == -1 else (empty_cell_gold + 4)}"
             body = {
                 'values': [[match_number]]
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                range=range_name, body=body, valueInputOption="RAW").execute()
-    
+                                        range=range_name, body=body, valueInputOption="RAW").execute()
+
     @staticmethod
     def __write_alliance_selections(alliances: list):
         """
@@ -346,22 +367,26 @@ class Sheet:
         >>> __write_alliance_selections(alliances) #updates the google sheets filling in the values for the 3 alliances
         """
         spreadsheet = Sheet.__get_authorized_sheet()
-        
-        #the cells to update where each mappings[i] contains one alliance
-        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10", "D8:D10", "F8:F10", "B15:B17", "D15:D17"]
+
+        # the cells to update where each mappings[i] contains one alliance
+        mappings = ["B3:B5", "D3:D5", "F3:F5", "B8:B10",
+                    "D8:D10", "F8:F10", "B15:B17", "D15:D17"]
         for i, alliance in enumerate(alliances):
             if len(alliance) > 3:
-                raise Exception(f"Error: Alliance located at index {i} is greater than length 3")
+                raise Exception(
+                    f"Error: Alliance located at index {i} is greater than length 3")
             range_name = f"Alliances!{mappings[i]}"
-            new_alliance = [[x] for x in alliance] #[[team1], [team2], [team3]]
-            while len(new_alliance) < 3: #append a column containing the empty string until alliance size == 3
+            new_alliance = [[x]
+                            for x in alliance]  # [[team1], [team2], [team3]]
+            # append a column containing the empty string until alliance size == 3
+            while len(new_alliance) < 3:
                 new_alliance.append([""])
             body = {
                 'values': new_alliance
             }
             spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                range=range_name, body=body, valueInputOption="RAW").execute()
-            
+                                        range=range_name, body=body, valueInputOption="RAW").execute()
+
     @staticmethod
     def __write_whack_a_mole_scores(match_number, alliance, score):
         """
@@ -369,9 +394,9 @@ class Sheet:
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range="Ref!A4:A").execute()['values']
+                                            range="Ref!A4:A").execute()['values']
 
-        row_num = -1 # if this fails, it'll overwrite the header which is fine
+        row_num = -1  # if this fails, it'll overwrite the header which is fine
         for i, row in enumerate(ref_data):
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
@@ -387,4 +412,4 @@ class Sheet:
             'values': [[str(score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-            range=range_name, body=body, valueInputOption="RAW").execute()
+                                    range=range_name, body=body, valueInputOption="RAW").execute()

@@ -20,9 +20,9 @@ MATCH_NUMBER: int = -1
 GAME_STATE: str = STATE.END
 TIMERS = TimerGroup()
 GAME_TIMER = Timer(TIMERS,
-    lambda: YC.send(SHEPHERD_HEADER.STAGE_TIMER_END()))
-BLIZZARD_WARNING_TIMER = Timer(TIMERS,
-    lambda: YC.send(SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING()))
+                   lambda: YC.send(SHEPHERD_HEADER.STAGE_TIMER_END()))
+# BLIZZARD_WARNING_TIMER = Timer(TIMERS,
+#     lambda: YC.send(SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING()))
 
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
@@ -50,18 +50,21 @@ def start():
         payload = YC.receive()
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         print(payload)
-        
+
         if GAME_STATE in STATE_HANDLERS:
             handler = STATE_HANDLERS.get(GAME_STATE)
             handler.handle(payload)
         else:
             print(f"Invalid State: {GAME_STATE}")
 
+
 def pull_from_sheets():
     while True:
+        # if GAME_STATE not in [STATE.SETUP]:
         if not TIMERS.is_paused() and GAME_STATE not in [STATE.END, STATE.SETUP]:
             Sheet.send_scores_for_icons(MATCH_NUMBER)
         time.sleep(2.0)
+
 
 @SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SET_MATCH_NUMBER)
 @SHEPHERD_HANDLER.END.on(SHEPHERD_HEADER.SET_MATCH_NUMBER)
@@ -96,6 +99,7 @@ def set_teams_info(teams):
     # even if source of info is UI, needs to be forwarded to other open UIs
     send_match_info_to_ui()
 
+
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.PAUSE_TIMER)
 def pause_timer():
     '''
@@ -106,6 +110,7 @@ def pause_timer():
         disable_robots()
         YC.send(UI_HEADER.PAUSE_TIMER())
 
+
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESUME_TIMER)
 def resume_timer():
     '''
@@ -113,9 +118,10 @@ def resume_timer():
     '''
     if TIMERS.is_paused():
         TIMERS.resume()
-        enable_robots(autonomous=(GAME_STATE==STATE.AUTO))
+        enable_robots(autonomous=(GAME_STATE == STATE.AUTO))
         end_time, _ = GAME_TIMER.status()
-        YC.send(UI_HEADER.RESUME_TIMER(end_time=end_time, pause_end=time.time()))
+        YC.send(UI_HEADER.RESUME_TIMER(
+            end_time=end_time, pause_end=time.time()))
 
 
 ###########################################
@@ -170,7 +176,7 @@ def reset_match():
 def set_state(state):
     global GAME_STATE
     GAME_STATE = state
-    send_score_to_ui()
+    # send_score_to_ui()
     send_state_to_ui()
     print(f"ENTERING {state} STATE")
 
@@ -189,32 +195,14 @@ def to_auto():
 
 
 @SHEPHERD_HANDLER.AUTO.on(SHEPHERD_HEADER.STAGE_TIMER_END)
-def to_teleop_1():
+def to_teleop():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_1])
-    BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
+    # BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
-    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.BLUE), daemon=True).start()
-    # threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.GOLD), daemon=True).start()
-    # whack_a_mole_start('blue')
-    # whack_a_mole_start('gold')
 
 
 @SHEPHERD_HANDLER.TELEOP_1.on(SHEPHERD_HEADER.STAGE_TIMER_END)
-def to_teleop_2():
-    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_2])
-    enable_robots(autonomous=False)
-    set_state(STATE.TELEOP_2)
-    
-
-@SHEPHERD_HANDLER.TELEOP_2.on(SHEPHERD_HEADER.STAGE_TIMER_END)
-def to_teleop_3():
-    GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_3])
-    enable_robots(autonomous=False)
-    set_state(STATE.TELEOP_3)
-
-
-@SHEPHERD_HANDLER.TELEOP_3.on(SHEPHERD_HEADER.STAGE_TIMER_END)
 def to_end():
     '''
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
@@ -223,16 +211,11 @@ def to_end():
     GAME_STATE = STATE.END
     disable_robots()
     YC.send(UI_HEADER.PLAY_END_SOUND())
-    for n in [0,1,2,3]:
+    for n in [0, 1, 2, 3]:
         YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=n))
     CLIENTS.close_all()
     GAME_TIMER.reset()
     send_state_to_ui()
-    send_score_to_ui()
-    flush_scores()
-
-    # temporary code for scrimmage, comment later
-    Sheet.write_scores_from_read_scores(MATCH_NUMBER)
 
     print("ENTERING END STATE")
 
@@ -242,9 +225,7 @@ def go_to_state(state):
     transitions = {
         STATE.SETUP: reset_match,
         STATE.AUTO: to_auto,
-        STATE.TELEOP_1: to_teleop_1,
-        STATE.TELEOP_2: to_teleop_2,
-        STATE.TELEOP_3: to_teleop_3,
+        STATE.TELEOP_1: to_teleop,
         STATE.END: to_end
     }
     if state in transitions:
@@ -261,34 +242,34 @@ def set_robot_ip(ind, robot_ip):
     CLIENTS.connect_client(ind, robot_ip)
 
 
-def score_adjust(blue_score=None, gold_score=None):
-    '''
-    Allow for score to be changed based on referee decisions
-    '''
-    if blue_score is not None:
-        ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(int(blue_score))
-    if gold_score is not None:
-        ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(int(gold_score))
-    send_score_to_ui()
-    flush_scores()
+# def score_adjust(blue_score=None, gold_score=None):
+#     '''
+#     Allow for score to be changed based on referee decisions
+#     '''
+#     if blue_score is not None:
+#         ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(int(blue_score))
+#     if gold_score is not None:
+#         ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(int(gold_score))
+#     send_score_to_ui()
+#     flush_scores()
 
-    # temporary code for exhibition, remove later
-    YC.send(UI_HEADER.SCORES(
-        blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-        gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
-    ))
+#     # temporary code for exhibition, remove later
+#     YC.send(UI_HEADER.SCORES(
+#         blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+#         gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+#     ))
 
 
-def flush_scores():
-    '''
-    Sends the most recent match score to the spreadsheet if connected to the internet
-    '''
-    # temporary code for exhibition, uncomment later
-    # Sheet.write_scores(
-    #     MATCH_NUMBER,
-    #     ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-    #     ALLIANCES[ALLIANCE_COLOR.GOLD].score
-    # )
+# def flush_scores():
+#     '''
+#     Sends the most recent match score to the spreadsheet if connected to the internet
+#     '''
+#     # temporary code for exhibition, uncomment later
+#     # Sheet.write_scores(
+#     #     MATCH_NUMBER,
+#     #     ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+#     #     ALLIANCES[ALLIANCE_COLOR.GOLD].score
+#     # )
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_MATCH_INFO)
@@ -297,24 +278,28 @@ def send_match_info_to_ui():
     Sends all match info to the UI
     '''
     YC.send(UI_HEADER.TEAMS_INFO(match_num=MATCH_NUMBER, teams=[
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(CLIENTS.clients[INDICES.BLUE_1].robot_ip),
-        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(CLIENTS.clients[INDICES.BLUE_2].robot_ip),
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(CLIENTS.clients[INDICES.GOLD_1].robot_ip),
-        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(CLIENTS.clients[INDICES.GOLD_2].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot1.info_dict(
+            CLIENTS.clients[INDICES.BLUE_1].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.BLUE].robot2.info_dict(
+            CLIENTS.clients[INDICES.BLUE_2].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot1.info_dict(
+            CLIENTS.clients[INDICES.GOLD_1].robot_ip),
+        ALLIANCES[ALLIANCE_COLOR.GOLD].robot2.info_dict(
+            CLIENTS.clients[INDICES.GOLD_2].robot_ip),
     ]))
 
 
-@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_SCORES)
+# @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_SCORES)
 
-def send_score_to_ui():
-    '''
-    Sends the current score to the UI
-    '''
-    # temporary code for exhibition, uncomment later
-    # YC.send(UI_HEADER.SCORES(
-    #     blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-    #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
-    # ))
+# def send_score_to_ui():
+#     '''
+#     Sends the current score to the UI
+#     '''
+#     # temporary code for exhibition, uncomment later
+#     # YC.send(UI_HEADER.SCORES(
+#     #     blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
+#     #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
+#     # ))
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_STATE)
 def send_state_to_ui():
@@ -325,7 +310,8 @@ def send_state_to_ui():
     if GAME_STATE in STAGE_TIMES and end_time is not None:
         state_time = STAGE_TIMES.get(GAME_STATE)
         st = (end_time - state_time) * 1000
-        YC.send(UI_HEADER.STATE(state=GAME_STATE, start_time=st, state_time=state_time))
+        YC.send(UI_HEADER.STATE(state=GAME_STATE,
+                start_time=st, state_time=state_time))
     else:
         YC.send(UI_HEADER.STATE(state=GAME_STATE))
 
@@ -336,7 +322,6 @@ def send_connection_status_to_ui():
     Sends the connection status of all runtime clients to the UI
     '''
     CLIENTS.send_connection_status_to_ui()
-
 
 
 ###########################################
@@ -358,6 +343,7 @@ def enable_robot(ind):
     '''
     mode = AUTO if GAME_STATE == STATE.AUTO else TELEOP
     CLIENTS.clients[ind].send_mode(mode)
+
 
 def disable_robots():
     '''
@@ -388,11 +374,11 @@ def update_alliance_selection(alliances: list):
     Updates the Google Sheets with the chosen alliances
     where 3 schools are in each alliance.
     '''
-    #Sheet.write_alliance_selections(alliances)
+    # Sheet.write_alliance_selections(alliances)
     # print("Shepherd.py update alliance selection")
     # Sheet.write_alliance_selections(alliances)
     Sheet.write_alliance_selections(alliances)
-    
+
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE)
 def update_whack_a_mole_score(alliance, score):
@@ -403,7 +389,7 @@ def update_whack_a_mole_score(alliance, score):
     # gold_whack_a_mole_score = 0
     # if alliance == 'blue':
     #     blue_whack_a_mole_score = score
-    # else: 
+    # else:
     #     gold_whack_a_mole_score = score
     Sheet.write_whack_a_mole_scores(MATCH_NUMBER, alliance, score)
 
@@ -434,6 +420,7 @@ def flash_lights(ar):
             YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
         time.sleep(0.25)
 
+
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.BUTTON_PRESS)
 def button_pressed(id):
     # id = button
@@ -442,13 +429,11 @@ def button_pressed(id):
     # threading.Thread(target=flash_lights, args=(ar,)).start()
 
 
-
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################
 
 # pylint: disable=no-member
-
 if __name__ == '__main__':
     threading.Thread(target=pull_from_sheets, daemon=True).start()
     start()

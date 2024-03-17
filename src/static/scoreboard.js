@@ -147,16 +147,16 @@ function setGoldScore(score) {
 SETUP = "setup"
 AUTO = "auto"
 TELEOP_1 = "teleop_1"
-TELEOP_2 = "teleop_2"
-TELEOP_3 = "teleop_3"
+// TELEOP_2 = "teleop_2"
+// TELEOP_3 = "teleop_3"
 END = "end"
 
 stage_names = {
   "setup": "Setup",
   "auto": "Mini-Game Period 1 (Auto)",
   "teleop_1": "Mini-Game Period 1 (Teleop)",
-  "teleop_2": "Transition",
-  "teleop_3": "Mini-Game Period 2",
+  // "teleop_2": "Transition",
+  // "teleop_3": "Mini-Game Period 2",
   "end": "Post-Match"
 }
 
