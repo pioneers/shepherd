@@ -10,8 +10,8 @@ NUM_BUTTONS = 6
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
-Blue_CHEAT_CODE = []
-GOLD_CHEAT_CODE = []
+BLUE_CHEAT_CODE = [[], []]
+GOLD_CHEAT_CODE = [[], []]
 
 
 def turn_all_lights(alliance, on):
@@ -24,12 +24,10 @@ def turn_all_lights(alliance, on):
         YC.send((YDL_TARGETS.SENSORS, head.name, {"id": i}))
 
 
-def cheat_codes(alliance, code):
-    if alliance == 'blue':
-        # change this!! cheat code button id order
+def cheat_codes(alliance_lst, code):
+    if alliance_lst == 'BLUE_CHEAT_CODE':
         CHEAT_CODE = [hash(c) % NUM_BUTTONS for c in code]
-    else:  # alliance == 'gold'
-        # change this!! cheat code button id order
+    else:  # alliance == 'GOLD_CHEAT_CODE'
         CHEAT_CODE = [hash(c) % NUM_BUTTONS + NUM_BUTTONS for c in code]
     return CHEAT_CODE
 
@@ -42,6 +40,19 @@ def send_security_breach_score(alliance, done):
 def send_cheat_code_score(alliance, CHEAT_CODE_DONE):
     YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE,
              {"alliance": alliance, "score": CHEAT_CODE_DONE}))
+
+# for both of the cheat code
+
+
+def set_cheat_code(alliance, CHEAT_CODE):
+    YC.send((YDL_TARGETS.SHEPHERD, SHEPHERD_HEADER.SET_CHEAT_CODE,
+             {"alliance": alliance, "CHEAT_CODE": CHEAT_CODE}))
+
+# check live coding status
+
+
+def check_live_coding(alliance):
+    return True
 
 
 def fill_queue():
@@ -58,12 +69,39 @@ def fill_queue():
             BLUE_QUEUE.put(msg)
             GOLD_QUEUE.put(msg)
 
-# make a list of two cheat code lists for one alliance e.g. [[12335],[14352]]
-# TO DO
+
+# make a list of two cheat code lists for one alliance e.g. [[12335], [14352]]
+def make_cheat_code(alliance, nums):
+    for index in range(2):
+        eval(alliance)[index] = cheat_codes(alliance, ''.join(
+            [chr(random.randint(32, 126)) for _ in range(nums)]))
+    return eval(alliance)
 
 
-def make_cheat_code():
-    return
+def celebrate(alliance):
+    if cheat_code_pressed:
+        print("CHEAT CODE BONUS!!!")
+        turn_all_lights(alliance, on=True)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=False)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=True)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=False)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=True)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=False)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=True)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=False)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=True)
+        time.sleep(0.1)
+        turn_all_lights(alliance, on=False)
+        cheat_code_pressed = False
+        return True
 
 
 def whack_a_mole_start(alliance):
@@ -79,17 +117,14 @@ def whack_a_mole_start(alliance):
     """
 
     turn_all_lights(alliance, on=False)
-    # update cheat code
-    if alliance == ALLIANCE_COLOR.BLUE:
-        BLUE_CHEAT_CODE = make_cheat_code()
-    else:
-        GOLD_CHEAT_CODE = make_cheat_code()
 
     REQUIREMENT = 5
     CHEAT_CODE_DONE = 0
     send_cheat_code_score(alliance, CHEAT_CODE_DONE)
     send_security_breach_score(alliance, False)
     EVENT_QUEUE = BLUE_QUEUE if alliance == ALLIANCE_COLOR.BLUE else GOLD_QUEUE
+    CHEAT_CODE = make_cheat_code(
+        "BULE_CHEAT_CODE" if alliance == ALLIANCE_COLOR.BLUE else "GOLD_CHEAT_CODE", REQUIREMENT)
 
     """
         When the function starts
@@ -103,9 +138,9 @@ def whack_a_mole_start(alliance):
     while True:
         # print("start score: " + str(score))
         if alliance == ALLIANCE_COLOR.BLUE:
-            button = int(random.random()*NUM_BUTTONS)
+            button = int(random.random() * NUM_BUTTONS)
         else:
-            button = int(random.random()*NUM_BUTTONS) + NUM_BUTTONS
+            button = int(random.random() * NUM_BUTTONS) + NUM_BUTTONS
         YC.send(
             (YDL_TARGETS.SENSORS, SENSOR_HEADER.TURN_ON_BUTTON_LIGHT.name, {"id": button}))
 
@@ -115,10 +150,10 @@ def whack_a_mole_start(alliance):
         delay = 30
         waited = 0
         pressed = False
-        cheat_code_pressed = False
+        cheat_code_completion = 0
 
         # while received a ydl call or we still have time
-        while (not EVENT_QUEUE.empty()) or (waited < delay and not (pressed or cheat_code_pressed)):
+        while (not EVENT_QUEUE.empty()) or (waited < delay):
             waited += 0.01
             time.sleep(0.01)
             try:
@@ -130,8 +165,10 @@ def whack_a_mole_start(alliance):
                 turn_all_lights(alliance, on=False)
                 streak = 0
                 max_streak = 0
-                cheat_code_done = False
-                CHEAT_CODE, REVERSED_CHEAT_CODE = cheat_codes(alliance)
+                cheat_code_press_count = 0
+                CHEAT_CODE = make_cheat_code(
+                    "BULE_CHEAT_CODE" if alliance == ALLIANCE_COLOR.BLUE else "GOLD_CHEAT_CODE", REQUIREMENT)
+                set_cheat_code(alliance, CHEAT_CODE)
 
             if message[1] == SHEPHERD_HEADER.BUTTON_PRESS.name:
                 # print("III pressed: " + str(message[2]["id"]))
@@ -148,17 +185,16 @@ def whack_a_mole_start(alliance):
                     print(f"streak: {streak}, max_streak: {max_streak}")
 
                 print("cheat code", CHEAT_CODE, end="")
-                if PRESSED_ID == CHEAT_CODE[-1]:
-                    CHEAT_CODE.pop()
-                else:
-                    CHEAT_CODE, REVERSED_CHEAT_CODE = cheat_codes(alliance)
+                if cheat_code_completion != 2:
+                    if cheat_code_press_count < REQUIREMENT and PRESSED_ID == CHEAT_CODE[0][0]:
+                        CHEAT_CODE[0].pop(0)
+                        cheat_code_press_count += 1
+                    elif PRESSED_ID == CHEAT_CODE[1][0]:
+                        CHEAT_CODE[1].pop(0)
+                        cheat_code_press_count += 1
                 print("after", CHEAT_CODE)
 
-                cheat_code_pressed = len(CHEAT_CODE) == 0 or len(
-                    REVERSED_CHEAT_CODE) == 0
-                if cheat_code_pressed:
-                    cheat_code_done = True
-                    CHEAT_CODE, REVERSED_CHEAT_CODE = cheat_codes(alliance)
+                cheat_code_completion = cheat_code_press_count // REQUIREMENT
 
         if pressed:
             # print(f"got {button} in {round(waited,2)} seconds", end=" ")
@@ -169,27 +205,13 @@ def whack_a_mole_start(alliance):
             time.sleep(0.2)
             turn_all_lights(alliance, on=False)
 
-        if cheat_code_pressed:
-            print("CHEAT CODE bonus")
-            turn_all_lights(alliance, on=True)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=False)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=True)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=False)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=True)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=False)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=True)
-            time.sleep(0.1)
-            turn_all_lights(alliance, on=False)
-            cheat_code_pressed = False
-            # return # do we actually want to end the game
+        if not cheat_code_press_count % REQUIREMENT:
+            celebrate(alliance)
+            send_security_breach_score(cheat_code_completion)
+            # return
+            # do we actually want to terminate this game
 
-        send_score(alliance)
+        send_cheat_code_score(alliance, cheat_code_press_count)
         YC.send((YDL_TARGETS.SENSORS,
                 SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT.name, {"id": button}))
         """

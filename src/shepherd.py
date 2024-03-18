@@ -34,10 +34,8 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
-CHEAT_CODE = {
-    ALLIANCE_COLOR.GOLD: [],
-    ALLIANCE_COLOR.BLUE: []
-}
+GOLD_CHEAT_CODE = None
+BLUE_CHEAT_CODE = None
 
 ###########################################
 # Evergreen Methods
@@ -144,7 +142,6 @@ def to_setup(match_num, teams):
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     set_teams_info(teams)
-    update_cheat_code()
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
@@ -341,13 +338,23 @@ def update_alliance_selection(alliances: list):
 ###########################################
 # Spring 2024 Game
 ###########################################
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_CHEAT_CODE)
+def set_cheat_code(alliance, CHEAT_CODE):
+    if alliance == ALLIANCE_COLOR.BLUE:
+        global BLUE_CHEAT_CODE
+        BLUE_CHEAT_CODE = CHEAT_CODE
+    else:
+        global GOLD_CHEAT_CODE
+        GOLD_CHEAT_CODE = CHEAT_CODE
+
+
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_SECURITY_BREACH_SCORE)
-def update_security_breach_score(alliance):
+def update_security_breach_score(alliance, done):
     '''
     Updates the security breach score and send updated score to sheet
     '''
 
-    Sheet.write_security_breach(MATCH_NUMBER, alliance)
+    Sheet.write_security_breach(MATCH_NUMBER, alliance, done)
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE)

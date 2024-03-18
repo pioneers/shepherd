@@ -200,6 +200,14 @@ class SHEPHERD_HEADER():
         source: whack_a_mole.py update the whack a mole score for the alliance.
 
         """
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "set_cheat_code_score")
+    def SET_CHEAT_CODE(alliance, CHEAT_CODE):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the whack a mole score for the alliance.
+
+        """
 
 
 class UI_HEADER():

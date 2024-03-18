@@ -3,15 +3,17 @@ from utils import YDL_TARGETS, SHEPHERD_HEADER, SENSOR_HEADER
 import threading
 
 yc = Client(YDL_TARGETS.SENSORS)
-lights = [False] * 10
+lights = [False] * 12
+
 
 def format_lights(ar):
     return "".join([("@" if a else "-") for a in ar])
 
+
 def keyboard_input():
     while True:
         line = input()
-        if line in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+        if line in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]:
             yc.send(SHEPHERD_HEADER.BUTTON_PRESS(id=int(line)))
 
 
