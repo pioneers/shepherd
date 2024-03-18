@@ -184,8 +184,17 @@ class SHEPHERD_HEADER():
         Google Sheets with the alliances selected.
         """
     @staticmethod
-    @header(YDL_TARGETS.SHEPHERD, "update_whack_a_mole_score")
-    def UPDATE_WHACK_A_MOLE_SCORE(alliance, score):
+    @header(YDL_TARGETS.SHEPHERD, "update_security_breach_score")
+    def UPDATE_SECURITY_BREACH_SCORE(alliance):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the whack a mole score for the alliance.
+
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_cheat_code_score")
+    def UPDATE_CHEAT_CODE_SCORE(alliance, score):
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py update the whack a mole score for the alliance.

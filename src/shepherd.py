@@ -4,7 +4,6 @@ from ydl import Client, Handler
 from alliance import Alliance
 from timer import TimerGroup, Timer
 from utils import *
-# from whack_a_mole import *
 from runtimeclient import RuntimeClientManager
 from protos.run_mode_pb2 import IDLE, AUTO, TELEOP
 from protos.gamestate_pb2 import State
@@ -35,11 +34,15 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
-
+CHEAT_CODE = {
+    ALLIANCE_COLOR.GOLD: [],
+    ALLIANCE_COLOR.BLUE: []
+}
 
 ###########################################
 # Evergreen Methods
 ###########################################
+
 
 def start():
     '''
@@ -141,6 +144,7 @@ def to_setup(match_num, teams):
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     set_teams_info(teams)
+    update_cheat_code()
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
@@ -159,10 +163,7 @@ def reset_match():
     CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
-    # global BLUE_WHACK_A_MOLE_SCORE
-    # BLUE_WHACK_A_MOLE_SCORE = 0
-    # global GOLD_WHACK_A_MOLE_SCORE
-    # GOLD_WHACK_A_MOLE_SCORE = 0
+
     send_state_to_ui()
     print("ENTERING SETUP STATE")
 
@@ -176,7 +177,6 @@ def reset_match():
 def set_state(state):
     global GAME_STATE
     GAME_STATE = state
-    # send_score_to_ui()
     send_state_to_ui()
     print(f"ENTERING {state} STATE")
 
@@ -242,36 +242,6 @@ def set_robot_ip(ind, robot_ip):
     CLIENTS.connect_client(ind, robot_ip)
 
 
-# def score_adjust(blue_score=None, gold_score=None):
-#     '''
-#     Allow for score to be changed based on referee decisions
-#     '''
-#     if blue_score is not None:
-#         ALLIANCES[ALLIANCE_COLOR.BLUE].set_score(int(blue_score))
-#     if gold_score is not None:
-#         ALLIANCES[ALLIANCE_COLOR.GOLD].set_score(int(gold_score))
-#     send_score_to_ui()
-#     flush_scores()
-
-#     # temporary code for exhibition, remove later
-#     YC.send(UI_HEADER.SCORES(
-#         blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-#         gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
-#     ))
-
-
-# def flush_scores():
-#     '''
-#     Sends the most recent match score to the spreadsheet if connected to the internet
-#     '''
-#     # temporary code for exhibition, uncomment later
-#     # Sheet.write_scores(
-#     #     MATCH_NUMBER,
-#     #     ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-#     #     ALLIANCES[ALLIANCE_COLOR.GOLD].score
-#     # )
-
-
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_MATCH_INFO)
 def send_match_info_to_ui():
     '''
@@ -288,18 +258,6 @@ def send_match_info_to_ui():
             CLIENTS.clients[INDICES.GOLD_2].robot_ip),
     ]))
 
-
-# @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_SCORES)
-
-# def send_score_to_ui():
-#     '''
-#     Sends the current score to the UI
-#     '''
-#     # temporary code for exhibition, uncomment later
-#     # YC.send(UI_HEADER.SCORES(
-#     #     blue_score=ALLIANCES[ALLIANCE_COLOR.BLUE].score,
-#     #     gold_score=ALLIANCES[ALLIANCE_COLOR.GOLD].score
-#     # ))
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_STATE)
 def send_state_to_ui():
@@ -380,59 +338,31 @@ def update_alliance_selection(alliances: list):
     Sheet.write_alliance_selections(alliances)
 
 
-@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_WHACK_A_MOLE_SCORE)
-def update_whack_a_mole_score(alliance, score):
-    '''
-    Updates the whack a mole score and send updated score to sheet
-    '''
-    # blue_whack_a_mole_score = 0
-    # gold_whack_a_mole_score = 0
-    # if alliance == 'blue':
-    #     blue_whack_a_mole_score = score
-    # else:
-    #     gold_whack_a_mole_score = score
-    Sheet.write_whack_a_mole_scores(MATCH_NUMBER, alliance, score)
-
 ###########################################
-# Spring 2022 Game
+# Spring 2024 Game
 ###########################################
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_SECURITY_BREACH_SCORE)
+def update_security_breach_score(alliance):
+    '''
+    Updates the security breach score and send updated score to sheet
+    '''
+
+    Sheet.write_security_breach(MATCH_NUMBER, alliance)
 
 
-@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.TURN_LIGHT_FROM_UI)
-def forward_button_light(num, type, on):
-    if type == "button":
-        if on:
-            YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=num))
-        else:
-            YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=num))
-    # if type == "midline":
-    #     if on:
-    #         YC.send(SENSOR_HEADER.TURN_ON_MIDLINE(id=0))
-    #         YC.send(SENSOR_HEADER.TURN_ON_MIDLINE(id=1))
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE)
+def update_cheat_code_score(alliance, score):
+    '''
+    Updates the cheat code score and send updated score to sheet
 
+    '''
 
-def flash_lights(ar):
-    for _ in range(2):
-        for a in ar:
-            YC.send(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT(id=a))
-        time.sleep(0.25)
-        for a in ar:
-            YC.send(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT(id=a))
-        time.sleep(0.25)
-
-
-@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.BUTTON_PRESS)
-def button_pressed(id):
-    # id = button
-    print(f"Detected button {id} pressed")
-    # ar = [0,1] if id == 0 else [2,3]
-    # threading.Thread(target=flash_lights, args=(ar,)).start()
+    Sheet.write_cheat_code(MATCH_NUMBER, alliance, score)
 
 
 ###########################################
 # Event to Function Mappings for each Stage
 ###########################################
-
 # pylint: disable=no-member
 if __name__ == '__main__':
     threading.Thread(target=pull_from_sheets, daemon=True).start()
