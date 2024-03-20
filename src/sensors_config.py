@@ -1,5 +1,5 @@
 import time
-from ydl import Client
+from ydl import Client, Handler
 from utils import *
 from sensors import PinMode, DigitalValue, Arduino, InputPin, OutputPin, start_device_handlers
 
@@ -9,6 +9,7 @@ arduino1 = Arduino(1)
 arduino2 = Arduino(2)
 
 YC = Client(YDL_TARGETS.SENSORS)
+yh = Handler()
 
 lights = [
     OutputPin(arduino1, 10, PinMode.DIGITAL_OUT, initial_value=high),
@@ -32,6 +33,7 @@ def make_button_handler(id):
             YC.send(SHEPHERD_HEADER.BUTTON_PRESS(id=id))
     return handler
 
+
 buttons = [
     InputPin(arduino1, 16, PinMode.DIGITAL_IN, make_button_handler(0)),
     InputPin(arduino1, 8, PinMode.DIGITAL_IN, make_button_handler(1)),
@@ -48,16 +50,27 @@ buttons = [
 # color_sensor = InputPin(arduino1, 123, PinMode.PULSE_IN, banana)
 
 start_device_handlers(
-    ["/dev/ttyACM" + str(a) for a in range(5)], # CHANGE THIS IF NOT ON LINUX
+    ["/dev/ttyACM" + str(a) for a in range(5)],  # CHANGE THIS IF NOT ON LINUX
     [arduino1, arduino2]
 )
 
 
+@yh.on(SENSOR_HEADER.TURN_ON_BUTTON_LIGHT)
+def turn_on_button_light(id):
+    lights[id].set_state(high)
+
+
+@yh.on(SENSOR_HEADER.TURN_OFF_BUTTON_LIGHT)
+def turn_off_button_light(id):
+    lights[id].set_state(low)
+
 
 while True:
     msg = YC.receive()
+    yh.handle(msg)
     print(msg)
-    if msg[1] == "turn_on_button_light":
-        lights[msg[2]["id"]].set_state(high)
-    else:
-        lights[msg[2]["id"]].set_state(low)
+    # if msg[1] == "turn_on_button_light":
+    #     turn_on_button_light(msg[2]["id"])
+
+    # else:
+    #     turn_off_button_light(msg[2]["id"])

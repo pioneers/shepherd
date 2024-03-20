@@ -185,7 +185,7 @@ class SHEPHERD_HEADER():
         """
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "update_security_breach_score")
-    def UPDATE_SECURITY_BREACH_SCORE(alliance):
+    def UPDATE_SECURITY_BREACH_SCORE(alliance, done):
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py update the whack a mole score for the alliance.
@@ -339,34 +339,6 @@ class SENSOR_HEADER():
         """
         example header doc string
         """
-
-    # @staticmethod
-    # @header(YDL_TARGETS.SENSORS, "turn_on_midline")
-    # def TURN_ON_MIDLINE(id: int):
-    #     """
-    #     example header doc string
-    #     """
-
-    # @staticmethod
-    # @header(YDL_TARGETS.SENSORS, "turn_off_midline")
-    # def TURN_OFF_MIDLINE(id: int):
-    #     """
-    #     example header doc string
-    #     """
-
-    # @staticmethod
-    # @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
-    # def TURN_ON_LASERS():
-    #     """
-    #     example header doc string
-    #     """
-
-    # @staticmethod
-    # @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
-    # def TURN_OFF_LASERS():
-    #     """
-    #     example header doc string
-    #     """
 
 
 # A dictionary of pages -> whether page is password protected
