@@ -3,7 +3,8 @@ from utils import YDL_TARGETS, SHEPHERD_HEADER, SENSOR_HEADER
 import threading
 
 yc = Client(YDL_TARGETS.SENSORS)
-lights = [False] * 12
+num_lights = 12
+lights = [False] * num_lights
 yh = Handler()
 
 
@@ -14,7 +15,7 @@ def format_lights(ar):
 def keyboard_input():
     while True:
         line = input()
-        if line in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-", "="]:
+        if line in [str(n) for n in range(12)]:
             yc.send(SHEPHERD_HEADER.BUTTON_PRESS(id=int(line)))
 
 
@@ -29,7 +30,7 @@ def turn_off_button_light(id):
 
 
 threading.Thread(target=keyboard_input, daemon=True).start()
-print(format_lights(lights[0:6]) + " " + format_lights(lights[6:12]))
+print(format_lights(lights[0 : num_lights//2]) + " " + format_lights(lights[num_lights//2 : num_lights]))
 while True:
     msg = yc.receive()
     yh.handle(msg)
@@ -38,4 +39,4 @@ while True:
     #     lights[data['id']] = True
     # else:
     #     lights[data['id']] = False
-    print(format_lights(lights[0:6]) + " " + format_lights(lights[6:12]))
+    print(format_lights(lights[0 : num_lights//2]) + " " + format_lights(lights[num_lights//2 : num_lights]))
