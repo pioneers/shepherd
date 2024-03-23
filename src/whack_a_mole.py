@@ -10,9 +10,11 @@ NUM_BUTTONS = 6
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
+DELAY = 30
+
+# TODO: change data structure
 BLUE_CHEAT_CODE = [[], []]
 GOLD_CHEAT_CODE = [[], []]
-DELAY = 30
 
 
 def turn_on_light(id):
@@ -30,14 +32,6 @@ def turn_all_lights(alliance, on):
         6, 7, 8, 9, 10, 11]
     for i in ar:
         turn_on_light(i) if on else turn_off_light(i)
-
-
-def cheat_codes(alliance_lst, code):
-    if alliance_lst == 'BLUE_CHEAT_CODE':
-        CHEAT_CODE = [hash(c) % NUM_BUTTONS for c in code]
-    else:  # alliance == 'GOLD_CHEAT_CODE'
-        CHEAT_CODE = [hash(c) % NUM_BUTTONS + NUM_BUTTONS for c in code]
-    return CHEAT_CODE
 
 
 def send_security_breach_score(alliance, done):
@@ -71,7 +65,17 @@ def fill_queue():
             GOLD_QUEUE.put(msg)
 
 
+# TODO: change this
+def cheat_codes(alliance_lst, code):
+    if alliance_lst == 'BLUE_CHEAT_CODE':
+        CHEAT_CODE = [hash(c) % NUM_BUTTONS for c in code]
+    else:  # alliance == 'GOLD_CHEAT_CODE'
+        CHEAT_CODE = [hash(c) % NUM_BUTTONS + NUM_BUTTONS for c in code]
+    return CHEAT_CODE
+
 # make a list of two cheat code lists for one alliance e.g. [[12335], [14352]]
+
+
 def make_cheat_code(alliance, nums):
     for index in range(2):
         eval(alliance)[index] = cheat_codes(alliance, ''.join(
@@ -138,9 +142,10 @@ def whack_a_mole_start(alliance):
 
         waited = 0
         pressed = False
+        cheat_code_pressed = False
 
         # while received a ydl call or we still have time
-        while (not EVENT_QUEUE.empty()) or (waited < DELAY) and not pressed:
+        while (not EVENT_QUEUE.empty()) or (waited < DELAY) and not (pressed or cheat_code_pressed):
             waited += 0.01
             time.sleep(0.01)
             try:
@@ -171,10 +176,12 @@ def whack_a_mole_start(alliance):
                     print("cheat code", CHEAT_CODE, end="")
                     # TODO: CHANGE THIS, the two cheat codes for each alliance can be only done in order.
                     # So they need to finish the first, in order to do the second one.
+                    # and update "cheat_code_pressed" everytime when finishing one cheat code.
                     if CHEAT_CODE_DONE != 2:
                         if cheat_code_press_count < REQUIREMENT and PRESSED_ID == CHEAT_CODE[0][0]:
                             CHEAT_CODE[0].pop(0)
                             cheat_code_press_count += 1
+
                         elif PRESSED_ID == CHEAT_CODE[1][0]:
                             CHEAT_CODE[1].pop(0)
                             cheat_code_press_count += 1
@@ -190,7 +197,8 @@ def whack_a_mole_start(alliance):
             turn_all_lights(alliance, on=False)
 
         # TODO: it should only celebrate once!
-            # The code now: everytime after "time out", if the team don't have increase cheat_code_press_count, the while true loop start looping, and it will celebrate again when the loop hit this if statment
+        # add boolean "cheat_code_pressed", and set it back to False after celebrate
+        # The code now: everytime after "time out", if the team don't have increase cheat_code_press_count, the while true loop start looping, and it will celebrate again when the loop hit this if statment
         if cheat_code_press_count == REQUIREMENT or cheat_code_press_count == REQUIREMENT * 2:
             celebrate(alliance)
 
