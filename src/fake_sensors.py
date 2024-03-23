@@ -30,7 +30,8 @@ def turn_off_button_light(id):
 
 
 threading.Thread(target=keyboard_input, daemon=True).start()
-print(format_lights(lights[0 : num_lights//2]) + " " + format_lights(lights[num_lights//2 : num_lights]))
+print(format_lights(lights[0: num_lights//2]) + " " +
+      format_lights(lights[num_lights//2: num_lights]))
 while True:
     msg = yc.receive()
     yh.handle(msg)
@@ -39,4 +40,5 @@ while True:
     #     lights[data['id']] = True
     # else:
     #     lights[data['id']] = False
-    print(format_lights(lights[0 : num_lights//2]) + " " + format_lights(lights[num_lights//2 : num_lights]))
+    print(format_lights(lights[0: num_lights//2]) + " " +
+          format_lights(lights[num_lights//2: num_lights]))
