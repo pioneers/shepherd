@@ -188,7 +188,7 @@ class SHEPHERD_HEADER():
     def UPDATE_SECURITY_BREACH_SCORE(alliance, done):
         """
         alliance: 'blue' or 'gold'
-        source: whack_a_mole.py update the whack a mole score for the alliance.
+        source: whack_a_mole.py update the security breach score for the alliance.
 
         """
 
@@ -197,7 +197,7 @@ class SHEPHERD_HEADER():
     def UPDATE_CHEAT_CODE_SCORE(alliance, score):
         """
         alliance: 'blue' or 'gold'
-        source: whack_a_mole.py update the whack a mole score for the alliance.
+        source: whack_a_mole.py update the number of cheat code done for the alliance.
 
         """
     @staticmethod
@@ -205,7 +205,7 @@ class SHEPHERD_HEADER():
     def SET_CHEAT_CODE(alliance, CHEAT_CODE):
         """
         alliance: 'blue' or 'gold'
-        source: whack_a_mole.py update the whack a mole score for the alliance.
+        source: whack_a_mole.py send the cheat code information for the alliance.
 
         """
 
@@ -319,7 +319,7 @@ class UI_HEADER():
     @header(YDL_TARGETS.UI, "set_cheat_code")
     def SET_CHEAT_CODE(blue_cheat_code, gold_cheat_code):
         """
-        source: Shepherd. Plays the end sound when the game ends
+        source: Shepherd. Send ceat code infomation to UI
         """
 
 

@@ -189,9 +189,6 @@ def whack_a_mole_start(alliance):
             send_cheat_code_score(alliance, CHEAT_CODE_DONE)
             celebrate(alliance)
 
-            # return
-            # do we actually want to terminate this game
-
         if mole_press_count == REQUIREMENT:
             mole_press_count += 1
             MOLE_PRESS_DONE = True

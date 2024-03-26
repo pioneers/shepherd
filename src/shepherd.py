@@ -1,6 +1,6 @@
 import threading
 import time
-from ydl import Client, Handler
+from ydl import Client
 from alliance import Alliance
 from timer import TimerGroup, Timer
 from utils import *
@@ -20,22 +20,18 @@ GAME_STATE: str = STATE.END
 TIMERS = TimerGroup()
 GAME_TIMER = Timer(TIMERS,
                    lambda: YC.send(SHEPHERD_HEADER.STAGE_TIMER_END()))
-# BLIZZARD_WARNING_TIMER = Timer(TIMERS,
-#     lambda: YC.send(SHEPHERD_HEADER.SOUND_BLIZZARD_WARNING()))
-
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
     ALLIANCE_COLOR.BLUE: Alliance(Robot("", -1), Robot("", -1)),
 }
-
 CLIENTS = RuntimeClientManager(YC)
 
 
 ###########################################
 # Game Specific Variables
 ###########################################
-GOLD_CHEAT_CODE = None
-BLUE_CHEAT_CODE = None
+BLUE_CHEAT_CODE = []
+GOLD_CHEAT_CODE = []
 
 ###########################################
 # Evergreen Methods
@@ -51,6 +47,7 @@ def start():
         payload = YC.receive()
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         print(payload)
+        SHEPHERD_HANDLER.EVERYWHERE.handle(payload)
 
         if GAME_STATE in STATE_HANDLERS:
             handler = STATE_HANDLERS.get(GAME_STATE)
@@ -340,6 +337,9 @@ def update_alliance_selection(alliances: list):
 ###########################################
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_CHEAT_CODE)
 def set_cheat_code(alliance, CHEAT_CODE):
+    '''
+    Send Cheat Codes to UI
+    '''
     if alliance == ALLIANCE_COLOR.BLUE:
         global BLUE_CHEAT_CODE
         BLUE_CHEAT_CODE = CHEAT_CODE
@@ -353,19 +353,17 @@ def set_cheat_code(alliance, CHEAT_CODE):
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_SECURITY_BREACH_SCORE)
 def update_security_breach_score(alliance, done):
     '''
-    Updates the security breach score and send updated score to sheet
+    Send updated security breach score to sheet
     '''
-
     Sheet.write_security_breach(MATCH_NUMBER, alliance, done)
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE)
 def update_cheat_code_score(alliance, score):
     '''
-    Updates the cheat code score and send updated score to sheet
+    Send number of cheat codes done to sheet
 
     '''
-
     Sheet.write_cheat_code(MATCH_NUMBER, alliance, score)
 
 

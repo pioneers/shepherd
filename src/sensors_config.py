@@ -7,6 +7,8 @@ low = DigitalValue.LOW.value
 high = DigitalValue.HIGH.value
 arduino1 = Arduino(1)
 arduino2 = Arduino(2)
+arduino3 = Arduino(3)
+arduino4 = Arduino(4)
 
 YC = Client(YDL_TARGETS.SENSORS)
 yh = Handler()
@@ -50,8 +52,8 @@ buttons = [
 # color_sensor = InputPin(arduino1, 123, PinMode.PULSE_IN, banana)
 
 start_device_handlers(
-    ["/dev/ttyACM" + str(a) for a in range(5)],  # CHANGE THIS IF NOT ON LINUX
-    [arduino1, arduino2]
+    ["/dev/ttyACM" + str(a) for a in range(3)],  # CHANGE THIS IF NOT ON LINUX
+    [arduino1, arduino2, arduino3, arduino4, ]
 )
 
 
