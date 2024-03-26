@@ -61,39 +61,39 @@ class Sheet:
 
         threading.Thread(target=bg_thread_work).start()
 
-    @staticmethod
-    def read_scores(match_number):
-        def bg_thread_work():
-            try:
-                Sheet.__read_online_scores(match_number)
-            except:  # pylint: disable=bare-except
-                print(
-                    '[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to read from spreadsheet")
-        threading.Thread(target=bg_thread_work).start()
+    # @staticmethod
+    # def read_scores(match_number):
+    #     def bg_thread_work():
+    #         try:
+    #             Sheet.__read_online_scores(match_number)
+    #         except:  # pylint: disable=bare-except
+    #             print(
+    #                 '[error!] Google API has changed yet again, please fix Sheet.py')
+    #             print("Unable to read from spreadsheet")
+    #     threading.Thread(target=bg_thread_work).start()
 
-    @staticmethod
-    def write_scores(match_number, blue_score, gold_score):
-        def bg_thread_work():
-            try:
-                Sheet.__write_online_scores(
-                    match_number, blue_score, gold_score)
-            except:  # pylint: disable=bare-except
-                print(
-                    '[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to write to spreadsheet")
-        threading.Thread(target=bg_thread_work).start()
+    # @staticmethod
+    # def write_scores(match_number, blue_score, gold_score):
+    #     def bg_thread_work():
+    #         try:
+    #             Sheet.__write_online_scores(
+    #                 match_number, blue_score, gold_score)
+    #         except:  # pylint: disable=bare-except
+    #             print(
+    #                 '[error! @] Google API has changed yet again, please fix Sheet.py')
+    #             print("Unable to write to spreadsheet")
+    #     threading.Thread(target=bg_thread_work).start()
 
-    @staticmethod
-    def write_scores_from_read_scores(match_number):
-        def bg_thread_work():
-            try:
-                Sheet.__write_scores_from_read_scores(match_number)
-            except:  # pylint: disable=bare-except
-                print(
-                    '[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to read & write to spreadsheet")
-        threading.Thread(target=bg_thread_work).start()
+    # @staticmethod
+    # def write_scores_from_read_scores(match_number):
+    #     def bg_thread_work():
+    #         try:
+    #             Sheet.__write_scores_from_read_scores(match_number)
+    #         except:  # pylint: disable=bare-except
+    #             print(
+    #                 '[error!] Google API has changed yet again, please fix Sheet.py')
+    #             print("Unable to read & write to spreadsheet")
+    #     threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
     def send_scores_for_icons(match_number):
@@ -137,7 +137,7 @@ class Sheet:
             except:  # pylint: disable=bare-excepts
                 print(
                     f'[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to write to spreadsheet")
+                print("Unable to write_alliance_selections")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -149,18 +149,7 @@ class Sheet:
             except:  # pylint: disable=bare-excepts
                 print(
                     f'[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to write to spreadsheet")
-        threading.Thread(target=bg_thread_work).start()
-
-    @staticmethod
-    def get_cheat_code(match_number):
-        def bg_thread_work():
-            try:
-                Sheet.__get_cheat_code(match_number)
-            except:  # pylint: disable=bare-except
-                print(
-                    '[error!] Google API has changed yet again, please fix Sheet.py')
-                print("Unable to read from spreadsheet")
+                print("Unable to write_cheat_code")
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
@@ -428,9 +417,9 @@ class Sheet:
             print("Error: row number not found!")
             return
         if alliance == ALLIANCE_COLOR.BLUE:
-            range_name = f"Ref!R{row_num + 4}"
+            range_name = f"Ref!P{row_num + 4}"
         else:
-            range_name = f"Ref!R{row_num + 5}"
+            range_name = f"Ref!P{row_num + 5}"
         body = {
             'values': [[bool(done)]]
         }
@@ -455,9 +444,9 @@ class Sheet:
             print("Error: row number not found!")
             return
         if alliance == ALLIANCE_COLOR.BLUE:
-            range_name = f"Ref!S{row_num + 4}"
+            range_name = f"Ref!Q{row_num + 4}"
         else:
-            range_name = f"Ref!S{row_num + 5}"
+            range_name = f"Ref!Q{row_num + 5}"
         body = {
             'values': [[str(score)]]
         }

@@ -315,6 +315,13 @@ class UI_HEADER():
         source: Shepherd. Plays the end sound when the game ends
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.UI, "set_cheat_code")
+    def SET_CHEAT_CODE(blue_cheat_code, gold_cheat_code):
+        """
+        source: Shepherd. Plays the end sound when the game ends
+        """
+
 
 class SENSOR_HEADER():
     """
