@@ -1,3 +1,4 @@
+import random
 import threading
 import time
 from ydl import Client
@@ -107,6 +108,7 @@ def pause_timer():
         TIMERS.pause()
         disable_robots()
         YC.send(UI_HEADER.PAUSE_TIMER())
+        YC.send(LIVE_HEADER.PAUSE_TIMER())
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESUME_TIMER)
@@ -119,6 +121,8 @@ def resume_timer():
         enable_robots(autonomous=(GAME_STATE == STATE.AUTO))
         end_time, _ = GAME_TIMER.status()
         YC.send(UI_HEADER.RESUME_TIMER(
+            end_time=end_time, pause_end=time.time()))
+        YC.send(LIVE_HEADER.RESUME_TIMER(
             end_time=end_time, pause_end=time.time()))
 
 
@@ -141,6 +145,13 @@ def to_setup(match_num, teams):
     set_teams_info(teams)
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
+
+    # TODO: Change this to reflect actual number of challenges
+    c1 = random.randint(1, 50)
+    c2 = random.randint(1, 50)
+    challenges = [c1, c2, c1, c2]
+    codes = [BLUE_CHEAT_CODE, BLUE_CHEAT_CODE, GOLD_CHEAT_CODE, GOLD_CHEAT_CODE]
+    YC.send(LIVE_HEADER.SET_CHALLENGE(challenges, codes))
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESET_MATCH)
@@ -264,8 +275,11 @@ def send_state_to_ui():
         st = (end_time - state_time) * 1000
         YC.send(UI_HEADER.STATE(state=GAME_STATE,
                 start_time=st, state_time=state_time))
+        YC.send(LIVE_HEADER.STATE(state=GAME_STATE,
+                start_time=st, state_time=state_time))
     else:
         YC.send(UI_HEADER.STATE(state=GAME_STATE))
+        YC.send(LIVE_HEADER.STATE(state=GAME_STATE))
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.GET_CONNECTION_STATUS)

@@ -6,6 +6,7 @@ class YDL_TARGETS():
     SHEPHERD = "ydl_target_shepherd"
     UI = "ydl_target_ui"
     SENSORS = "ydl_target_sensors"
+    LIVE = "ydl_target_challenges"
 
 
 class SHEPHERD_HEADER():
@@ -200,14 +201,6 @@ class SHEPHERD_HEADER():
         source: whack_a_mole.py update the number of cheat code done for the alliance.
 
         """
-    @staticmethod
-    @header(YDL_TARGETS.SHEPHERD, "set_cheat_code_score")
-    def SET_CHEAT_CODE(alliance, CHEAT_CODE):
-        """
-        alliance: 'blue' or 'gold'
-        source: whack_a_mole.py send the cheat code information for the alliance.
-
-        """
 
 
 class UI_HEADER():
@@ -345,6 +338,42 @@ class SENSOR_HEADER():
     def TURN_OFF_BUTTON_LIGHT(id: int):
         """
         example header doc string
+        """
+
+
+class LIVE_HEADER():
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "cheat_code")
+    def SET_CHALLENGE(challenges, codes):
+        """
+        source: Shepherd
+        Sends list of coding challenges and cheat codes to live coding challenges UI
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "pause_timer")
+    def PAUSE_TIMER():
+        """
+        source: Shepherd. Pauses the game timer in scoreboard by clearing the timeout created in runStageTimer;
+        Used in the event that the game
+        needs to be paused and continued from the state it was paused at.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "resume_timer")
+    def RESUME_TIMER(end_time, pause_end):
+        """
+        source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout
+        Used to resume the game after it has
+        been paused using PAUSE_TIMERS.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "state")
+    def STATE(state, start_time=None, state_time=None):
+        """
+        tells UI that Shepherd is now in this state
         """
 
 
