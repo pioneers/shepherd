@@ -263,7 +263,7 @@ class Sheet:
     @staticmethod
     def __send_online_scores_for_icons(match_number):
         """
-        Sends all types of scores to ui
+        Sends all types of s=.,cores to ui
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
