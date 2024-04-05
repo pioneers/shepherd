@@ -99,7 +99,7 @@ class Sheet:
     def send_scores_for_icons(match_number):
         def bg_thread_work():
             try:
-                Sheet.__send_online_scores_for_icons(match_number)
+                Sheet.__send_scores_for_icons(match_number)
             except:  # pylint: disable=bare-except
                 print(
                     '[error!] Google API has changed yet again, please fix Sheet.py')
@@ -261,9 +261,9 @@ class Sheet:
                                     range=range_name, body=body, valueInputOption="RAW").execute()
 
     @staticmethod
-    def __send_online_scores_for_icons(match_number):
+    def __send_scores_for_icons(match_number):
         """
-        Sends all types of s=.,cores to ui
+        Sends all types of scores to ui
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,

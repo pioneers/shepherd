@@ -9,7 +9,6 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
-var minigames;
 var progression_bar;
 var start_audio;
 var end_audio;
@@ -21,7 +20,6 @@ socket.on('connect', (data) => {
   progression_bar = $(".progression-bar");
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
-  minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
 });
 
 socket.on('teams_info', (match_info) => {
@@ -50,7 +48,6 @@ socket.on('state', (state_info) => {
   state_time = state_info.state_time;
 
   setStageName(state);
-  setMinigameNames(state);
   if (state === "setup") {
     setTime(0);
     setSetupState();
@@ -79,7 +76,7 @@ socket.on("scores", (scores) => {
   setGoldScore(gold_score);
 });
 
-socket.on("scores_for_icons", (score_info) => {
+socket.on('scores_for_icons', (score_info) => {
   console.log("Successful ydl message: scores_for_icons");
   score_info = JSON.parse(score_info);
   blue_score = score_info.blue_score;
@@ -132,7 +129,7 @@ function individual(jq_obj) {
 function setTime(time) {
   stageTimer = false;
   // globaltime = time;
-  $('#timer').html(secondsToTimeString(time));
+  $('#timer').html((time));
 }
 
 function setBlueScore(score) {
@@ -147,39 +144,17 @@ function setGoldScore(score) {
 SETUP = "setup"
 AUTO = "auto"
 TELEOP_1 = "teleop_1"
-// TELEOP_2 = "teleop_2"
-// TELEOP_3 = "teleop_3"
 END = "end"
 
 stage_names = {
   "setup": "Setup",
-  "auto": "Mini-Game Period 1 (Auto)",
-  "teleop_1": "Mini-Game Period 1 (Teleop)",
-  // "teleop_2": "Transition",
-  // "teleop_3": "Mini-Game Period 2",
+  "auto": "Period 1 (Auto)",
+  "teleop_1": "Period 1 (Teleop)",
   "end": "Post-Match"
 }
 
 function setStageName(stage) {
   $('#stage').html(stage_names[stage]);
-}
-
-function setMinigameNames(stage) {
-  console.log("Inside function: setMinigameNames");
-  if (stage === "setup") {
-    shuffleArray(minigames);
-    while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
-      shuffleArray(minigames);
-    }
-    $('#minigame1').html(minigames[0]);
-    $('#minigame2').html(minigames[1]);
-  } else if (stage === "teleop_2") {
-    $('#minigame1').html(minigames[2]);
-    $('#minigame2').html(minigames[3]);
-  } else if (stage === "end") {
-    $('#minigame1').html("");
-    $('#minigame2').html("");
-  }
 }
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
@@ -242,20 +217,20 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
-function buttonHide() {
-  $('.audio-button').hide();
-}
+// function buttonHide() {
+//   $('.audio-button').hide();
+// }
 
-function shuffleArray(array) {
-  let currentIndex = array.length, randomIndex;
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
+// function shuffleArray(array) {
+//   let currentIndex = array.length, randomIndex;
+//   while (currentIndex !== 0) {
+//     randomIndex = Math.floor(Math.random() * currentIndex);
+//     currentIndex--;
+//     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+//   }
 
-  return array;
-}
+//   return array;
+// }
 
 // not used???
 // function setImageVisible(id, visible) {
