@@ -9,8 +9,8 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
-var minigames;
-var progression_bar;
+// var minigames;
+// var progression_bar;
 var start_audio;
 var end_audio;
 
@@ -18,10 +18,10 @@ socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
   socket.emit('join', 'scoreboard');
 
-  progression_bar = $(".progression-bar");
+  // progression_bar = $(".progression-bar");
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
-  minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
+  // minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
 });
 
 socket.on('teams_info', (match_info) => {
@@ -50,7 +50,7 @@ socket.on('state', (state_info) => {
   state_time = state_info.state_time;
 
   setStageName(state);
-  setMinigameNames(state);
+  // setMinigameNames(state);
   if (state === "setup") {
     setTime(0);
     setSetupState();
@@ -146,17 +146,20 @@ function setGoldScore(score) {
 // these are the stages for the code 
 SETUP = "setup"
 AUTO = "auto"
-TELEOP_1 = "teleop_1"
-TELEOP_2 = "teleop_2"
-TELEOP_3 = "teleop_3"
+TELEOP = "teleop"
+// TELEOP_1 = "teleop_1"
+// TELEOP_2 = "teleop_2"
+// TELEOP_3 = "teleop_3"
 END = "end"
 
 stage_names = {
   "setup": "Setup",
-  "auto": "Mini-Game Period 1 (Auto)",
-  "teleop_1": "Mini-Game Period 1 (Teleop)",
-  "teleop_2": "Transition",
-  "teleop_3": "Mini-Game Period 2",
+  "auto": "Autonomous Period",
+  // "auto": "Mini-Game Period 1 (Auto)",
+  "teleop": "Teleoperated Period",
+  // "teleop_1": "Mini-Game Period 1 (Teleop)",
+  // "teleop_2": "Transition",
+  // "teleop_3": "Mini-Game Period 2",
   "end": "Post-Match"
 }
 
@@ -164,40 +167,44 @@ function setStageName(stage) {
   $('#stage').html(stage_names[stage]);
 }
 
-function setMinigameNames(stage) {
-  console.log("Inside function: setMinigameNames");
-  if (stage === "setup") {
-    shuffleArray(minigames);
-    while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
-      shuffleArray(minigames);
-    }
-    $('#minigame1').html(minigames[0]);
-    $('#minigame2').html(minigames[1]);
-  } else if (stage === "teleop_2") {
-    $('#minigame1').html(minigames[2]);
-    $('#minigame2').html(minigames[3]);
-  } else if (stage === "end") {
-    $('#minigame1').html("");
-    $('#minigame2').html("");
-  }
-}
+// function setMinigameNames(stage) {
+//   console.log("Inside function: setMinigameNames");
+//   if (stage === "setup") {
+//     shuffleArray(minigames);
+//     while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
+//       shuffleArray(minigames);
+//     }
+//     $('#minigame1').html(minigames[0]);
+//     $('#minigame2').html(minigames[1]);
+//   } else if (stage === "teleop_2") {
+//     $('#minigame1').html(minigames[2]);
+//     $('#minigame2').html(minigames[3]);
+//   } else if (stage === "end") {
+//     $('#minigame1').html("");
+//     $('#minigame2').html("");
+//   }
+// }
 
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   console.log("Inside function: updateTeam");
-  $('#team-name-b1').html(team_name_b1);
-  $('#team-num-b1').html(team_num_b1);
-  $('#team-name-b2').html(team_name_b2);
-  $('#team-num-b2').html(team_num_b2);
-  $('#team-name-g1').html(team_name_g1);
-  $('#team-num-g1').html(team_num_g1);
-  $('#team-name-g2').html(team_name_g2);
-  $('#team-num-g2').html(team_num_g2);
+  $('#team-name-b1').html(`${team_name_b1} ${team_num_b1}`);
+  $('#team-name-b2').html(`${team_name_b2} ${team_num_b2}`);
+  $('#team-name-g1').html(`${team_name_g1} ${team_num_g1}`);
+  $('#team-name-g2').html(`${team_name_g2} ${team_num_g2}`);
+  // $('#team-name-b1').html(team_name_b1);
+  // $('#team-num-b1').html(team_num_b1);
+  // $('#team-name-b2').html(team_name_b2);
+  // $('#team-num-b2').html(team_num_b2);
+  // $('#team-name-g1').html(team_name_g1);
+  // $('#team-num-g1').html(team_num_g1);
+  // $('#team-name-g2').html(team_name_g2);
+  // $('#team-num-g2').html(team_num_g2);
 }
 
-function setSetupState() {
-  progression_bar.css("background", "rgb(195, 195, 195)");
-}
+// function setSetupState() {
+//   progression_bar.css("background", "rgb(195, 195, 195)");
+// }
 
 function setStartTime(start_time) {
   // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
@@ -227,7 +234,7 @@ function runStageTimer(startTime) {
 
     total_game_time += currTime - prev_curr_time;
     total_game_time = total_game_time > 190 ? 190 : total_game_time;
-    progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
+    // progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
@@ -242,20 +249,27 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
-function buttonHide() {
-  $('.audio-button').hide();
+// TODO: Make it transition based on a certain time
+function update_colors(time) {
+  $('#rain-background').css("opacity", `${time / total_game_time * 100}`);
+  $('#light').css("opacity", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
+  $('p').css("color", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
 }
 
-function shuffleArray(array) {
-  let currentIndex = array.length, randomIndex;
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-  }
+// function buttonHide() {
+//   $('.audio-button').hide();
+// }
 
-  return array;
-}
+// function shuffleArray(array) {
+//   let currentIndex = array.length, randomIndex;
+//   while (currentIndex !== 0) {
+//     randomIndex = Math.floor(Math.random() * currentIndex);
+//     currentIndex--;
+//     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+//   }
+
+//   return array;
+// }
 
 // not used???
 // function setImageVisible(id, visible) {
