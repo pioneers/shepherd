@@ -14,7 +14,8 @@ p {
   height: 25%; 
   position: absolute; 
   top: 75%; 
-  left: 29%
+  left: 26%;
+  z-index: 1;
 }
 
 #info-container {
@@ -137,7 +138,7 @@ p {
   height: 40%; 
   position: absolute; 
   top: 60%; 
-  z-index: -1;
+  z-index: 0;
 }
 
 #waves-container {

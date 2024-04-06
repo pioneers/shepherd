@@ -250,11 +250,10 @@ function secondsToTimeString(seconds) {
 }
 
 // TODO: Make it transition based on a certain time
-function update_colors(time) {
-  $('#rain-background').css("opacity", `${time / total_game_time * 100}`);
-  $('#light').css("opacity", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
-  $('p').css("color", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
-}
+$('#rain-background').css("opacity", `${time / total_game_time * 100}`);
+$('#light').css("opacity", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 100})`);
+$('p').css("color", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
+
 
 // function buttonHide() {
 //   $('.audio-button').hide();
