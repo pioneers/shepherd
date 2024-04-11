@@ -9,11 +9,7 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
-<<<<<<< core-game-2024
 var progression_bar;
-=======
-// var progression_bar;
->>>>>>> local
 var start_audio;
 var end_audio;
 
@@ -147,23 +143,13 @@ function setGoldScore(score) {
 // these are the stages for the code 
 SETUP = "setup"
 AUTO = "auto"
-<<<<<<< core-game-2024
 TELEOP_1 = "teleop_1"
-=======
-TELEOP = "teleop"
-// TELEOP_1 = "teleop_1"
->>>>>>> local
 END = "end"
 
 stage_names = {
   "setup": "Setup",
-<<<<<<< core-game-2024
   "auto": "Period 1 (Auto)",
   "teleop_1": "Period 1 (Teleop)",
-=======
-  "auto": "Autonomous Period",
-  "teleop": "Teleoperated Period",
->>>>>>> local
   "end": "Post-Match"
 }
 
@@ -235,7 +221,6 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
-<<<<<<< core-game-2024
 // function buttonHide() {
 //   $('.audio-button').hide();
 // }
@@ -248,23 +233,6 @@ function secondsToTimeString(seconds) {
 //     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
 //   }
 
-=======
-// TODO: Make it transition based on a certain time
-$('#rain-background').css("opacity", `${time / total_game_time * 100}`);
-$('#light').css("opacity", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 100})`);
-$('p').css("color", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
-
-
-
-// function shuffleArray(array) {
-//   let currentIndex = array.length, randomIndex;
-//   while (currentIndex !== 0) {
-//     randomIndex = Math.floor(Math.random() * currentIndex);
-//     currentIndex--;
-//     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-//   }
-
->>>>>>> local
 //   return array;
 // }
 
