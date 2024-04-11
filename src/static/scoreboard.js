@@ -9,7 +9,11 @@ var state;
 var is_timer_paused = null;
 var prev_curr_time;
 var total_game_time;
+<<<<<<< core-game-2024
 var progression_bar;
+=======
+// var progression_bar;
+>>>>>>> local
 var start_audio;
 var end_audio;
 
@@ -17,7 +21,7 @@ socket.on('connect', (data) => {
   console.log("Successful ydl message: connect");
   socket.emit('join', 'scoreboard');
 
-  progression_bar = $(".progression-bar");
+  // progression_bar = $(".progression-bar");
   start_audio = new Audio('/static/boxing-bell.wav');
   end_audio = new Audio('/static/trim.wav')
 });
@@ -143,13 +147,23 @@ function setGoldScore(score) {
 // these are the stages for the code 
 SETUP = "setup"
 AUTO = "auto"
+<<<<<<< core-game-2024
 TELEOP_1 = "teleop_1"
+=======
+TELEOP = "teleop"
+// TELEOP_1 = "teleop_1"
+>>>>>>> local
 END = "end"
 
 stage_names = {
   "setup": "Setup",
+<<<<<<< core-game-2024
   "auto": "Period 1 (Auto)",
   "teleop_1": "Period 1 (Teleop)",
+=======
+  "auto": "Autonomous Period",
+  "teleop": "Teleoperated Period",
+>>>>>>> local
   "end": "Post-Match"
 }
 
@@ -160,19 +174,23 @@ function setStageName(stage) {
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
   team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
   console.log("Inside function: updateTeam");
-  $('#team-name-b1').html(team_name_b1);
-  $('#team-num-b1').html(team_num_b1);
-  $('#team-name-b2').html(team_name_b2);
-  $('#team-num-b2').html(team_num_b2);
-  $('#team-name-g1').html(team_name_g1);
-  $('#team-num-g1').html(team_num_g1);
-  $('#team-name-g2').html(team_name_g2);
-  $('#team-num-g2').html(team_num_g2);
+  $('#team-name-b1').html(`${team_name_b1} ${team_num_b1}`);
+  $('#team-name-b2').html(`${team_name_b2} ${team_num_b2}`);
+  $('#team-name-g1').html(`${team_name_g1} ${team_num_g1}`);
+  $('#team-name-g2').html(`${team_name_g2} ${team_num_g2}`);
+  // $('#team-name-b1').html(team_name_b1);
+  // $('#team-num-b1').html(team_num_b1);
+  // $('#team-name-b2').html(team_name_b2);
+  // $('#team-num-b2').html(team_num_b2);
+  // $('#team-name-g1').html(team_name_g1);
+  // $('#team-num-g1').html(team_num_g1);
+  // $('#team-name-g2').html(team_name_g2);
+  // $('#team-num-g2').html(team_num_g2);
 }
 
-function setSetupState() {
-  progression_bar.css("background", "rgb(195, 195, 195)");
-}
+// function setSetupState() {
+//   progression_bar.css("background", "rgb(195, 195, 195)");
+// }
 
 function setStartTime(start_time) {
   // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
@@ -202,7 +220,7 @@ function runStageTimer(startTime) {
 
     total_game_time += currTime - prev_curr_time;
     total_game_time = total_game_time > 190 ? 190 : total_game_time;
-    progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
+    // progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
@@ -217,6 +235,7 @@ function secondsToTimeString(seconds) {
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
 
+<<<<<<< core-game-2024
 // function buttonHide() {
 //   $('.audio-button').hide();
 // }
@@ -229,6 +248,23 @@ function secondsToTimeString(seconds) {
 //     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
 //   }
 
+=======
+// TODO: Make it transition based on a certain time
+$('#rain-background').css("opacity", `${time / total_game_time * 100}`);
+$('#light').css("opacity", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 100})`);
+$('p').css("color", `rgb(${time / total_game_time * 255}, ${time / total_game_time * 255}, ${time / total_game_time * 255})`);
+
+
+
+// function shuffleArray(array) {
+//   let currentIndex = array.length, randomIndex;
+//   while (currentIndex !== 0) {
+//     randomIndex = Math.floor(Math.random() * currentIndex);
+//     currentIndex--;
+//     [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+//   }
+
+>>>>>>> local
 //   return array;
 // }
 

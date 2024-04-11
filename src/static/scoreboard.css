@@ -1,3 +1,153 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+p {
+  font-size: 2.5rem;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  color: rgb(0, 0, 0);
+}
+
+#alcatraz {
+  height: 25%; 
+  position: absolute; 
+  top: 75%; 
+  left: 26%;
+  z-index: 1;
+}
+
+#info-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8rem;
+}
+
+#info-container section {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 23rem;
+}
+
+/* Element (and animation) without REM or %, will not change based on browser size */
+#light{
+  position: absolute;
+  margin-top: -150px;
+  opacity: .6;
+  animation: light 6s infinite linear;
+  top: 93%; 
+  left: 57%; 
+  z-index: 4;
+}
+
+@keyframes light{
+  0%,100%{
+      box-shadow: 0 0 100px 100px yellow,
+                  0 0 200px 100px yellow,
+                  0 0 300px yellow,
+                  0 0 500px yellow,
+                  0 0 800px white;
+  }
+  25%{
+      width: 5px;
+      box-shadow: -50px 0 100px 100px lightyellow,
+                  -150px 0 200px 80px lightyellow,
+                  -250px 0 300px 60px lightyellow,
+                  -500px 0 500px 40px lightyellow,
+                  -800px 0 800px 20px white;
+  }
+  50%{
+      width: 50px;
+      box-shadow: 0 0 50px yellow,
+                  0 0 100px yellow,
+                  0 0 150px yellow,
+                  0 0 200px white;
+  }
+  75%{
+      width: 5px;
+      box-shadow: 50px 0 100px 100px lightyellow,
+                  150px 0 200px 80px lightyellow,
+                  250px 0 300px 60px lightyellow,
+                  500px 0 500px 40px lightyellow,
+                  800px 0 800px 20px white;
+  }
+}
+
+#match {
+  margin-top: 2rem;
+}
+
+#rain-background {
+  opacity: 0%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  top: 0;
+  left: 0;
+  z-index: -2;
+}
+
+#score-gold, 
+#score-blue {
+  font-size: 6rem;
+}
+
+#sky-background {
+  background-color: skyblue; 
+  position: absolute; 
+  height: 100%; 
+  width: 100%; 
+  z-index: -3;
+}
+
+#stage {
+  margin-bottom: 2rem;
+}
+
+#svg-container-one, 
+#svg-container-two {
+  width: 100%; 
+  display: flex; 
+  justify-content: space-between;
+  position: absolute;
+  z-index: -1;
+}
+
+#svg-container-one img, 
+#svg-container-two img{
+  width: 25rem;
+}
+
+#svg-container-one {
+  top: 6.7rem;
+}
+
+#svg-container-two {
+  top: 21.5rem;
+}
+
+#timer {
+  font-size: 7rem;
+}
+
+#waves {
+  width: 100%; 
+  height: 40%; 
+  position: absolute; 
+  top: 60%; 
+  z-index: 0;
+}
+
+#waves-container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  flex-direction: column;
+}
+
 /* root styles */
 :root {
   --font: "Comic Sans MS", "Comic Sans", cursive;
