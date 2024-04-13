@@ -6,8 +6,8 @@ from flask_socketio import SocketIO
 from ydl import Client
 from utils import YDL_TARGETS, UI_PAGES, CONSTANTS
 
-HOST_URL = "0.0.0.0"
-PORT = 5000
+HOST_URL = "127.0.0.1"
+PORT = 5001
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'omegalul!'

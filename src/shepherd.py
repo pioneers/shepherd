@@ -146,9 +146,8 @@ def to_setup(match_num, teams):
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
-    # TODO: Change this to reflect actual number of challenges
-    c1 = random.randint(1, 50)
-    c2 = random.randint(1, 50)
+    c1 = random.randint(0, 16)
+    c2 = random.randint(0, 16)
     challenges = [c1, c2, c1, c2]
     codes = [BLUE_CHEAT_CODE, BLUE_CHEAT_CODE, GOLD_CHEAT_CODE, GOLD_CHEAT_CODE]
     YC.send(LIVE_HEADER.SET_CHALLENGE(challenges, codes))
@@ -196,6 +195,7 @@ def to_auto():
     GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
     YC.send(UI_HEADER.PLAY_START_SOUND())
+    YC.send(LIVE_HEADER.RESET_BASE_CHALLENGES())
     set_state(STATE.AUTO)
 
 
@@ -350,16 +350,16 @@ def update_alliance_selection(alliances: list):
 # Spring 2024 Game
 ###########################################
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_CHEAT_CODE)
-def set_cheat_code(alliance, CHEAT_CODE):
+def set_cheat_code(alliance, code):
     '''
     Send Cheat Codes to UI
     '''
     if alliance == ALLIANCE_COLOR.BLUE:
         global BLUE_CHEAT_CODE
-        BLUE_CHEAT_CODE = CHEAT_CODE
+        BLUE_CHEAT_CODE = code
     else:
         global GOLD_CHEAT_CODE
-        GOLD_CHEAT_CODE = CHEAT_CODE
+        GOLD_CHEAT_CODE = code
     if BLUE_CHEAT_CODE and GOLD_CHEAT_CODE:
         YC.send(UI_HEADER.SET_CHEAT_CODE(BLUE_CHEAT_CODE, GOLD_CHEAT_CODE))
 

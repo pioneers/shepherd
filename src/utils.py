@@ -202,6 +202,10 @@ class SHEPHERD_HEADER():
 
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "set_cheat_code")
+    def SET_CHEAT_CODE(alliance, code):
+        pass
 
 class UI_HEADER():
     """
@@ -344,7 +348,7 @@ class SENSOR_HEADER():
 class LIVE_HEADER():
 
     @staticmethod
-    @header(YDL_TARGETS.LIVE, "cheat_code")
+    @header(YDL_TARGETS.LIVE, "set_challenge")
     def SET_CHALLENGE(challenges, codes):
         """
         source: Shepherd
@@ -375,6 +379,11 @@ class LIVE_HEADER():
         """
         tells UI that Shepherd is now in this state
         """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "reset_base_challenges")
+    def RESET_BASE_CHALLENGES():
+        pass
 
 
 # A dictionary of pages -> whether page is password protected
