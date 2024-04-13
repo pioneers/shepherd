@@ -30,8 +30,10 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
-BLUE_CHEAT_CODE = []
-GOLD_CHEAT_CODE = []
+BLUE_CHEAT_CODE_1 = []
+BLUE_CHEAT_CODE_2 = []
+GOLD_CHEAT_CODE_1 = []
+GOLD_CHEAT_CODE_2 = []
 
 ###########################################
 # Evergreen Methods
@@ -336,18 +338,16 @@ def update_alliance_selection(alliances: list):
 # Spring 2024 Game
 ###########################################
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_CHEAT_CODE)
-def set_cheat_code(alliance, CHEAT_CODE):
+def set_cheat_code(alliance, CHEAT_CODE_1, CHEAT_CODE_2):
     '''
     Send Cheat Codes to UI
     '''
     if alliance == ALLIANCE_COLOR.BLUE:
-        global BLUE_CHEAT_CODE
-        BLUE_CHEAT_CODE = CHEAT_CODE
+        global BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2
+        BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2 = CHEAT_CODE_1, CHEAT_CODE_2
     else:
-        global GOLD_CHEAT_CODE
-        GOLD_CHEAT_CODE = CHEAT_CODE
-    if BLUE_CHEAT_CODE and GOLD_CHEAT_CODE:
-        YC.send(UI_HEADER.SET_CHEAT_CODE(BLUE_CHEAT_CODE, GOLD_CHEAT_CODE))
+        global GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2
+        GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = CHEAT_CODE_1, CHEAT_CODE_2
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_SECURITY_BREACH_SCORE)

@@ -66,7 +66,7 @@ def fill_queue():
 
 def make_cheat_code(alliance):
     CHEAT_CODE = [random.randint(0, 5) for _ in range(10)]
-    set_cheat_code(alliance, CHEAT_CODE)
+    set_cheat_code(alliance, CHEAT_CODE[:5], CHEAT_CODE[5:])
     if alliance == ALLIANCE_COLOR.GOLD:
         CHEAT_CODE = [i + 5 for i in CHEAT_CODE]
     return CHEAT_CODE
@@ -105,7 +105,8 @@ def whack_a_mole_start(alliance):
     MOLE_PRESS_DONE = False
     EVENT_QUEUE = BLUE_QUEUE if alliance == ALLIANCE_COLOR.BLUE else GOLD_QUEUE
     CHEAT_CODE = make_cheat_code(alliance)
-    CHEAT_CODE_COPY = copy.deepcopy(CHEAT_CODE)
+    CHEAT_CODE_1, CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
+    CHEAT_CODE_COPY_1, CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_1), copy.deepcopy(CHEAT_CODE_2)
 
     """
         When the function starts
@@ -147,7 +148,8 @@ def whack_a_mole_start(alliance):
                 mole_press_count = 0
                 MOLE_PRESS_DONE = False
                 CHEAT_CODE = make_cheat_code(alliance)
-                CHEAT_CODE_COPY = copy.deepcopy(CHEAT_CODE)
+                CHEAT_CODE_1, CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
+                CHEAT_CODE_COPY_1, CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_1), copy.deepcopy(CHEAT_CODE_2)
 
             if message[1] == 'button_press':
                 PRESSED_ID = int(message[2]['id'])
@@ -160,20 +162,31 @@ def whack_a_mole_start(alliance):
                     correct_pressed = True
 
                 if check_live_coding(alliance):
-                    if len(CHEAT_CODE) > 0:
-                        if PRESSED_ID == CHEAT_CODE[0]:
-                            print("Cheat code pop: ", CHEAT_CODE[0])
-                            CHEAT_CODE.pop(0)
-                            print("Cheat code: ", CHEAT_CODE)
-                            cheat_code_pressed = len(
-                                CHEAT_CODE) == 5 or len(CHEAT_CODE) == 0
+                    if len(CHEAT_CODE_1) > 0 or len(CHEAT_CODE_2) > 0:
+                        if PRESSED_ID == CHEAT_CODE_1[0]:
+                            print("Cheat code 1 pop: ", CHEAT_CODE_1[0])
+                            CHEAT_CODE_1.pop(0)
+                            print("Cheat code 1: ", CHEAT_CODE)
+                            cheat_code_pressed = (len(CHEAT_CODE_1) == 0)
                         else:
-                            print("Reset cheat_code")
+                            print("Reset cheat_code 1")
                             # reset cheat_code, if cheat code is not done in order
-                            CHEAT_CODE = CHEAT_CODE_COPY[-5:] if len(
-                                CHEAT_CODE) <= 5 else CHEAT_CODE_COPY
-                            CHEAT_CODE_COPY = copy.deepcopy(CHEAT_CODE_COPY)
-                            print(CHEAT_CODE)
+                            CHEAT_CODE_1 = CHEAT_CODE_COPY_1
+                            CHEAT_CODE_COPY_1 = copy.deepcopy(CHEAT_CODE_COPY_1)
+                            print(CHEAT_CODE_1)
+
+                            
+                        if PRESSED_ID == CHEAT_CODE_2[0]:
+                            print("Cheat code pop 2: ", CHEAT_CODE_2[0])
+                            CHEAT_CODE_2.pop(0)
+                            print("Cheat code 2: ", CHEAT_CODE)
+                            cheat_code_pressed = (len(CHEAT_CODE_2) == 0)
+                        else:
+                            print("Reset cheat_code 2")
+                            # reset cheat_code, if cheat code is not done in order
+                            CHEAT_CODE_2 = CHEAT_CODE_COPY_2
+                            CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_COPY_2)
+                            print(CHEAT_CODE_2)
 
         if correct_pressed:
             mole_press_count += 1
