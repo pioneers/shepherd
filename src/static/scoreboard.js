@@ -220,6 +220,8 @@ function runStageTimer(startTime) {
       $("#score-blue").css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
       $("#score-gold").css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
 
+      $("#cloud").css("top", `${-3 - (7 * time / 180)}rem`)
+      $("#cloud").css("opacity", `${100 - (100 * time / 180)}%`)
     }
 
 
