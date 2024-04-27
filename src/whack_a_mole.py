@@ -66,7 +66,7 @@ def fill_queue():
 
 def make_cheat_code(alliance):
     CHEAT_CODE = [random.randint(0, 5) for _ in range(10)]
-    set_cheat_code(alliance, CHEAT_CODE[:5], CHEAT_CODE[5:])
+    set_cheat_code(alliance, CHEAT_CODE)
     if alliance == ALLIANCE_COLOR.GOLD:
         CHEAT_CODE = [i + 5 for i in CHEAT_CODE]
     return CHEAT_CODE

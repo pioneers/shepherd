@@ -350,16 +350,16 @@ def update_alliance_selection(alliances: list):
 # Spring 2024 Game
 ###########################################
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SET_CHEAT_CODE)
-def set_cheat_code(alliance, CHEAT_CODE_1, CHEAT_CODE_2):
+def set_cheat_code(alliance, CHEAT_CODE):
     '''
     Send Cheat Codes to UI
     '''
     if alliance == ALLIANCE_COLOR.BLUE:
         global BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2
-        BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2 = CHEAT_CODE_1, CHEAT_CODE_2
+        BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
     else:
         global GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2
-        GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = CHEAT_CODE_1, CHEAT_CODE_2
+        GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_SECURITY_BREACH_SCORE)

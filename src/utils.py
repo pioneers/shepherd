@@ -203,7 +203,7 @@ class SHEPHERD_HEADER():
         """
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "set_cheat_code")
-    def SET_CHEAT_CODE(alliance, CHEAT_CODE_1, CHEAT_CODE_2):
+    def SET_CHEAT_CODE(alliance, CHEAT_CODE):
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py send the cheat code information for the alliance.
