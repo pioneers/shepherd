@@ -8,14 +8,23 @@ p {
   font-family: Arial, Helvetica, sans-serif;
   text-align: center;
   color: rgb(0, 0, 0);
+  transition: color 4s;
 }
 
-#alcatraz {
-  height: 50%; 
+#alcatraz, #dark-alcatraz{
+  height: 60%; 
   position: absolute; 
-  top: 52%; 
-  left: 30%;
-  z-index: 1;
+  top: 39%; 
+  left: 22%;
+  z-index: 3;
+}
+
+#dark-alcatraz {
+  opacity: 0%;
+  z-index: 4;
+  height: 59%; 
+  left: 22.1%;
+  top: 39%; 
 }
 
 #info-container {
@@ -42,39 +51,6 @@ p {
   z-index: 4;
 }
 
-@keyframes light{
-  0%,100%{
-      box-shadow: 0 0 100px 100px yellow,
-                  0 0 200px 100px yellow,
-                  0 0 300px yellow,
-                  0 0 500px yellow,
-                  0 0 800px white;
-  }
-  25%{
-      width: 5px;
-      box-shadow: -50px 0 100px 100px lightyellow,
-                  -150px 0 200px 80px lightyellow,
-                  -250px 0 300px 60px lightyellow,
-                  -500px 0 500px 40px lightyellow,
-                  -800px 0 800px 20px white;
-  }
-  50%{
-      width: 50px;
-      box-shadow: 0 0 50px yellow,
-                  0 0 100px yellow,
-                  0 0 150px yellow,
-                  0 0 200px white;
-  }
-  75%{
-      width: 5px;
-      box-shadow: 50px 0 100px 100px lightyellow,
-                  150px 0 200px 80px lightyellow,
-                  250px 0 300px 60px lightyellow,
-                  500px 0 500px 40px lightyellow,
-                  800px 0 800px 20px white;
-  }
-}
-
 #match {
   margin-top: 2rem;
 }
@@ -90,13 +66,18 @@ p {
   z-index: -2;
 }
 
+#round-info {
+  position: relative;
+  top: -7rem;
+}
+
 #score-gold, 
 #score-blue {
   font-size: 6rem;
 }
 
 #sky-background {
-  background-color: #525252; 
+  background-color: rgb(172,229,212); 
   position: absolute; 
   height: 100%; 
   width: 100%; 
@@ -133,12 +114,21 @@ p {
   font-size: 7rem;
 }
 
-#waves {
+#team-name-g1, #team-name-g2, #team-name-b1, #team-name-b2 {
+  color: white;
+}
+
+#waves, #dark-waves {
   width: 100%; 
   height: 30%; 
   position: absolute; 
   top: 70%; 
   z-index: 0;
+}
+
+#dark-waves {
+  opacity: 0%;
+  z-index: 1;
 }
 
 #waves-container {

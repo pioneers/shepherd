@@ -64,7 +64,7 @@ socket.on('state', (state_info) => {
     if (start_time != null) {
       setStartTime(start_time);
     }
-  }
+  } 
 });
 
 socket.on("scores", (scores) => {
@@ -209,6 +209,25 @@ function runStageTimer(startTime) {
     // progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
+    if (state == "teleop_1") {
+      $('#rain-background').css("opacity", `${100 - (100 * time / 180)}%`)
+      $('#dark-alcatraz').css("opacity", `${100 - (100 * time / 180)}%`)
+      $('#dark-waves').css("opacity", `${100 - (100 * time / 180)}%`)
+  
+      $('#match').css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
+      $('#timer').css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
+      $('#stage').css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
+      $("#score-blue").css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
+      $("#score-gold").css("color", `${time > 60 ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)"}`)
+
+    }
+
+
+    //MATCH TIME!!! PLEASE FIX THIS!!!
+    //console.log(`${100 - (100 * time / 180)}%`)
+
+
+
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
   } else {
     clearTimeout(myStageTimeout);
@@ -220,6 +239,7 @@ function secondsToTimeString(seconds) {
   return (seconds < 0 ? "-": "") 
     + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
 }
+
 
 // function buttonHide() {
 //   $('.audio-button').hide();
