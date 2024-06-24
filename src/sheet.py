@@ -61,40 +61,6 @@ class Sheet:
 
         threading.Thread(target=bg_thread_work).start()
 
-    # @staticmethod
-    # def read_scores(match_number):
-    #     def bg_thread_work():
-    #         try:
-    #             Sheet.__read_online_scores(match_number)
-    #         except:  # pylint: disable=bare-except
-    #             print(
-    #                 '[error!] Google API has changed yet again, please fix Sheet.py')
-    #             print("Unable to read from spreadsheet")
-    #     threading.Thread(target=bg_thread_work).start()
-
-    # @staticmethod
-    # def write_scores(match_number, blue_score, gold_score):
-    #     def bg_thread_work():
-    #         try:
-    #             Sheet.__write_online_scores(
-    #                 match_number, blue_score, gold_score)
-    #         except:  # pylint: disable=bare-except
-    #             print(
-    #                 '[error! @] Google API has changed yet again, please fix Sheet.py')
-    #             print("Unable to write to spreadsheet")
-    #     threading.Thread(target=bg_thread_work).start()
-
-    # @staticmethod
-    # def write_scores_from_read_scores(match_number):
-    #     def bg_thread_work():
-    #         try:
-    #             Sheet.__write_scores_from_read_scores(match_number)
-    #         except:  # pylint: disable=bare-except
-    #             print(
-    #                 '[error!] Google API has changed yet again, please fix Sheet.py')
-    #             print("Unable to read & write to spreadsheet")
-    #     threading.Thread(target=bg_thread_work).start()
-
     @staticmethod
     def send_scores_for_icons(match_number):
         def bg_thread_work():
@@ -180,85 +146,6 @@ class Sheet:
                     token.write(creds.to_json())
         service = build('sheets', 'v4', credentials=creds)
         return service.spreadsheets()  # pylint: disable=no-member
-
-    @staticmethod
-    def __read_online_scores(match_number):
-        """
-        Sends (blue score, gold score)
-        """
-        print("Start read online score")
-        spreadsheet = Sheet.__get_authorized_sheet()
-        print("auth")
-        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                             range="Ref!A4:C").execute()['values']
-        print("Middle of read online score")
-
-        blue = None
-        gold = None
-        for _, row in enumerate(game_data):
-            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                if row[1] == "Blue":
-                    blue = row[2]
-                    if blue is not None and gold is not None:
-                        YC.send(SHEPHERD_HEADER.SET_SCORES(
-                            blue_score=blue, gold_score=gold))
-                        return blue, gold
-                elif row[1] == "Gold":
-                    gold = row[2]
-                    if blue is not None and gold is not None:
-                        YC.send(SHEPHERD_HEADER.SET_SCORES(
-                            blue_score=blue, gold_score=gold))
-                        return blue, gold
-
-    @staticmethod
-    def __write_online_scores(match_number, blue_score, gold_score):
-        """
-        A method that writes the scores to the sheet
-        """
-        spreadsheet = Sheet.__get_authorized_sheet()
-        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                             range="Match Database!A2:A").execute()['values']
-
-        row_num = -1  # if this fails, it'll overwrite the header which is fine
-        for i, row in enumerate(game_data):
-            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                row_num = i
-                break
-
-        range_name = f"Match Database!N{row_num + 2}:O{row_num + 2}"
-        body = {
-            'values': [[str(blue_score), str(gold_score)]]
-        }
-        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                    range=range_name, body=body, valueInputOption="RAW").execute()
-
-    @staticmethod
-    def __write_scores_from_read_scores(match_number):
-        """
-        A method that writes the scores to the spreadsheet using scores from the spreadsheet
-        (transfering scores from one spreadsheet tab to another)
-        """
-        scores = Sheet.__read_online_scores(match_number)
-        if (scores == None):
-            return
-        blue_score, gold_score = scores[0], scores[1]
-
-        spreadsheet = Sheet.__get_authorized_sheet()
-        game_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                             range="Match Database!A2:A").execute()['values']
-
-        row_num = -1  # if this fails, it'll overwrite the header which is fine
-        for i, row in enumerate(game_data):
-            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                row_num = i
-                break
-
-        range_name = f"Match Database!N{row_num + 2}:O{row_num + 2}"
-        body = {
-            'values': [[str(blue_score), str(gold_score)]]
-        }
-        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                    range=range_name, body=body, valueInputOption="RAW").execute()
 
     @staticmethod
     def __send_scores_for_icons(match_number):
@@ -402,7 +289,7 @@ class Sheet:
     @staticmethod
     def __write_security_breach(match_number, alliance, done):
         """
-        A method that writes the scores to the sheet
+        A method that writes the security breach scores to the sheet
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
@@ -429,7 +316,7 @@ class Sheet:
     @staticmethod
     def __write_cheat_code(match_number, alliance, score):
         """
-        A method that writes the scores to the sheet
+        A method that writes the cheat code score to the sheet
         """
         spreadsheet = Sheet.__get_authorized_sheet()
         ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,

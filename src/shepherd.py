@@ -149,7 +149,8 @@ def to_setup(match_num, teams):
     c1 = random.randint(0, 16)
     c2 = random.randint(0, 16)
     challenges = [c1, c2, c1, c2]
-    codes = [BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2, GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2]
+    codes = [BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2,
+             GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2]
     YC.send(LIVE_HEADER.SET_CHALLENGE(challenges, codes))
 
 
@@ -373,7 +374,7 @@ def update_security_breach_score(alliance, done):
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE)
 def update_cheat_code_score(alliance, score):
     '''
-    Send number of cheat codes done to sheet
+    Send cheat codes score to sheet
 
     '''
     Sheet.write_cheat_code(MATCH_NUMBER, alliance, score)
