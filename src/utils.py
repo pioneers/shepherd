@@ -198,7 +198,7 @@ class SHEPHERD_HEADER():
     def UPDATE_CHEAT_CODE_SCORE(alliance, score):
         """
         alliance: 'blue' or 'gold'
-        source: whack_a_mole.py update the number of cheat code done for the alliance.
+        source: whack_a_mole.py update the cheat code score for the alliance.
 
         """
     @staticmethod
@@ -323,6 +323,7 @@ class UI_HEADER():
         source: Shepherd. Send ceat code infomation to UI
         """
 
+
 class LIVE_HEADER():
 
     @staticmethod
@@ -362,6 +363,7 @@ class LIVE_HEADER():
     @header(YDL_TARGETS.LIVE, "reset_base_challenges")
     def RESET_BASE_CHALLENGES():
         pass
+
 
 class SENSOR_HEADER():
     """
