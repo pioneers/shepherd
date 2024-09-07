@@ -407,7 +407,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1cgt5r4ABchCqxiZYUUJc7kKLSZTQKHQB_9SHeZo2Gbg"
+    SPREADSHEET_ID = "1DWPiFa7ZJlbJ9muitG8jtjwHK-D-FKh2LDJE36SnRqY"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
