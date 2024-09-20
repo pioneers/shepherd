@@ -184,6 +184,7 @@ class SHEPHERD_HEADER():
         an alliance and contains the name of each school. Updates the
         Google Sheets with the alliances selected.
         """
+
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "update_security_breach_score")
     def UPDATE_SECURITY_BREACH_SCORE(alliance, done):
@@ -201,6 +202,7 @@ class SHEPHERD_HEADER():
         source: whack_a_mole.py update the cheat code score for the alliance.
 
         """
+
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "set_cheat_code")
     def SET_CHEAT_CODE(alliance, CHEAT_CODE):
@@ -208,6 +210,14 @@ class SHEPHERD_HEADER():
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py send the cheat code information for the alliance.
 
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "start_whackamole")
+    def START_WHACKAMOLE():
+        """
+        ***Whack-A-Mole***
+        Starts a new game of whackamole. For Demo Purpose only.
         """
 
 
@@ -323,6 +333,24 @@ class UI_HEADER():
         source: Shepherd. Send ceat code infomation to UI
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.UI, "update_player_score")
+    def UPDATE_PLAYER_SCORE(score):
+        """
+        ***Whack-A-Mole***
+        Updates and displays the current player's whackamole score
+        on whackamole.html. This should update every instance a 
+        light is turned on. 
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.UI, "whack_a_mole_game_over")
+    def WHACK_A_MOLE_GAME_OVER():
+        """
+        ***Whack-A-Mole***
+        Tells user that they have lost in the game of whackamole. 
+        """
+
 
 class LIVE_HEADER():
 
@@ -379,14 +407,14 @@ class SENSOR_HEADER():
     @header(YDL_TARGETS.SENSORS, "turn_on_button_light")
     def TURN_ON_BUTTON_LIGHT(id: int):
         """
-        example header doc string
+        Digital Write: HIGH
         """
 
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "turn_off_button_light")
     def TURN_OFF_BUTTON_LIGHT(id: int):
         """
-        example header doc string
+        Digital Write: LOW
         """
 
 
@@ -403,6 +431,7 @@ UI_PAGES = {
     "match_creator.html": True,
     "alliance_selection.html": True,
     "bracket_ui.html": False,
+    "whackamole.html": True,
 }
 
 
