@@ -38,13 +38,6 @@ class SHEPHERD_HEADER():
 # add additional pages here
 
 UI_PAGES = {
-    "scoreboard.html": False,
-    "score_adjustment.html": True,
-    "staff_gui.html": True,
-    "match_recovery.html": True,
-    "match_creator.html": True,
-    "alliance_selection.html": True,
-    "bracket_ui.html": False,
     "whackamole.html": True,
 }
 
