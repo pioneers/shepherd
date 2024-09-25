@@ -34,7 +34,7 @@ def whack(n: int):
     return True
 
 def print_board():
-    print(''.join([("#" if lights[n] else "_")+"          " for n in range(NUM_OF_LIGHTS)]))
+    print(''.join(["          " + ("@" if lights[n] else "-") for n in range(NUM_OF_LIGHTS)]))
 
 def moles():
     lights[rd.randint(0, NUM_OF_LIGHTS-1)] = True
