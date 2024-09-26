@@ -36,7 +36,7 @@ def fill_queue():
     while True:
         msg = YC.receive()
         print(msg)
-        if msg[1] == SHEPHERD_HEADER.BUTTON_PRESS:
+        if msg[1] in [SHEPHERD_HEADER.BUTTON_PRESS, SHEPHERD_HEADER.START_WHACKAMOLE]:
             EVENT_QUEUE.put(msg)
 
 
