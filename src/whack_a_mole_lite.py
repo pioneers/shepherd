@@ -10,13 +10,13 @@ def wrapper(s: str):
     match s:
         case 'a':
             return str(0)
-        case 'd':
+        case 's':
             return str(1)
-        case 'g':
+        case 'd':
             return str(2)
-        case 'j':
+        case 'f':
             return str(3)
-        case 'l':
+        case 'g':
             return str(4)
         case _:
             return s
