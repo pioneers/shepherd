@@ -391,6 +391,13 @@ class LIVE_HEADER():
     @header(YDL_TARGETS.LIVE, "reset_base_challenges")
     def RESET_BASE_CHALLENGES():
         pass
+    
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "default_code_base")
+    def DEFAULT_CODE_BASE():
+        """
+        source: Shepherd. Tells live challenges UIs to display the default code
+        """
 
 
 class SENSOR_HEADER():
