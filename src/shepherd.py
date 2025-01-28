@@ -35,6 +35,7 @@ BLUE_CHEAT_CODE_1 = []
 BLUE_CHEAT_CODE_2 = []
 GOLD_CHEAT_CODE_1 = []
 GOLD_CHEAT_CODE_2 = []
+LIVE_CODING_COUNT = 36
 
 ###########################################
 # Evergreen Methods
@@ -146,11 +147,11 @@ def to_setup(match_num, teams):
     # note that reset_match is what actually moves Shepherd into the setup state
     reset_match()
 
-    c1 = random.randint(0, 16)
-    c2 = random.randint(0, 16)
-    challenges = [c1, c2, c1, c2]
+    c1 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
+    c2 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
+    challenges = [c1, c2, c1.copy(), c2.copy()]
     codes = [BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2,
-             GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2]
+             GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2]      # TODO: update cheat codes here or elsewhere
     YC.send(LIVE_HEADER.SET_CHALLENGE(challenges, codes))
 
 
@@ -168,6 +169,8 @@ def reset_match():
     CLIENTS.reconnect_all()
     ALLIANCES[ALLIANCE_COLOR.BLUE].reset()
     ALLIANCES[ALLIANCE_COLOR.GOLD].reset()
+
+    YC.send(LIVE_HEADER.DEFAULT_CODE_BASE())
 
     send_state_to_ui()
     print("ENTERING SETUP STATE")
