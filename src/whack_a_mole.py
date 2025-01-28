@@ -45,7 +45,7 @@ def set_cheat_code(alliance, CHEAT_CODE):
 
 
 def check_live_coding(alliance):
-    return True
+    return False        # Disable cheat-code functionality for game 2025
 
 
 def fill_queue():
