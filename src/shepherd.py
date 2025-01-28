@@ -144,8 +144,6 @@ def to_setup(match_num, teams):
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     set_teams_info(teams)
-    # note that reset_match is what actually moves Shepherd into the setup state
-    reset_match()
 
     c1 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
     c2 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
@@ -153,6 +151,9 @@ def to_setup(match_num, teams):
     codes = [BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2,
              GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2]      # TODO: update cheat codes here or elsewhere
     YC.send(LIVE_HEADER.SET_CHALLENGE(challenges, codes))
+
+    # note that reset_match is what actually moves Shepherd into the setup state
+    reset_match()
 
 
 @SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESET_MATCH)
