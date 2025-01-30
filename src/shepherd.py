@@ -123,8 +123,11 @@ def resume_timer():
         TIMERS.resume()
         enable_robots(autonomous=(GAME_STATE == STATE.AUTO))
         end_time, _ = GAME_TIMER.status()
+        t = time.time()
         YC.send(UI_HEADER.RESUME_TIMER(
-            end_time=end_time, pause_end=time.time()))
+            end_time=end_time, pause_end=t))
+        YC.send(LIVE_HEADER.RESUME_TIMER(
+            end_time=end_time, pause_end=t))
 
 
 ###########################################
