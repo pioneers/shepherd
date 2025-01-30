@@ -445,7 +445,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1DWPiFa7ZJlbJ9muitG8jtjwHK-D-FKh2LDJE36SnRqY"
+    SPREADSHEET_ID = "1NMhtdd6l3Hct0e0PDxQCmkY8xN0Gs2t_0Wk05wXkYKg"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
@@ -484,8 +484,8 @@ STATE_HANDLERS = {
 }
 
 STAGE_TIMES = {
-    STATE.AUTO: 10,
-    STATE.TELEOP_1: 180,
+    STATE.AUTO: 20,
+    STATE.TELEOP_1: 270,
 }
 
 
