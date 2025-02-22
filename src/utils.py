@@ -191,7 +191,6 @@ class SHEPHERD_HEADER():
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py update the security breach score for the alliance.
-
         """
 
     @staticmethod
@@ -200,7 +199,6 @@ class SHEPHERD_HEADER():
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py update the cheat code score for the alliance.
-
         """
 
     @staticmethod
@@ -209,7 +207,20 @@ class SHEPHERD_HEADER():
         """
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py send the cheat code information for the alliance.
-
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_challenges_state")
+    def SEND_CHALLENGES_STATE(state):
+        pass
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_challenges_score")
+    def SEND_CHALLENGES_SCORE(team, score):
+        """
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        score: live coding score.
+        source: LIVE.
         """
     
     @staticmethod

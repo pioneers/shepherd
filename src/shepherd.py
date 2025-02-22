@@ -382,9 +382,20 @@ def update_security_breach_score(alliance, done):
 def update_cheat_code_score(alliance, score):
     '''
     Send cheat codes score to sheet
-
     '''
     Sheet.write_cheat_code(MATCH_NUMBER, alliance, score)
+
+
+###########################################
+# Spring 2025 Game
+###########################################
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SEND_CHALLENGES_SCORE)
+def send_challenges_score(team, score):
+    """
+    Send Live Coding Challenges Score To Sheet
+    """
+    print("hehehehehahaha")
+    Sheet.write_live_challenge(MATCH_NUMBER, team, score)
 
 
 ###########################################
