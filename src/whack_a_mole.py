@@ -213,8 +213,9 @@ def whack_a_mole_start(alliance):
         send_security_breach_score(alliance, MOLE_PRESS_DONE)
 
 
-threading.Thread(target=whack_a_mole_start, args=(
-    ALLIANCE_COLOR.BLUE,), daemon=True).start()
-threading.Thread(target=whack_a_mole_start, args=(
-    ALLIANCE_COLOR.GOLD,), daemon=True).start()
-fill_queue()
+if __name__ == '__main__':
+    threading.Thread(target=whack_a_mole_start, args=(
+        ALLIANCE_COLOR.BLUE,), daemon=True).start()
+    threading.Thread(target=whack_a_mole_start, args=(
+        ALLIANCE_COLOR.GOLD,), daemon=True).start()
+    fill_queue()

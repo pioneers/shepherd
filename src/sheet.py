@@ -117,6 +117,20 @@ class Sheet:
                     f'[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write_cheat_code")
         threading.Thread(target=bg_thread_work).start()
+    
+    @staticmethod
+    def write_live_challenge(match_number, team, score):
+        def bg_thread_work():
+            try:
+                Sheet.__write_live_challenge(
+                    match_number, team, score)
+            except:  # pylint: disable=bare-excepts
+                print(
+                    f'[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write_cheat_code")
+        YC.send("ydl_target_shepherd", 16383)
+        threading.Thread(target=bg_thread_work).start()
+
 
     @staticmethod
     def __get_authorized_sheet():
@@ -339,3 +353,38 @@ class Sheet:
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                     range=range_name, body=body, valueInputOption="RAW").execute()
+
+    @staticmethod
+    def __write_live_challenge(match_number, team, score):
+        """
+        A method that writes the live coding challenge score to the sheet
+        """
+        spreadsheet = Sheet.__get_authorized_sheet()
+        ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                                            range="Ref!A4:A").execute()['values']
+
+        row_num = -1  # if this fails, it'll overwrite the header which is fine
+        for i, row in enumerate(ref_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                row_num = i
+                break
+        if row_num == -1:
+            print("Error: row number not found!")
+            return
+        match team:                                 # Python match clause doesn't fall!
+            case INDICES.BLUE_1:
+                range_name = f"Ref!D{row_num + 4}"
+            case INDICES.BLUE_2:
+                range_name = f"Ref!E{row_num + 4}"
+            case INDICES.GOLD_1:
+                range_name = f"Ref!D{row_num + 5}"
+            case INDICES.GOLD_2:
+                range_name = f"Ref!E{row_num + 5}"
+            case _:
+                print("Error: unknown team id!")
+        body = {
+            'values': [[str(score)]]
+        }
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                                    range=range_name, body=body, valueInputOption="RAW").execute()
+        
