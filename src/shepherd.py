@@ -203,7 +203,6 @@ def to_auto():
     GAME_TIMER.start(STAGE_TIMES[STATE.AUTO])
     enable_robots(autonomous=True)
     YC.send(UI_HEADER.PLAY_START_SOUND())
-    YC.send(LIVE_HEADER.RESET_BASE_CHALLENGES())
     set_state(STATE.AUTO)
 
 
@@ -211,6 +210,7 @@ def to_auto():
 def to_teleop():
     GAME_TIMER.start(STAGE_TIMES[STATE.TELEOP_1])
     # BLIZZARD_WARNING_TIMER.start(CONSTANTS.BLIZZARD_WARNING_TIME)
+    YC.send(LIVE_HEADER.RESET_BASE_CHALLENGES())
     enable_robots(autonomous=False)
     set_state(STATE.TELEOP_1)
 
