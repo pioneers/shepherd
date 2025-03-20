@@ -1,66 +1,55 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
-    <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
-    <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
-    <link rel="stylesheet" href="{{url_for('static', filename='scoreboard.css')}}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Setup Screen</title>
+    <script type="text/javascript" src=scoreboard.js></script>
+    <link rel="stylesheet" href="scoreboard.css">
 </head>
+<body>
+    <div class="container">
+        <div class="header-box">
+            <div class="time-container">
+                <div class="time">01:00</div>
+            </div>
+            <div class="vertical-divider"></div>
+            <div class="setup-container">
+                <div class="setup-label">SETUP</div>
+            </div>
+        </div>
 
-<div id = "sky-background">
-    <div id = "info-container">
+        <div class="teams-container">
+            <div class="team">
+                <div class="team-name">Blue Alliance</div>
+                <div class="team-score" data-score="5">5</div>
+            </div>
+            <div class="team">
+                <div class="team-name">Gold Alliance</div>
+                <div class="team-score" data-score="7">7</div>
+            </div>
+        </div>
 
-    <div id = "cloud">
+        <div class="schools-container">
+            <div class="school-box">SCHOOL1</div>
+            <div class="school-box">SCHOOL2</div>
+            <div class="school-box">SCHOOL1</div>
+            <div class="school-box">SCHOOL2</div>
+        </div>
     </div>
 
-        <!-- Blue Alliance Information -->
-        <section>
-            <p id = "team-name-b1">Team 1</p>
-            <p id = "score-blue">Blue</p>
-            <p id = "team-name-b2">Team 2</p>
-        </section>
-
-        <!-- Round Information -->
-        <section id = "round-info">
-            <p id = "match">Pioneers in Engineering</p>
-            <p id = "timer">Get Ready!</p>
-            <p id = "stage">Setting up</p>
-        </section>
-
-        <!-- Gold Alliance Information -->
-        <section>
-            <p id = "team-name-g1">Team 1</p>
-            <p id = "score-gold">Gold</p>
-            <p id = "team-name-g2">Team 2</p>
-        </section>
-    </div>
-
-    <div id = "svg-container-one">
-        <img src = "../static/blue.svg">
-        <img src = "../static/gold.svg">
-    </div>
-
-    <div id = "svg-container-two">
-        <img src = "../static/blue.svg">
-        <img src = "../static/gold.svg">
-    </div>
-
-    <div id = "light"></div>
-
-    <img src = "../static/light_alcatraz.png" id = "alcatraz">
-    <img src = "../static/dark_alcatraz.png" id = "dark-alcatraz">
-
-    <div id = "waves_container">
-        <img src = "../static/light_wave.gif" id = "waves">
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
     </div>
 
     <div id = "waves_container">
-        <img src = "../static/dark_wave.gif" id = "dark-waves">
+        <img src = "./static/light_wave.gif" id = "waves">
     </div>
 
-    <video autoplay muted loop id = "rain-background">
-        <source src="../static/rain.mp4" type="video/mp4">
-    </video>
-</div>
+    <div id = "waves_container">
+        <img src = "./static/dark_wave.gif" id = "dark-waves">
+    </div>
 
+    <script src="script.js"></script>
+</body>
 </html>
