@@ -30,7 +30,7 @@ body {
     min-height: 100vh;
     position: relative;
     background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-                url('static/bg.webp') center/cover;
+                url('../static/bg.webp') center/cover;
     overflow-x: hidden;
 }
 
