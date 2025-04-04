@@ -3,7 +3,7 @@ from ydl import Client
 from utils import *
 
 
-YC_LIVE_C = Client(YDL_TARGETS.SHEPHERD)
+YC = Client(YDL_TARGETS.SHEPHERD)
 
 LIVE_FILE_PATH = "./live/q.csv"
 DELIMITER = '|'
@@ -41,9 +41,9 @@ def read():
 
 if __name__ == "__main__":
     while True:
-        print(msg := YC_LIVE_C.receive())
+        msg = YC.receive()
         if msg[1] == "parse_live_file":
             sheep_names, sheep_descs, sheep_bases, sheep_tests = read()
-            YC_LIVE_C.send(SHEPHERD_HEADER.SEND_LIVE_FILE_TO_SHEPHERD(
+            YC.send(SHEPHERD_HEADER.SEND_LIVE_FILE_TO_SHEPHERD(
                 sheep_names, sheep_descs, sheep_bases, sheep_tests))
             break
