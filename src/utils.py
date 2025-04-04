@@ -208,7 +208,7 @@ class SHEPHERD_HEADER():
         alliance: 'blue' or 'gold'
         source: whack_a_mole.py send the cheat code information for the alliance.
         """
-    
+
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "send_challenges_state")
     def SEND_CHALLENGES_STATE(state):
@@ -221,6 +221,31 @@ class SHEPHERD_HEADER():
         team: 0, 1, 2, or 3. Check enum INDICES.
         score: live coding score.
         source: LIVE.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "live_four_sheep_state")
+    def LIVE_FOUR_SHEEP_STATE(team, fetched):
+        """
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        fetched: whether or not the team has live challenges correctly configured
+        source: LIVE.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "parse_live_file")
+    def PARSE_LIVE_FILE():
+        """
+        signal live_coding.py to parse csv
+        source: N/A.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_live_file_to_shepherd")
+    def SEND_LIVE_FILE_TO_SHEPHERD(sheep_names, sheep_descs, sheep_bases, sheep_tests):
+        """
+        send parsed csv from live_coding.py to shepherd.py
+        source: LIVE_CODING.
         """
     
     @staticmethod
@@ -372,7 +397,16 @@ class LIVE_HEADER():
         source: Shepherd
         Sends list of coding challenges and cheat codes to live coding challenges UI
         """
-
+    
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "set_live_challenges")
+    def SET_LIVE_CHALLENGES(team, sheep_names, sheep_descs, sheep_bases, sheep_tests):
+        """
+        send parsed csv from shepherd.py to main.js in bleatcode
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        source: SHEPHERD.
+        """
+        
     @staticmethod
     @header(YDL_TARGETS.LIVE, "pause_timer")
     def PAUSE_TIMER():

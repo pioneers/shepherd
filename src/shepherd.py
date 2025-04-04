@@ -31,10 +31,8 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 # Game Specific Variables
 ###########################################
-BLUE_CHEAT_CODE_1 = []
-BLUE_CHEAT_CODE_2 = []
-GOLD_CHEAT_CODE_1 = []
-GOLD_CHEAT_CODE_2 = []
+BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2, GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = [], [], [], []
+SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = 0,0,0,0
 LIVE_CODING_COUNT = 36
 
 ###########################################
@@ -147,6 +145,9 @@ def to_setup(match_num, teams):
     global MATCH_NUMBER
     MATCH_NUMBER = match_num
     set_teams_info(teams)
+
+    if not SHEEP_NAMES:
+        YC.send(SHEPHERD_HEADER.PARSE_LIVE_FILE())
 
     c1 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
     c2 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
@@ -394,8 +395,35 @@ def send_challenges_score(team, score):
     """
     Send Live Coding Challenges Score To Sheet
     """
-    print("hehehehehahaha")
     Sheet.write_live_challenge(MATCH_NUMBER, team, score)
+
+
+def initialize_live(team_num):
+    '''
+    Sends the 4 sheep lists to indicated station port (laptop).
+    '''
+    print(f"Resetting Live Coding for STATION {team_num}...")
+    YC.send(LIVE_HEADER.SET_LIVE_CHALLENGES(team_num, 
+                                            SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS))
+
+
+@SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SEND_LIVE_FILE_TO_SHEPHERD)
+@SHEPHERD_HANDLER.END.on(SHEPHERD_HEADER.SEND_LIVE_FILE_TO_SHEPHERD)
+def send_live_file_to_shepherd(sheep_names, sheep_descs, sheep_bases, sheep_tests):
+    '''
+    Writes data to the 4 sheep lists.
+    '''
+    global SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS
+    SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = sheep_names, sheep_descs, sheep_bases, sheep_tests
+
+
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.LIVE_FOUR_SHEEP_STATE)
+def live_four_sheep_state(team, fetched):
+    '''
+    Get status for each port; resend coding challenges if necessary.
+    '''
+    if not fetched:
+        initialize_live(team)
 
 
 ###########################################
