@@ -128,7 +128,7 @@ class Sheet:
                 print(
                     f'[error!] Google API has changed yet again, please fix Sheet.py')
                 print("Unable to write_cheat_code")
-        YC.send("ydl_target_shepherd", 16383)
+        YC.send(("ydl_target_shepherd", 16383))
         threading.Thread(target=bg_thread_work).start()
 
 
