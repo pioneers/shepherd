@@ -318,9 +318,9 @@ class Sheet:
             print("Error: row number not found!")
             return
         if alliance == ALLIANCE_COLOR.BLUE:
-            range_name = f"Ref!P{row_num + 4}"
+            range_name = f"Ref!Z{row_num + 4}"
         else:
-            range_name = f"Ref!P{row_num + 5}"
+            range_name = f"Ref!Z{row_num + 5}"
         body = {
             'values': [[bool(done)]]
         }
@@ -345,11 +345,11 @@ class Sheet:
             print("Error: row number not found!")
             return
         if alliance == ALLIANCE_COLOR.BLUE:
-            range_name = f"Ref!Q{row_num + 4}"
+            range_name = f"Ref!Z{row_num + 4}"
         else:
-            range_name = f"Ref!Q{row_num + 5}"
+            range_name = f"Ref!Z{row_num + 5}"
         body = {
-            'values': [[str(score)]]
+            'values': [[int(score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                     range=range_name, body=body, valueInputOption="RAW").execute()
@@ -373,17 +373,17 @@ class Sheet:
             return
         match team:                                 # Python match clause doesn't fall!
             case INDICES.BLUE_1:
-                range_name = f"Ref!D{row_num + 4}"
-            case INDICES.BLUE_2:
                 range_name = f"Ref!E{row_num + 4}"
+            case INDICES.BLUE_2:
+                range_name = f"Ref!F{row_num + 4}"
             case INDICES.GOLD_1:
-                range_name = f"Ref!D{row_num + 5}"
-            case INDICES.GOLD_2:
                 range_name = f"Ref!E{row_num + 5}"
+            case INDICES.GOLD_2:
+                range_name = f"Ref!F{row_num + 5}"
             case _:
                 print("Error: unknown team id!")
         body = {
-            'values': [[str(score)]]
+            'values': [[int(score)]]
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                     range=range_name, body=body, valueInputOption="RAW").execute()

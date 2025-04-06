@@ -237,7 +237,7 @@ class SHEPHERD_HEADER():
     def PARSE_LIVE_FILE():
         """
         signal live_coding.py to parse csv
-        source: N/A.
+        source: SHEPHERD.
         """
     
     @staticmethod
@@ -395,7 +395,8 @@ class LIVE_HEADER():
     def SET_CHALLENGE(challenges, codes):
         """
         source: Shepherd
-        Sends list of coding challenges and cheat codes to live coding challenges UI
+        Sends list of coding challenges and cheat codes (disabled in year Haiku) 
+        to live coding challenges UI.
         """
     
     @staticmethod
@@ -490,7 +491,7 @@ UI_PAGES = {
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1NMhtdd6l3Hct0e0PDxQCmkY8xN0Gs2t_0Wk05wXkYKg"
+    SPREADSHEET_ID = "1JO1vo0cUzIvIk2QfgL9e4c7ltMw4OwTcK0Wlk75P-iI"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
