@@ -8,7 +8,7 @@ from utils import *
 
 
 REQUIREMENT = 5
-NUM_BUTTONS = 6
+NUM_BUTTONS = 3 + 3
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
@@ -37,15 +37,17 @@ def send_security_breach_score(alliance, done):
 
 
 def send_cheat_code_score(alliance, CHEAT_CODE_DONE):
-    YC.send((SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE(alliance, CHEAT_CODE_DONE)))
+    # YC.send((SHEPHERD_HEADER.UPDATE_CHEAT_CODE_SCORE(alliance, CHEAT_CODE_DONE)))
+    pass                # Disable cheat-code functionality for game 2025
 
 
 def set_cheat_code(alliance, CHEAT_CODE):
-    YC.send((SHEPHERD_HEADER.SET_CHEAT_CODE(alliance, CHEAT_CODE)))
+    # YC.send((SHEPHERD_HEADER.SET_CHEAT_CODE(alliance, CHEAT_CODE)))
+    pass                # Disable cheat-code functionality for game 2025
 
 
 def check_live_coding(alliance):
-    return False        # Disable cheat-code functionality for game 2025
+    return True       
 
 
 def fill_queue():
@@ -54,7 +56,7 @@ def fill_queue():
         print(msg)
         if msg[1] == 'button_press':
             if msg[2]['id'] < NUM_BUTTONS:
-                BLUE_QUEUE.put(msg)  # coming from sensors when being paused
+                BLUE_QUEUE.put(msg)  # coming from sensors when being pressed
             else:
                 GOLD_QUEUE.put(msg)
 
@@ -63,13 +65,10 @@ def fill_queue():
             GOLD_QUEUE.put(msg)
 #
 
-
-def make_cheat_code(alliance):
-    CHEAT_CODE = [random.randint(0, 5) for _ in range(10)]
-    set_cheat_code(alliance, CHEAT_CODE)
-    if alliance == ALLIANCE_COLOR.GOLD:
-        CHEAT_CODE = [i + 5 for i in CHEAT_CODE]
-    return CHEAT_CODE
+def make_cheat_code():
+    CHEAT_CODE_1 = [random.randint(0, NUM_BUTTONS) for _ in range(REQUIREMENT)]
+    CHEAT_CODE_2 = [random.randint(NUM_BUTTONS, NUM_BUTTONS * 2) for _ in range(REQUIREMENT)]
+    return CHEAT_CODE_1, CHEAT_CODE_2
 
 
 def celebrate(alliance):
@@ -100,12 +99,13 @@ def whack_a_mole_start(alliance):
 
     turn_all_lights(alliance, on=False)
 
+    button = 0
     mole_press_count = 0
+    cheat_code_pressed = False
     CHEAT_CODE_DONE = 0
     MOLE_PRESS_DONE = False
     EVENT_QUEUE = BLUE_QUEUE if alliance == ALLIANCE_COLOR.BLUE else GOLD_QUEUE
-    CHEAT_CODE = make_cheat_code(alliance)
-    CHEAT_CODE_1, CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
+    CHEAT_CODE_1, CHEAT_CODE_2 = [], []
     CHEAT_CODE_COPY_1, CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_1), copy.deepcopy(CHEAT_CODE_2)
 
     """
@@ -119,24 +119,26 @@ def whack_a_mole_start(alliance):
         """
     while True:
         # print("start score: " + str(score))
-        if alliance == ALLIANCE_COLOR.BLUE:
-            button = int(random.random() * NUM_BUTTONS)
-        else:
-            button = int(random.random() * NUM_BUTTONS) + NUM_BUTTONS
-        turn_on_light(button)
+        # if alliance == ALLIANCE_COLOR.BLUE:
+        #     button = int(random.random() * NUM_BUTTONS)
+        # else:
+        #     button = int(random.random() * NUM_BUTTONS) + NUM_BUTTONS
+        # turn_on_light(button)
 
         while not EVENT_QUEUE.empty():
             # clear the queue (The remaining ydl calls received)
             EVENT_QUEUE.get(True)
 
-        waited = 0
-        correct_pressed = False
-        cheat_code_pressed = False
+        waited = -0.5
+        correct_press = False
+
+        waited += 0.5
+        time.sleep(0.5)
 
         # while received a ydl call or we still have time
-        while (not EVENT_QUEUE.empty()) or (waited < DELAY) and not (correct_pressed or cheat_code_pressed):
-            waited += 0.01
-            time.sleep(0.01)
+        while (not EVENT_QUEUE.empty()) or (waited < DELAY) and not (correct_press or cheat_code_pressed):
+            waited += 0.1
+            time.sleep(0.1)
             try:
                 message = EVENT_QUEUE.get(False)
             except queue.Empty:
@@ -146,10 +148,11 @@ def whack_a_mole_start(alliance):
                 turn_all_lights(alliance, on=False)
                 CHEAT_CODE_DONE = 0
                 mole_press_count = 0
+                cheat_code_pressed = False
                 MOLE_PRESS_DONE = False
-                CHEAT_CODE = make_cheat_code(alliance)
-                CHEAT_CODE_1, CHEAT_CODE_2 = CHEAT_CODE[:5], CHEAT_CODE[5:]
+                CHEAT_CODE_1, CHEAT_CODE_2 = make_cheat_code()
                 CHEAT_CODE_COPY_1, CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_1), copy.deepcopy(CHEAT_CODE_2)
+                turn_on_light(CHEAT_CODE_1[0] if alliance == ALLIANCE_COLOR.BLUE else CHEAT_CODE_2[0])
 
             if message[1] == 'button_press':
                 PRESSED_ID = int(message[2]['id'])
@@ -158,57 +161,57 @@ def whack_a_mole_start(alliance):
                 time.sleep(0.2)
                 turn_off_light(PRESSED_ID)
 
-                if PRESSED_ID == button:
-                    correct_pressed = True
+                # if PRESSED_ID == button:
+                #     correct_pressed = True
 
                 if check_live_coding(alliance):
                     if len(CHEAT_CODE_1) > 0 or len(CHEAT_CODE_2) > 0:
-                        if PRESSED_ID == CHEAT_CODE_1[0]:
-                            print("Cheat code 1 pop: ", CHEAT_CODE_1[0])
-                            CHEAT_CODE_1.pop(0)
-                            print("Cheat code 1: ", CHEAT_CODE)
-                            cheat_code_pressed = (len(CHEAT_CODE_1) == 0)
+                        if alliance == ALLIANCE_COLOR.BLUE:
+                            if PRESSED_ID == CHEAT_CODE_1[0]:
+                                print("Cheat code 1 pop: ", CHEAT_CODE_1.pop(0))
+                                correct_press = True
+                                # cheat_code_pressed = (len(CHEAT_CODE_1) == 0)
+                            else:
+                                print("Reset cheat_code 1")
+                                # reset cheat_code, if cheat code is not done in order
+                                CHEAT_CODE_1 = copy.deepcopy(CHEAT_CODE_COPY_1)
+                                print(CHEAT_CODE_1)
+                                break
                         else:
-                            print("Reset cheat_code 1")
-                            # reset cheat_code, if cheat code is not done in order
-                            CHEAT_CODE_1 = CHEAT_CODE_COPY_1
-                            CHEAT_CODE_COPY_1 = copy.deepcopy(CHEAT_CODE_COPY_1)
-                            print(CHEAT_CODE_1)
+                            if PRESSED_ID == CHEAT_CODE_2[0]:
+                                print("Cheat code pop 2: ", CHEAT_CODE_2.pop(0))
+                                correct_press = True
+                                # cheat_code_pressed = (len(CHEAT_CODE_2) == 0)
+                            else:
+                                print("Reset cheat_code 2")
+                                # reset cheat_code, if cheat code is not done in order
+                                CHEAT_CODE_2 = copy.deepcopy(CHEAT_CODE_COPY_2)
+                                print(CHEAT_CODE_2)
+                                break
 
-                            
-                        if PRESSED_ID == CHEAT_CODE_2[0]:
-                            print("Cheat code pop 2: ", CHEAT_CODE_2[0])
-                            CHEAT_CODE_2.pop(0)
-                            print("Cheat code 2: ", CHEAT_CODE)
-                            cheat_code_pressed = (len(CHEAT_CODE_2) == 0)
-                        else:
-                            print("Reset cheat_code 2")
-                            # reset cheat_code, if cheat code is not done in order
-                            CHEAT_CODE_2 = CHEAT_CODE_COPY_2
-                            CHEAT_CODE_COPY_2 = copy.deepcopy(CHEAT_CODE_COPY_2)
-                            print(CHEAT_CODE_2)
-
-        if correct_pressed:
+        if correct_press:
             mole_press_count += 1
             # print(f"got {button} in {round(waited,2)} seconds", end=" ")
             print(f"Correct presses: {mole_press_count}")
             turn_all_lights(alliance, on=True)
             time.sleep(0.2)
             turn_all_lights(alliance, on=False)
+            turn_on_light(CHEAT_CODE_1[0] if alliance == ALLIANCE_COLOR.BLUE else CHEAT_CODE_2[0])
+        else:
+            mole_press_count = 0
 
         if cheat_code_pressed:
-            CHEAT_CODE_DONE += 1
+            CHEAT_CODE_DONE = 1
             cheat_code_pressed = False
             send_cheat_code_score(alliance, CHEAT_CODE_DONE)
             celebrate(alliance)
 
         if mole_press_count == REQUIREMENT:
-            mole_press_count += 1
             MOLE_PRESS_DONE = True
+            cheat_code_pressed = True
             celebrate(alliance)
-            send_security_breach_score(alliance, MOLE_PRESS_DONE)
 
-        turn_off_light(button)
+        # turn_off_light(button)
         send_cheat_code_score(alliance, CHEAT_CODE_DONE)
         send_security_breach_score(alliance, MOLE_PRESS_DONE)
 
