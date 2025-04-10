@@ -29,8 +29,7 @@
 body {
     min-height: 100vh;
     position: relative;
-    background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
-                url('../static/bg.png') center/cover;
+    background: url('../static/bg.png');
     overflow: hidden;
 }
 
@@ -70,12 +69,9 @@ body {
     justify-content: center;
 }
 
-.setup-label {
-    font-family: 'Jolly Lodger';
-}
-
 .time {
     font-family: 'Jolly Lodger';
+    color: #312C1E;
     position: absolute;
     font-size: 1.5rem;
     letter-spacing: 0.2em;
@@ -84,6 +80,8 @@ body {
 }
 
 .setup-label {
+    font-family: 'Jolly Lodger';
+    color: #312C1E;
     font-size: 1.8rem;
     opacity: 0.8;
     letter-spacing: 0.1em;
@@ -112,12 +110,14 @@ body {
 }
 
 .team-name {
+    color: #E3D8BC;
     font-family: 'Jolly Lodger';
     font-size: 2rem;
     margin-bottom: 0;
 }
 
 .team-score {
+    color: #E3D8BC;
     font-family: 'Jolly Lodger';
     font-size: 6rem;
     font-weight: bold;
@@ -134,6 +134,7 @@ body {
 }
 
 .school-box {
+    color: #312C1E;
     font-family: 'Jolly Lodger';
     background: url('../static/teamBanner.png');
     background-size: 100% 100%;
