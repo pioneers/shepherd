@@ -4,37 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Setup Screen</title>
+    <script type="text/javascript" src=../static/socket.io.js></script>
+    <script type="text/javascript" src=../static/jquery-1.12.3.min.js></script>
     <script type="text/javascript" src=../static/scoreboard.js></script>
     <link rel="stylesheet" href="../static/scoreboard.css">
 </head>
 <body>
     <div class="container">
-        <div class="header-box">
+        <div id="round-info" class="header-box">
             <div class="time-container">
-                <div class="time">01:00</div>
+                <div id="timer" class="time">01:00</div>
             </div>
             <div class="vertical-divider"></div>
             <div class="setup-container">
-                <div class="setup-label">SETUP</div>
+                <div id="stage" class="setup-label">SETUP</div>
             </div>
         </div>
 
         <div class="teams-container">
             <div class="team">
                 <div class="team-name">Blue Alliance</div>
-                <div class="team-score" data-score="5">5</div>
+                <div id="score-blue" class="team-score" data-score="5">5</div>
             </div>
             <div class="team">
                 <div class="team-name">Gold Alliance</div>
-                <div class="team-score" data-score="7">7</div>
+                <div id="score-gold" class="team-score"data-score="7">7</div>
             </div>
         </div>
 
         <div class="schools-container">
-            <div class="school-box">SCHOOL1</div>
-            <div class="school-box">SCHOOL2</div>
-            <div class="school-box">SCHOOL1</div>
-            <div class="school-box">SCHOOL2</div>
+            <div id="team-name-b1" class="school-box">SCHOOL1</div>
+            <div id="team-name-b2" class="school-box">SCHOOL2</div>
+            <div id="team-name-g1" class="school-box">SCHOOL1</div>
+            <div id="team-name-g2" class="school-box">SCHOOL2</div>
         </div>
     </div>
 
