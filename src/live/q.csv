@@ -33,4 +33,4 @@ Remainder|Return the remainder of a divided by b+-=>>> remainder(6, 5)+-= 1|def 
 Pythagorean|Return true if the array is a pythagorean triple. A pythagorean triple is a set of numbers in which a^2 + b^2 = c^2. Note, the array is not sorted.+-=>>> pythagorean([5, 3, 4])+-= True|def pythagorean(lst)|test_pythagorean
 Area|Return the area of a rectangle with length a and width b:+-=>>> area(3, 5)+-= 15|def area(a, b)|test_area
 Candy|Fredrick has a candies and b friends, how many candies should each friend get so each has the same amount of candies?+-=>>> candy(12, 5)+-= 2|def candy(a, b)|test_candy
-Median|What is the median of the given unsorted array? Assume the arrays have an odd number of elements.+-=>>> lst([1, 5, 7, 9, 3])+-= 5|def triangle(lst)|test_triangle
+Median|What is the median of the given unsorted array? Assume the arrays have an odd number of elements.+-=>>> lst([1, 5, 7, 9, 3])+-= 5|def median(lst)|test_median
