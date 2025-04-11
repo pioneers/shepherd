@@ -1,5 +1,5 @@
 // change this UUID for every arduino this script is flashed onto
-#define MY_UUID 1
+#define MY_UUID 1 // change
 
 #define handshake_magic 2734451328
 #define baudrate 9600
