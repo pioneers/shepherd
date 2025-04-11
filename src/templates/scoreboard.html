@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Setup Screen</title>
-    <script type="text/javascript" src=../static/socket.io.js></script>
-    <script type="text/javascript" src=../static/jquery-1.12.3.min.js></script>
-    <script type="text/javascript" src=../static/scoreboard.js></script>
-    <link rel="stylesheet" href="../static/scoreboard.css">
+    <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
+    <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
+    <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='scoreboard.css')}}">
 </head>
 <body>
     <div class="container">
         <div id="round-info" class="header-box">
             <div class="time-container">
-                <div id="timer" class="time">01:00</div>
+                <div id="timer" class="time">1:00</div>
             </div>
             <div class="vertical-divider"></div>
             <div class="setup-container">
-                <div id="stage" class="setup-label">SETUP</div>
+                <div id="stage" class="setup-label">Setup</div>
             </div>
         </div>
 
@@ -70,7 +70,7 @@
         <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/second_wave.png">
     </div>
     
-    <div class="wave-container" style="animation: moveRight 3s linear infinite;">
+    <div class="wave-container" style="animation: moveRight 3s linear infinite; z-index: 2;">
         <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/first_wave.png"> 
         <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/first_wave.png">
     </div>

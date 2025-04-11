@@ -83,6 +83,8 @@ body {
     gap: 2rem;
     margin: auto;
     width: fit-content;
+    position: relative;
+    left:29rem;
 }
 
 .time-container{
@@ -123,6 +125,8 @@ body {
     opacity: 0.8;
     letter-spacing: 0.1em;
     margin: 0;
+    width: 100rem;
+    text-overflow: unset;
 }
 
 .vertical-divider {
@@ -186,7 +190,7 @@ body {
     padding: 2.4rem 5rem;
     font-size: 1.5rem;
     letter-spacing: 0.05em;
-    min-width: 180px;
+    min-width: 280px;
     text-align: center;
 }
 
@@ -220,10 +224,13 @@ body {
     transform: translateX(-50%);
     width: 80%;
     max-width: 600px;
-    height: 0.5rem;
+    height: 0.7rem;
     background: rgba(255,255,255,0.3);
-    z-index: 2;
-    border-radius: 2px;
+    z-index: 3;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: white;
+    border-style: solid;
 }
 
 .progress-fill {
@@ -253,6 +260,7 @@ body {
     width: 23rem;
     height: 23rem;
     position: relative;
+    left:0.5rem;
 }
   
 .sail {
