@@ -172,7 +172,7 @@ body {
 }
 
 .extra-padding {
-    margin-right: 22rem;
+    margin-right: 17.5rem;
 }
 
 
@@ -184,7 +184,7 @@ body {
     background-size: 100% 100%;
     border-radius: 10px;
     padding: 2.4rem 5rem;
-    font-size: 1rem;
+    font-size: 1.5rem;
     letter-spacing: 0.05em;
     min-width: 180px;
     text-align: center;

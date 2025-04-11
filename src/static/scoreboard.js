@@ -10,6 +10,8 @@ var progression_bar;
 var start_audio;
 var end_audio; 
 
+const socket = io()
+
 document.addEventListener('DOMContentLoaded', () => {
 // Calculate progress bar position
 const teamScores = document.querySelectorAll('.team-score');
