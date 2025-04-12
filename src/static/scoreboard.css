@@ -84,14 +84,15 @@ body {
     margin: auto;
     width: fit-content;
     position: relative;
-    left:29rem;
+    left:19rem;
 }
 
 .time-container{
     background: url("../static/timer.png") center/contain;
     position: relative;
     aspect-ratio: 1 / 1;
-    width: 20rem;
+    width: 18rem;
+    left: 1rem;
     padding: 0;
     display: flex;
     align-items: center;
@@ -120,7 +121,7 @@ body {
 
 .setup-label {
     font-family: 'Jolly Lodger';
-    color: #312C1E;
+    color: #E3D8BC;
     font-size: 3rem;
     opacity: 0.8;
     letter-spacing: 0.1em;
@@ -138,11 +139,77 @@ body {
     margin: 0 -1px;
 }
 
+.banner-container {
+    width: fit-content;
+}
+
+.blue-banner {
+    height: 15rem;
+    width: 15rem;
+    background: url("../static/banners/blue_banner.png") center/contain;
+    z-index: 100;
+    position: absolute;
+    right: 137.7rem;
+    bottom: 1rem;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.gold-banner {
+    height: 15rem;
+    width: 17.5rem;
+    background: url("../static/banners/gold_banner.png") center/contain;
+    z-index: 100;
+    position: absolute;
+    right: 84rem;
+    bottom: 1rem;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+.blue-banner-text {
+    position: relative;
+    top: 6.2rem;
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 1.5rem;
+}
+
+.gold-banner-text {
+    position: relative;
+    top: 6.4rem;
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 1.5rem;
+}
+
+.rope1 {
+    height: 10rem;
+    width: 10rem;
+    position: relative;
+    z-index: 99;
+    bottom: 5rem;
+    /* left: rem; */
+    background: url("../static/banners/rope.png") center/contain;
+}
+
+.rope2 {
+    height: 10rem;
+    width: 10rem;
+    position: relative;
+    z-index: 99;
+    bottom: 5rem;
+    right:87.5rem;
+    background: url("../static/banners/rope.png") center/contain;
+}
+
 /* Teams Section */
 .teams-container {
     display: flex;
     justify-content: center;
-    gap: 35%;
+    gap: 48.3%;
 }
 
 .team {
