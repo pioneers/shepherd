@@ -1,66 +1,92 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Setup Screen</title>
     <script type="text/javascript" src={{url_for( 'static' , filename='socket.io.js' )}}></script>
     <script type="text/javascript" src={{url_for( 'static' , filename='jquery-1.12.3.min.js' )}}></script>
     <script type="text/javascript" src={{url_for( 'static' , filename='scoreboard.js' )}}></script>
     <link rel="stylesheet" href="{{url_for('static', filename='scoreboard.css')}}">
 </head>
+<body>
+    <div class="container">
+        <div id="round-info" class="header-box">
+            <div class="banner-container">
+                <div class="rope1"></div>
+                <div class="blue-banner">
+                    <h3 class="blue-banner-text">Blue Alliance</h3>
+                </div>
+            </div>
+            <div class="time-container">
+                <div id="timer" class="time">1:00</div>
+            </div>
+            <div class="vertical-divider"></div>
+            <div class="setup-container">
+                <div id="stage" class="setup-label">Setup</div>
+            </div>
+            <div class="banner-container">
+                <div class="rope2"></div>
+                <div class="gold-banner">
+                    <h3 class="gold-banner-text">Gold Alliance</h3>
+                </div>
+            </div>
+        </div>
 
-<div id = "sky-background">
-    <div id = "info-container">
+        <div class="teams-container">
+            <div class="team">
+                <!-- <div class="team-name">Blue Alliance</div> -->
+                <div id="score-blue" class="team-score" data-score="5">0</div>
+            </div>
+            <div class="team">
+                <!-- <div class="team-name">Gold Alliance</div> -->
+                <div id="score-gold" class="team-score"data-score="7">0</div>
+            </div>
+        </div>
 
-    <div id = "cloud">
+        <div class="schools-container" style="z-index: 100; position: relative;">
+            <div id="team-name-b1" class="school-box">SCHOOL1</div>
+            <div id="team-name-b2" class="school-box extra-padding">SCHOOL2</div>
+            <div id="team-name-g1" class="school-box">SCHOOL1</div>
+            <div id="team-name-g2" class="school-box">SCHOOL2</div>
+        </div>
     </div>
 
-        <!-- Blue Alliance Information -->
-        <section>
-            <p id = "team-name-b1">Team 1</p>
-            <p id = "score-blue">Blue</p>
-            <p id = "team-name-b2">Team 2</p>
-        </section>
-
-        <!-- Round Information -->
-        <section id = "round-info">
-            <p id = "match">Pioneers in Engineering</p>
-            <p id = "timer">Get Ready!</p>
-            <p id = "stage">Setting up</p>
-        </section>
-
-        <!-- Gold Alliance Information -->
-        <section>
-            <p id = "team-name-g1">Team 1</p>
-            <p id = "score-gold">Gold</p>
-            <p id = "team-name-g2">Team 2</p>
-        </section>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
     </div>
 
-    <div id = "svg-container-one">
-        <img src = "../static/blue.svg">
-        <img src = "../static/gold.svg">
+    <div id="ship-animation" class="sail" style="z-index: 1;">
+        <img src="../static/pirate-ship.png" style="animation: upDown 7s ease infinite;" alt="Pirate Ship" id="ship">
     </div>
 
-    <div id = "svg-container-two">
-        <img src = "../static/blue.svg">
-        <img src = "../static/gold.svg">
-    </div>
-
-    <div id = "light"></div>
-
-    <img src = "../static/light_alcatraz.png" id = "alcatraz">
-    <img src = "../static/dark_alcatraz.png" id = "dark-alcatraz">
-
-    <div id = "waves_container">
+    <!-- <div id = "waves_container">
         <img src = "../static/light_wave.gif" id = "waves">
     </div>
 
     <div id = "waves_container">
         <img src = "../static/dark_wave.gif" id = "dark-waves">
+    </div> -->
+    <div class="wave-container" style="animation: moveRight 12s linear infinite;">
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/fourth_wave.png"> 
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/fourth_wave.png">
+    </div>
+    
+    <div class="wave-container" style="animation: moveRight 8s linear infinite;">
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/third_wave.png"> 
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/third_wave.png">
+    </div>
+    
+    <div class="wave-container" style="animation: moveRight 5s linear infinite; z-index: 1;">
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/second_wave.png"> 
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/second_wave.png">
+    </div>
+    
+    <div class="wave-container" style="animation: moveRight 3s linear infinite; z-index: 2;">
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/first_wave.png"> 
+        <img class="waves" style="animation: upDown 10s ease infinite;" src="../static/wave_images/first_wave.png">
     </div>
 
-    <video autoplay muted loop id = "rain-background">
-        <source src="../static/rain.mp4" type="video/mp4">
-    </video>
-</div>
-
+    <script src="script.js"></script>
+</body>
 </html>

@@ -1,482 +1,372 @@
+/* Imports */
+.kdam-thmor-pro-regular {
+    font-family: "Kdam Thmor Pro", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+.jockey-one-regular {
+    font-family: "Jockey One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+.inter {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+ /* Wave Classes */
+.wave-container {
+    position: absolute;
+    display: flex;
+    bottom: 0;
+    left: 0;
+}
+.waves {
+    height: 30vw; /* fix height only dont touch width  */
+    width: 100vw;
+}
+@keyframes moveRight {
+    0% {
+        transform: translateX(-100vw) translateY(0vw);
+    }
+    50% {
+        transform: translateX(-50vw) translateY(2vw);
+    }
+    100% {
+        transform: translateX(0vw) translateY(0vw);
+    }
+}
+@keyframes upDown {
+    0% {
+        transform: translateY(0vw);
+    }
+    50% {
+        transform: translateY(2vw);
+    }
+    100% {
+        transform: translateY(0vw);
+    }
+}
+  
+/*  Design  */
 * {
-  margin: 0;
-  padding: 0;
-}
-
-p {
-  font-size: 2.5rem;
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: center;
-  color: rgb(0, 0, 0);
-  transition: color 4s;
-}
-
-#alcatraz, #dark-alcatraz{
-  height: 60%; 
-  position: absolute; 
-  top: 39%; 
-  left: 22%;
-  z-index: 3;
-}
-
-/* to negative 3 */
-#cloud {
-  position: absolute;
-  top: -10rem; 
-  left: -2rem;
-  width: 150%;
-  height: 100%;
-  opacity: 0%;
-  z-index: -2;
-  background-image: url('../static/cloud.png');
-  background-repeat: repeat-x;
-  animation: shakehorizontal 3s ease-in-out infinite
-}
-
-@keyframes shakehorizontal {
-  0% {
-    transform: translate(1rem)
-  }
-  50%{
-    transform: translate(-1rem)
-  }
-
-  100%{
-    transform: translate(1rem)
-  }
-}
-
-@keyframes shakeverticle {
-  0% {
-    transform: translate(0, 3rem)
-  }
-  50%{
-    transform: translate(0, 0)
-  }
-
-  100%{
-    transform: translate(0, 3rem)
-  }
-}
-
-#dark-alcatraz {
-  opacity: 0%;
-  z-index: 4;
-  height: 59%; 
-  left: 22.1%;
-  top: 39%; 
-}
-
-#info-container {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8rem;
-}
-
-#info-container section {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 23rem;
-}
-
-/* Element (and animation) without REM or %, will not change based on browser size */
-#light{
-  position: absolute;
-  margin-top: -150px;
-  opacity: .6;
-  animation: light 6s infinite linear;
-  top: 93%; 
-  left: 57%; 
-  z-index: 4;
-}
-
-#match {
-  margin-top: 2rem;
-}
-
-#rain-background {
-  opacity: 0%;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  top: 0;
-  left: 0;
-  z-index: -3;
-}
-
-#round-info {
-  position: relative;
-  top: -7rem;
-}
-
-#score-gold, 
-#score-blue {
-  font-size: 6rem;
-}
-
-#sky-background {
-  background-color: rgb(172,229,212); 
-  position: absolute; 
-  height: 100%; 
-  width: 100%; 
-  z-index: -4;
-  overflow: hidden;
-}
-
-#stage {
-  margin-bottom: 2rem;
-}
-
-#svg-container-one, 
-#svg-container-two {
-  width: 100%; 
-  display: flex; 
-  justify-content: space-between;
-  position: absolute;
-  z-index: -1;
-}
-
-#svg-container-one img, 
-#svg-container-two img{
-  width: 25rem;
-}
-
-#svg-container-one {
-  top: 6.7rem;
-}
-
-#svg-container-two {
-  top: 21.5rem;
-}
-
-#timer {
-  font-size: 7rem;
-}
-
-#team-name-g1, #team-name-g2, #team-name-b1, #team-name-b2 {
-  color: white;
-}
-
-#waves, #dark-waves {
-  width: 100%; 
-  height: 45%; 
-  position: absolute; 
-  top: 55%; 
-  z-index: 0;
-  animation: shakeverticle 3s ease-in-out infinite
-}
-
-#dark-waves {
-  opacity: 0%;
-  z-index: 1;
-}
-
-#waves-container {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  flex-direction: column;
-}
-
-/* root styles */
-:root {
-  --font: "Comic Sans MS", "Comic Sans", cursive;
-  --blue50: #e8f1fb;
-  --blue100: #d1e3f6;
-  --blue200: #a4c7ed;
-  --blue300: #76abe5;
-  --blue400: #498fdc;
-  --blue500: #1b73d3; /* pie blue */
-  --blue600: #165ca9;
-  --blue700: #10457f;
-  --blue800: #0b2e54;
-  --blue900: #05172a;
-
-  --gold50: #fef7eb;
-  --gold100: #fdefd7;
-  --gold200: #fbdfaf;
-  --gold300: #fad087;
-  --gold400: #f8c05f;
-  --gold500: #f6b037; /* pie gold */
-  --gold600: #c58d2c;
-  --gold700: #946a21;
-  --gold800: #624616;
-  --gold900: #31230b;
-
-  --grey50: #fafafa;
-  --grey100: #f4f4f5;
-  --grey200: #e4e4e7;
-  --grey300: #d4d4d8;
-  --grey400: #a1a1aa;
-  --grey500: #71717a;
-  --grey600: #52525b;
-  --grey700: #3f3f46;
-  --grey800: #27272a;
-  --grey900: #18181b;
-
-  --green100: #cce6cc;
-  --green200: #99cc99;
-  --green300: #66b366;
-  --green400: #339933;
-  --green500: #008000;
-  --green600: #006600;
-  --green700: #004d00;
-  --green800: #003300;
-  --green900: #001a00;
-
-  --red100: #ffcccc;
-  --red200: #ff9999;
-  --red300: #ff6666;
-  --red400: #ff3333;
-  --red500: #ff0000;
-  --red600: #cc0000;
-  --red700: #990000;
-  --red800: #660000;
-  --red900: #330000;
-
-  --black: #222;
-  --white: #fff;
-  --redLight: #f8d7da;
-  --redDark: #842029;
-  --greenLight: #d1e7dd;
-  --greenDark: #0f5132;
-
-  --shadow1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow2: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow3: 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow4: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --lightShadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  --darkShadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-
-  /* this is the background color */ 
-  --boxyGoldShadow: 5px 5px 0px 0px var(--red600),
-
-    inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
-  --boxyBlueShadow: 5px 5px 0px 0px var(--blue500),
-    inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
-
-  --headingfont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  --bodyfont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  --border: 1px black solid;
-
-  --borderRadius: 0.25rem;
-  --transition: 0.25s ease-in-out all;
-
-  --font-size: 190%;
-  --score-font-size: 240%;
-  --text-stroke: 1px;
-  --headerSize: 0.35;
-  --scoreboardContentSize: 80%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
 body {
-  /* background-color: rgb(0, 0, 0); */
-  font-family: var(--headingfont);
+    min-height: 100vh;
+    position: relative;
+    background: url('../static/bg.png');
+    overflow: hidden;
 }
 
-.scoreboard-outer-container {
-  /* for debugging */
-  /* border: solid 2px orange ;
-  background-color: rgb(0, 0, 225); */
-
-  width: 100%; /* just in case the projector screen is too big, change this */
-  height: 100%; /* just in case the projector screen is too big, change this */
-
-  display: block;
-  margin: auto;
-
-  font-size: var(--font-size); /* change later, affected by size of browser */
-  font-weight: bold;
-  color: white;
-  -webkit-text-stroke: var(--text-stroke) black; /* change later, affected by size of browser */
+.container {
+    padding: 0;
+    color: white;
+    position: relative;
+    z-index: 1;
+    height: 70%;
 }
 
-.scoreboard-header-outer-container {
-  /* for debugging */
-  /* border: solid 2px white;
-  background-color: rgb(0, 255, 0); */
-
-  width: 100%;
-  height: calc(var(--headerSize) * 100%); /* change later, represents height of entire header */
-
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 20px;
+/* Header Box */
+.header-box {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin: auto;
+    width: fit-content;
+    position: relative;
+    left:19rem;
 }
 
-.bg-video {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  min-width: 100%;
-  min-height: 100%;
-  transform: translateX(calc((100% - 100vw) / 2));
-  z-index: -1;
+.time-container{
+    background: url("../static/timer.png") center/contain;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    width: 18rem;
+    left: 1rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.scoreboard-header-container {
-  /* for debugging */
-  /* border: solid 2px blueviolet ;
-  background-color: rgb(255, 0, 0); */
-
-  background-color: var(--grey400);
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  column-gap: 5px;
-  row-gap: 5px;
-  padding: 5px calc(calc(100% - var(--scoreboardContentSize)) / 2);
+.setup-container {
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 1.5rem;
+    position: relative;
 }
 
-.alliance-container {
-  /* for debugging */
-  /* border: solid 2px green ;
-  background-color: rgb(100, 200, 255); */
-
-
-  width: 100%;
-  height: 100%;
-  margin-left: auto;
-  margin-right: auto;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  column-gap: 5px;
-  row-gap: 5px;
-  padding: 5px;
+.time {
+    top: 0.5rem;
+    font-family: 'Jolly Lodger';
+    color: #312C1E;
+    position: relative;
+    font-size: 2rem;
+    letter-spacing: 0.2em;
+    font-weight: bold;
+    margin-top: 50px;
 }
 
-.robot-blue-container,
-.robot-gold-container {
-  /* for debugging */
-  /* border: solid 2px yellow ;
-  background-color: orange; */
-
-  border-radius: 15px;
-  display: flex;
-  flex-direction: column;
+.setup-label {
+    font-family: 'Jolly Lodger';
+    color: #E3D8BC;
+    font-size: 3rem;
+    opacity: 0.8;
+    letter-spacing: 0.1em;
+    margin: 0;
+    width: 100rem;
+    text-overflow: unset;
 }
 
-.robot-blue-container {
-  background-color: var(--blue500);
-  opacity: 90%;
-  grid-row: 1;
+.vertical-divider {
+    top: 1.5rem;
+    position: relative;
+    height: 5rem;
+    width: 0.1rem;
+    background: rgba(255,255,255,0.5);
+    margin: 0 -1px;
 }
 
-.robot-gold-container {
-  background-color: var(--gold500);
-  opacity: 90%;
-  grid-row: 3;
+.banner-container {
+    width: fit-content;
 }
 
-.game-container {
-  /* for debugging */
-  /* border: solid 2px green ;
-  background-color: rgb(100, 200, 255); */
-
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
-  column-gap: 5px;
-  row-gap: 5px;
+.blue-banner {
+    height: 15rem;
+    width: 15rem;
+    background: url("../static/banners/blue_banner.png") center/contain;
+    z-index: 100;
+    position: absolute;
+    right: 137.7rem;
+    bottom: 1rem;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
-.score-blue-container,
-.score-gold-container,
-.timer-outer-container,
-.stage-container,
-.match-container,
-.robot-text {
-  /* for debugging */
-  /* border: solid 2px yellow ; */
-
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.gold-banner {
+    height: 15rem;
+    width: 17.5rem;
+    background: url("../static/banners/gold_banner.png") center/contain;
+    z-index: 100;
+    position: absolute;
+    right: 84rem;
+    bottom: 1rem;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
 }
 
-.timer-text,
-.match-text,
-.stage-text {
-  /* for debugging */
-  /* border: solid 2px orange ; */
-
-  padding-left: 20px; /* change later, affected by size of browser */
-  padding-right: 20px; /* change later, affected by size of browser */
-
-  /*font-weight: normal;*/
-  /*color: black;*/
+.blue-banner-text {
+    position: relative;
+    top: 6.2rem;
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 1.5rem;
 }
 
-/*.minigame-text {*/
-/*  font-size: 80%;*/
-/*}*/
-
-.timer-inner-container {
-  background-color: var(--grey400);
-  font-size: 190%;
-  width: 20%;
-  height: 8%;
-  border-radius: 2rem 2rem 0 0;
+.gold-banner-text {
+    position: relative;
+    top: 6.4rem;
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 1.5rem;
 }
 
-.progression-bar {
-  width: 100%;
-  height: 15px;
+.rope1 {
+    height: 10rem;
+    width: 10rem;
+    position: relative;
+    z-index: 99;
+    bottom: 5rem;
+    /* left: rem; */
+    background: url("../static/banners/rope.png") center/contain;
 }
 
-.stage-text,
-.minigame-text {
-  font-size: 90%;
+.rope2 {
+    height: 10rem;
+    width: 10rem;
+    position: relative;
+    z-index: 99;
+    bottom: 5rem;
+    right:87.5rem;
+    background: url("../static/banners/rope.png") center/contain;
 }
 
-.score-blue-container,
-.score-gold-container {
-  /* for debugging */
-  /*border: solid 2px red ;*/
-  /*background-color: rgb(195, 195, 195);*/
-
-  font-size: var(--score-font-size);
+/* Teams Section */
+.teams-container {
+    display: flex;
+    justify-content: center;
+    gap: 48.3%;
 }
 
-.score-blue-container {
-  background-color: var(--blue500);
+.team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
-.score-gold-container {
-  background-color: var(--gold500);
+.team-name {
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 3rem;
+    margin-bottom: 0;
 }
 
-.scoreboard-bottom-container {
-  /* for debugging */
-  /* border: solid 2px red ;
-  background-color: grey; */
+.team-score {
+    color: #E3D8BC;
+    font-family: 'Jolly Lodger';
+    font-size: 8rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* Schools Section */
+.schools-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.extra-padding {
+    margin-right: 17.5rem;
+}
+
+
+
+.school-box {
+    color: #312C1E;
+    font-family: 'Jolly Lodger';
+    background: url('../static/teamBanner.png');
+    background-size: 100% 100%;
+    border-radius: 10px;
+    padding: 2.4rem 5rem;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    min-width: 280px;
+    text-align: center;
+}
+
+/* Updated Wave Styles */
+#waves, #dark-waves {
+    width: 100%; 
+    height: 45%; 
+    position: fixed; 
+    top: 60%; 
+    z-index: 0;
+    animation: shakevertical 3s ease-in-out infinite
+}
+
+#dark-waves {
+    opacity: 0%;
+    z-index: 1;
+}
+
+#waves-container {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    flex-direction: column;
+}
+
+/* Progress Bar */
+.progress-bar {
+    position: absolute;
+    bottom: 7%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 600px;
+    height: 0.7rem;
+    background: rgba(255,255,255,0.3);
+    z-index: 3;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: white;
+    border-style: solid;
+}
+
+.progress-fill {
+    position: absolute;
+    left: 0;
+    height: 100%;
+    background: #ffd700;
+    width: 50%;
+    transition: width 0.5s ease;
+    border-radius: 2px;
+}
+
+#ship-animation {
+    position: absolute;
+    left: 50%;
+    bottom: 19.7%; 
+    width: 110px;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 2;
+}
   
-  width: var(--scoreboardContentSize);
-  height: calc(calc(1 - var(--headerSize)) * 100%);
-  margin-left: auto;
-  margin-right: auto;
-  display: grid;
-  grid-template-rows: 1fr 1fr 1fr 1fr;
-  column-gap: 5px;
-  padding: 5px;
+#ship {
+    top: 2rem;
+    width: 23rem;
+    height: 23rem;
+    position: relative;
+    left:0.5rem;
+}
+  
+.sail {
+    animation: float 4s infinite ease-in-out;
+}
+  
+@keyframes float {
+    0% { transform: translateX(-50%) rotate(-5deg); }
+    50% { transform: translateX(-50%) rotate(5deg); }
+    100% { transform: translateX(-50%) rotate(-5deg); }
 }
 
-.audio-button {
-  width: 80px;
-  height: 20px;
-  font-size: 8px;
-  font-weight: normal;
-  color: white;
-  margin-top: -20px;
+/* Other */
+@keyframes shakevertical {
+    0% {
+      transform: translate(0, 3rem)
+    }
+    50%{
+      transform: translate(0, 0)
+    }
+  
+    100%{
+      transform: translate(0, 3rem)
+    }
+  }
+
+@media (max-width: 768px) {
+    .time { font-size: 2.5rem; }
+    .setup-label { font-size: 1.4rem; }
+    .team-name { font-size: 1.5rem; }
+    .team-score { font-size: 4rem; }
+    .school-box { 
+        min-width: 140px;
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    .wave-container { height: 150px; }
+    .progress-bar {
+        bottom: 20px;
+        width: 90%;
+    }
 }
