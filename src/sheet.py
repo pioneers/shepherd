@@ -177,6 +177,7 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = {
                         "score": int(row[2]),
+                        "live": int(row[7]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
@@ -185,6 +186,7 @@ class Sheet:
                 elif row[1] == "Gold":
                     gold = {
                         "score": int(row[2]),
+                        "live": int(row[7]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
