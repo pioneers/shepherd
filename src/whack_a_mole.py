@@ -146,7 +146,7 @@ def whack_a_mole_start(alliance):
 
             if message[1] in ["start_next_stage", "setup_match"]:
                 turn_all_lights(alliance, on=False)
-                CHEAT_CODE_DONE = 0
+                # CHEAT_CODE_DONE = 0
                 mole_press_count = 0
                 cheat_code_pressed = False
                 MOLE_PRESS_DONE = False
@@ -216,9 +216,72 @@ def whack_a_mole_start(alliance):
         send_security_breach_score(alliance, MOLE_PRESS_DONE)
 
 
+def sail_task(alliance):
+    turn_all_lights(alliance, on=False)
+
+    REQUIREMENT_FOR_SAIL = 5
+    SAIL_TIMEOUT = 15
+    correct_presses = 0
+    last_press_time = time.time()
+
+    if alliance == ALLIANCE_COLOR.BLUE:
+        EVENT_QUEUE = BLUE_QUEUE 
+    else:
+        EVENT_QUEUE = GOLD_QUEUE
+    while True: #this lights up a random button
+        if alliance == ALLIANCE_COLOR.BLUE:
+            button = int(random.random() * NUM_BUTTONS)
+        else:
+            button = int(random.random() * NUM_BUTTONS) + NUM_BUTTONS
+        turn_on_light(button)
+
+        start_time = time.time() # wait for the button press or timeout???
+        correct_pressed = False
+    
+        while time.time() - start_time < SAIL_TIMEOUT:
+            try:
+                message = EVENT_QUEUE.get(timeout = 0.01)
+            except queue.Empty:
+                continue
+            if message[1] == 'button_press':
+                    PRESSED_ID = int(message[2]['id'])
+                    print("Button pressed: ", PRESSED_ID)
+                    turn_on_light(PRESSED_ID)
+                    time.sleep(0.2)
+                    turn_off_light(PRESSED_ID)
+                    
+                    if PRESSED_ID == button:
+                        correct_pressed = True
+                        break  # exit the loop if the correct button is pressed
+                    else:
+                        # incorrect button pressed, reset the process
+                        correct_presses = 0
+                        turn_all_lights(alliance, on=False)
+                        print("Incorrect button pressed! Resetting SAIL task.")
+                        break
+    
+        # check if the correct button was pressed within the timeout
+        if correct_pressed:
+                correct_presses += 1
+                last_press_time = time.time()
+                print(f"Correct presses: {correct_presses}")
+                if correct_presses == REQUIREMENT_FOR_SAIL:
+                    print("SAIL fully hoisted! Bonus points awarded.")
+                    celebrate(alliance)
+                    send_security_breach_score(alliance, True)  # send bonus points
+                    correct_presses = 0  # reset for the next attempt
+        else:
+                # if they take timeout, reset the process
+                correct_presses = 0
+                turn_all_lights(alliance, on=False)
+                print("Timeout! Resetting SAIL task.")
+
+        turn_off_light(button)
+
 if __name__ == '__main__':
-    threading.Thread(target=whack_a_mole_start, args=(
-        ALLIANCE_COLOR.BLUE,), daemon=True).start()
-    threading.Thread(target=whack_a_mole_start, args=(
-        ALLIANCE_COLOR.GOLD,), daemon=True).start()
-    fill_queue()
+    threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.BLUE,), daemon=True).start()
+    threading.Thread(target=whack_a_mole_start, args=(ALLIANCE_COLOR.GOLD,), daemon=True).start()
+    threading.Thread(target=sail_task, args=(ALLIANCE_COLOR.BLUE,), daemon=True).start()
+    threading.Thread(target=sail_task, args=(ALLIANCE_COLOR.GOLD,), daemon=True).start()
+
+fill_queue()
