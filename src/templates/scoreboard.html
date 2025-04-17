@@ -13,46 +13,54 @@
     <div class="container">
         <div id="round-info" class="header-box">
             <div class="banner-container">
-                <div class="rope1"></div>
+                <!-- <div class="rope1"></div>
                 <div class="blue-banner">
                     <h3 class="blue-banner-text">Blue Alliance</h3>
-                </div>
+                </div> -->
+                <img class="blue-rope" src="../static/banners/rope.png">
+                <img class="blue-banner" src="../static/banners/blue_banner.png">
+                <h3 class="blue-banner-text">Blue Alliance</h3>
             </div>
             <div class="middle-section">
                 <img class="time-container" src="../static/timer.png">
-                <div id="timer" class="time">1:00</div>
+                <div id="timer" class="time">0:00</div>
                 <!-- <div class="time-container">
                     <div id="timer" class="time">1:00</div>
                 </div> -->
                 <!-- <div class="vertical-divider"></div> -->
-                <div class="setup-container">
-                    <div id="stage" class="setup-label">Setup</div>
-                </div>
+                <div id="stage" class="setup-label">Loading...</div>
             </div>
             <div class="banner-container">
-                <div class="rope2"></div>
+                <!-- <div class="rope2"></div>
                 <div class="gold-banner">
                     <h3 class="gold-banner-text">Gold Alliance</h3>
-                </div>
+                </div> -->
+                <img class="gold-rope" src="../static/banners/rope.png">
+                <img class="gold-banner" src="../static/banners/gold_banner.png">
+                <h3 class="gold-banner-text">Gold Alliance</h3>
             </div>
         </div>
 
         <div class="teams-container">
             <div class="team">
                 <!-- <div class="team-name">Blue Alliance</div> -->
-                <div id="score-blue" class="team-score" data-score="5">0</div>
+                <div id="score-blue" class="team-score" data-score="5">...</div>
             </div>
             <div class="team">
                 <!-- <div class="team-name">Gold Alliance</div> -->
-                <div id="score-gold" class="team-score"data-score="7">0</div>
+                <div id="score-gold" class="team-score"data-score="7">...</div>
             </div>
         </div>
 
         <div class="schools-container" style="z-index: 100; position: relative;">
-            <div id="team-name-b1" class="school-box">SCHOOL1</div>
-            <div id="team-name-b2" class="school-box extra-padding">SCHOOL2</div>
-            <div id="team-name-g1" class="school-box">SCHOOL1</div>
-            <div id="team-name-g2" class="school-box">SCHOOL2</div>
+            <div class="schools-wrap">
+                <div id="team-name-b1" class="school-box">SCHOOL1</div>
+                <div id="team-name-b2" class="school-box">SCHOOL2</div>
+            </div>
+            <div class="schools-wrap">
+                <div id="team-name-g1" class="school-box">SCHOOL1</div>
+                <div id="team-name-g2" class="school-box">SCHOOL2</div>
+            </div>
         </div>
     </div>
 

@@ -77,27 +77,24 @@ body {
 
 /* Header Box */
 .header-box {
-    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 9rem;
-    margin: auto;
-    width: fit-content;
+    gap: 11rem;
     left: 1rem;
+    position: relative;
 }
 
 .time-container{
     position: relative;
-    aspect-ratio: 1 / 1;
     height: 30rem;
     width: 30rem;
-    left: 1rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
+    bottom: 3rem;
 }
 
 .setup-container {
@@ -114,23 +111,28 @@ body {
     font-family: 'Jolly Lodger';
     color: #312C1E;
     position: relative;
-    font-size: 3rem;
-    letter-spacing: 0.2em;
+    font-size: 4rem;
+    letter-spacing: 0.1em;
     font-weight: bold;
     z-index: 11;
-    left: 2%;
-    bottom: 13.5rem;
+    bottom: 17rem;
+    left: 0.1rem;
+    padding: 0;
+    margin: 0;
 }
 
 .setup-label {
     font-family: 'Jolly Lodger';
     color: #E3D8BC;
-    font-size: 3rem;
+    font-size: 5rem;
     opacity: 0.8;
     letter-spacing: 0.1em;
     margin: 0;
-    width: fit-content;
+    /* width: fit-content; */
     text-align: center;
+    position: relative;
+    bottom: 8rem;
+    left: 0.3rem;
 }
 
 .vertical-divider {
@@ -147,36 +149,34 @@ body {
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    left: 1.5rem;
+    position: relative;
 }
 
 .banner-container {
-    width: fit-content;
-    /* justify-content: center;
-    align-items: center; */
+    bottom: 5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .blue-banner {
-    height: 15rem;
-    width: 15rem;
-    background: url("../static/banners/blue_banner.png") center/contain;
+    height: 20rem;
+    width: 22rem;
     z-index: 100;
     position: relative;
-    /* right: 137.7rem; */
-    bottom: 8rem;
+    bottom: 7.5rem;
     text-align: center;
     align-items: center;
     justify-content: center;
 }
 
 .gold-banner {
-    height: 14.5rem;
-    width: 17rem;
-    background: url("../static/banners/gold_banner.png") center/contain;
+    height: 15rem;
+    width: 22rem;
     z-index: 100;
     position: relative;
-    /* right: 84rem; */
-    bottom: 8.5rem;
+    bottom: 7.8rem;
+    right: 1rem;
     text-align: center;
     align-items: center;
     justify-content: center;
@@ -184,35 +184,40 @@ body {
 
 .blue-banner-text {
     position: relative;
-    top: 6rem;
+    bottom: 20rem;
+    left: 2.5rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
-    font-size: 1.5rem;
+    font-size: 3rem;
+    z-index: 101;
 }
 
 .gold-banner-text {
     position: relative;
-    top: 6.1rem;
+    bottom: 17.6rem;
+    left: 1.75rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
-    font-size: 1.5rem;
+    font-size: 2.85rem;
+    z-index: 101;
 }
 
-.rope1 {
+.blue-rope {
     height: 15rem;
     width: 15rem;
+    left: 3.5rem;
     position: relative;
     z-index: 99;
     background: url("../static/banners/rope.png") center/contain;
 }
 
-.rope2 {
+.gold-rope {
     height: 15rem;
     width: 15rem;
     position: relative;
     z-index: 99;
-    left: 1rem;
-    bottom: 1rem;
+    left: 2.5rem;
+    bottom: 2rem;
     background: url("../static/banners/rope.png") center/contain;
 }
 
@@ -220,7 +225,9 @@ body {
 .teams-container {
     display: flex;
     justify-content: center;
-    gap: 48.5rem;
+    gap: 53rem;
+    bottom: 10rem;
+    position: relative;
 }
 
 .team {
@@ -235,14 +242,17 @@ body {
     font-family: 'Jolly Lodger';
     font-size: 3rem;
     margin-bottom: 0;
+    font-weight: bold;
 }
 
 .team-score {
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
-    font-size: 8rem;
+    font-size: 10rem;
+    min-width: 20rem;
     font-weight: bold;
     line-height: 1;
+    text-align: center;
 }
 
 /* Schools Section */
@@ -251,13 +261,15 @@ body {
     justify-content: center;
     flex-wrap: wrap;
     margin-bottom: 2rem;
+    position: relative;
+    bottom: 10rem;
+    gap: 19rem;
 }
 
-.extra-padding {
-    margin-right: 17.5rem;
+.schools-wrap {
+    display: flex;
+    flex-direction: row;
 }
-
-
 
 .school-box {
     color: #312C1E;
@@ -266,10 +278,10 @@ body {
     background-size: 100% 100%;
     border-radius: 10px;
     padding: 2.4rem 5rem;
-    font-size: 1.5rem;
-    letter-spacing: 0.05em;
-    min-width: 280px;
+    font-size: 2.5rem;
     text-align: center;
+    min-width: 27rem;
+    font-weight: bold;
 }
 
 /* Updated Wave Styles */
@@ -335,8 +347,8 @@ body {
   
 #ship {
     top: 2rem;
-    width: 23rem;
-    height: 23rem;
+    width: 28rem;
+    height: 28rem;
     position: relative;
     left:0.5rem;
 }
