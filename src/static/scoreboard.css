@@ -72,6 +72,7 @@ body {
     position: relative;
     z-index: 1;
     height: 70%;
+    display: relative;
 }
 
 /* Header Box */
@@ -80,43 +81,45 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2rem;
+    gap: 9rem;
     margin: auto;
     width: fit-content;
-    position: relative;
-    left:19rem;
+    left: 1rem;
 }
 
 .time-container{
-    background: url("../static/timer.png") center/contain;
     position: relative;
     aspect-ratio: 1 / 1;
-    width: 18rem;
+    height: 30rem;
+    width: 30rem;
     left: 1rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 10;
 }
 
 .setup-container {
-    padding: 1rem 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     top: 1.5rem;
     position: relative;
+    text-align: center;
+    gap: 100rem;
 }
 
 .time {
-    top: 0.5rem;
     font-family: 'Jolly Lodger';
     color: #312C1E;
     position: relative;
-    font-size: 2rem;
+    font-size: 3rem;
     letter-spacing: 0.2em;
     font-weight: bold;
-    margin-top: 50px;
+    z-index: 11;
+    left: 2%;
+    bottom: 13.5rem;
 }
 
 .setup-label {
@@ -126,8 +129,8 @@ body {
     opacity: 0.8;
     letter-spacing: 0.1em;
     margin: 0;
-    width: 100rem;
-    text-overflow: unset;
+    width: fit-content;
+    text-align: center;
 }
 
 .vertical-divider {
@@ -139,8 +142,18 @@ body {
     margin: 0 -1px;
 }
 
+.middle-section {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    left: 1.5rem;
+}
+
 .banner-container {
     width: fit-content;
+    /* justify-content: center;
+    align-items: center; */
 }
 
 .blue-banner {
@@ -148,22 +161,22 @@ body {
     width: 15rem;
     background: url("../static/banners/blue_banner.png") center/contain;
     z-index: 100;
-    position: absolute;
-    right: 137.7rem;
-    bottom: 1rem;
+    position: relative;
+    /* right: 137.7rem; */
+    bottom: 8rem;
     text-align: center;
     align-items: center;
     justify-content: center;
 }
 
 .gold-banner {
-    height: 15rem;
-    width: 17.5rem;
+    height: 14.5rem;
+    width: 17rem;
     background: url("../static/banners/gold_banner.png") center/contain;
     z-index: 100;
-    position: absolute;
-    right: 84rem;
-    bottom: 1rem;
+    position: relative;
+    /* right: 84rem; */
+    bottom: 8.5rem;
     text-align: center;
     align-items: center;
     justify-content: center;
@@ -171,7 +184,7 @@ body {
 
 .blue-banner-text {
     position: relative;
-    top: 6.2rem;
+    top: 6rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
     font-size: 1.5rem;
@@ -179,29 +192,27 @@ body {
 
 .gold-banner-text {
     position: relative;
-    top: 6.4rem;
+    top: 6.1rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
     font-size: 1.5rem;
 }
 
 .rope1 {
-    height: 10rem;
-    width: 10rem;
+    height: 15rem;
+    width: 15rem;
     position: relative;
     z-index: 99;
-    bottom: 5rem;
-    /* left: rem; */
     background: url("../static/banners/rope.png") center/contain;
 }
 
 .rope2 {
-    height: 10rem;
-    width: 10rem;
+    height: 15rem;
+    width: 15rem;
     position: relative;
     z-index: 99;
-    bottom: 5rem;
-    right:87.5rem;
+    left: 1rem;
+    bottom: 1rem;
     background: url("../static/banners/rope.png") center/contain;
 }
 
@@ -209,7 +220,7 @@ body {
 .teams-container {
     display: flex;
     justify-content: center;
-    gap: 48.3%;
+    gap: 48.5rem;
 }
 
 .team {
