@@ -131,6 +131,19 @@ class Sheet:
         YC.send(("ydl_target_shepherd", 16383))
         threading.Thread(target=bg_thread_work).start()
 
+    @staticmethod
+    def write_sail(match_num, alliance):
+        def bg_thread_work():
+            try:
+                Sheet.__write_sail(
+                    match_num, alliance)
+            except:  # pylint: disable=bare-excepts
+                print(
+                    f'[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to write_sail")
+        YC.send(("ydl_target_shepherd", 16383))
+        threading.Thread(target=bg_thread_work).start()
+
 
     @staticmethod
     def __get_authorized_sheet():
@@ -388,3 +401,29 @@ class Sheet:
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                     range=range_name, body=body, valueInputOption="RAW").execute()
         
+    @staticmethod
+    def __write_sail(match_number, alliance):
+        spreadsheet = Sheet.__get_authorized_sheet()
+        ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                                            range="Ref!A4:A").execute()['values']
+        row_num = -1
+        for i, row in enumerate(ref_data):
+            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+                row_num = i
+                break
+        if row_num == -1:
+            print("Row not found!")
+        if alliance == ALLIANCE_COLOR.BLUE:
+            range_name = f"Ref!Z{row_num + 4}"
+        elif alliance == ALLIANCE_COLOR.GOLD:
+            range_name = f"Ref!Z{row_num + 5}"
+        else:
+            print("Alliance does not exist!")
+
+        body = {
+            'values': [[True]]
+        }
+
+        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+                            range=range_name, body=body, valueInputOption="RAW").execute()
+        print("Sail checked in Sheets")

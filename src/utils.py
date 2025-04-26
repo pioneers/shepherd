@@ -256,6 +256,14 @@ class SHEPHERD_HEADER():
         Starts a new game of whackamole. For Demo Purpose only.
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_sail_status")
+    def SEND_SAIL_STATUS(alliance):
+        """
+        Writes sail confirmation when alliance completes whack a mole
+        challenge into sheet for Spring 2025.
+        """
+
 
 class UI_HEADER():
     """
@@ -468,6 +476,20 @@ class SENSOR_HEADER():
     def TURN_OFF_BUTTON_LIGHT(id: int):
         """
         Digital Write: LOW
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SENSORS, "lower_sail")
+    def LOWER_SAIL(alliance: str):
+        """
+        Digital Write LOW followed by HIGH
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SENSORS, "raise_sail")
+    def LOWER_SAIL(alliance: str):
+        """
+        Digital Write LOW followed by HIGH (opposite)
         """
 
 

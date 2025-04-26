@@ -8,7 +8,7 @@ from utils import *
 
 
 REQUIREMENT = 5
-NUM_BUTTONS = 5 + 5
+NUM_BUTTONS = 5
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
@@ -27,7 +27,7 @@ def turn_off_light(id):
 
 def turn_all_lights(alliance, on):
     ar = [i for i in range(NUM_BUTTONS)] 
-    ar = ar[:NUM_BUTTONS//2] if alliance == ALLIANCE_COLOR.BLUE else ar[NUM_BUTTONS//2:]
+    ar = [0, 1, 2, 3, 4] if alliance == ALLIANCE_COLOR.BLUE else [5, 6, 7, 8, 9]
     for i in ar:
         turn_on_light(i) if on else turn_off_light(i)
 
@@ -73,6 +73,9 @@ def make_cheat_code():
 
 def celebrate(alliance):
     print("CHEAT CODE BONUS!!!")
+    
+    YC.send(SENSOR_HEADER.LOWER_SAIL(alliance))
+    YC.send(SHEPHERD_HEADER.SEND_SAIL_STATUS(alliance))
     turn_all_lights(alliance, on=True)
     time.sleep(0.1)
     turn_all_lights(alliance, on=False)

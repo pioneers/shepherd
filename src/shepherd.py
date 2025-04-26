@@ -222,6 +222,9 @@ def to_end():
     Go to the end state, finishing the game and flushing scores to the spreadsheet.
     '''
     global GAME_STATE
+    
+    # YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.BLUE))
+    # YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.GOLD))
     GAME_STATE = STATE.END
     disable_robots()
     YC.send(UI_HEADER.PLAY_END_SOUND())
@@ -397,6 +400,12 @@ def send_challenges_score(team, score):
     """
     Sheet.write_live_challenge(MATCH_NUMBER, team, score)
 
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.SEND_SAIL_STATUS)
+def send_sail_status(alliance):
+    """
+    Send sail status to sheet.
+    """
+    Sheet.write_sail(MATCH_NUMBER, alliance)
 
 def initialize_live(team_num):
     '''

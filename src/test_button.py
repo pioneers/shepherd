@@ -5,8 +5,6 @@ low = DigitalValue.LOW.value
 high = DigitalValue.HIGH.value
 arduino1 = Arduino(1)
 arduino2 = Arduino(2)
-arduino3 = Arduino(3)
-arduino4 = Arduino(4)
 
 
 lights = [
@@ -23,17 +21,13 @@ lights = [
     OutputPin(arduino2, 16, PinMode.DIGITAL_OUT, initial_value=high),
 ]
 
-sails = [
-    OutputPin(arduino3, 6, PinMode.DIGITAL_OUT, initial_value=high), # Blue alliance sail CW (not tested)
-    OutputPin(arduino3, 7, PinMode.DIGITAL_OUT, initial_value=high), # Blue alliance sail CCW (not tested)
-    OutputPin(arduino4, 6, PinMode.DIGITAL_OUT, initial_value=high), # Blue alliance sail CW (not tested)
-    OutputPin(arduino4, 7, PinMode.DIGITAL_OUT, initial_value=high), # Blue alliance sail CCW (not tested)
-]
-
 
 def make_button_handler(id):
     def handler(state):
         print(f"button {id} was pressed: {state}")
+        lights[id].set_state(low)  # turn off light
+        time.sleep(0.2)
+        lights[id].set_state(high)  # turn light back on
     return handler
 
 buttons = [
@@ -52,22 +46,15 @@ buttons = [
 # color_sensor = InputPin(arduino1, 123, PinMode.PULSE_IN, banana)
 
 start_device_handlers(
-    ["/dev/ttyACM" + str(a) for a in range(10)], # CHANGE THIS IF NOT ON LINUX
-    [arduino1, arduino2, arduino3, arduino4]
+    ["/dev/ttyACM" + str(a) for a in range(5)], # CHANGE THIS IF NOT ON LINUX
+    [arduino1, arduino2]
 )
 
 while True:
-    command = input()
-    if command == "a":
-        sails[2].set_state(low);
-        print("hh")
-        #for light in lights:
-        #    light.set_state(high)
-    elif command == "b":
-        sails[2].set_state(high);
-        print("hl")
+    if input() == "a":
+        for light in lights:
+            light.set_state(high)
     else:
-        sails[0].set_state(high);
         for light in lights:
             light.set_state(low)
     print("asd")
