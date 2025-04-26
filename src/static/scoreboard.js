@@ -85,8 +85,9 @@ socket.on('state', (state_info) => {
         is_timer_paused = null;
         total_game_time = 0;
     } else if (state === "end") {
-        stageTimer = false;
-        is_timer_paused = null;
+        // stageTimer = false;
+        // is_timer_paused = null;
+        setTime(0);
     } else {
         clearTimeout(myStageTimeout);
         prev_curr_time = new Date().getTime() / 1000;
