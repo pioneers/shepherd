@@ -9,10 +9,18 @@ var total_game_time;
 var minigames;
 var progression_bar;
 var start_audio;
+var match_audio;
 var end_audio; 
+var audio_started;
 
 document.addEventListener('DOMContentLoaded', () => {
 // Calculate progress bar position
+
+start_audio = new Audio("../static/pirate_noises/pirate_cannon_short.wav");
+match_audio = new Audio("../static/pirate_noises/pirate_music.wav");
+end_audio = new Audio("../static/boxing_bell.wav");
+audio_started = false;
+
 const teamScores = document.querySelectorAll('.team-score');
 const progressFill = document.querySelector('.progress-fill');
 
@@ -46,9 +54,6 @@ console.log("Successful ydl message: connect");
 socket.emit('join', 'scoreboard');
 
 progression_bar = $(".progression-bar");
-// start_audio = new Audio('/static/boxing-bell.wav');
-// end_audio = new Audio('/static/trim.wav')
-// minigames = ['FOOD COURT', 'TARGET GOLF', 'SKEE BALL', 'WHACK-A-MOLE']
 });
 
 socket.on('teams_info', (match_info) => {
@@ -77,18 +82,22 @@ socket.on('state', (state_info) => {
     state_time = state_info.state_time;
 
     setStageName(state);
-    // setMinigameNames(state);
     if (state === "setup") {
         setTime(0);
-        // setSetupState();
         stageTimer = false;
         is_timer_paused = null;
         total_game_time = 0;
     } else if (state === "end") {
-        // stageTimer = false;
-        // is_timer_paused = null;
+        playAudio(end_audio);
         setTime(0);
+        audio_started = false;
+        stopAudio(match_audio);
     } else {
+        if (!audio_started) {
+            playAudio(start_audio);
+            playAudio(match_audio);
+            audio_started = true;
+        }
         clearTimeout(myStageTimeout);
         prev_curr_time = new Date().getTime() / 1000;
         start_time = state_info.start_time;
@@ -139,16 +148,6 @@ socket.on("resume_timer", (time) => {
     }
 });
 
-socket.on("play_start_sound", () => {
-    console.log("Successful ydl message: play_start_sound");
-    // start_audio.play();
-    });
-
-    socket.on("play_end_sound", () => {
-    console.log("Successful ydl message: play_end_sound");
-    // end_audio.play();
-});
-
 function individual(jq_obj) {
     console.log("Inside function: individual");
     let res = Array(jq_obj.length);
@@ -160,7 +159,6 @@ function individual(jq_obj) {
 
 function setTime(time) {
     stageTimer = false;
-    // globaltime = time;
     $('#timer').html(secondsToTimeString(time));
 }
 
@@ -170,6 +168,15 @@ function setBlueScore(score) {
 
 function setGoldScore(score) {
     $('#score-gold').html(score);
+}
+
+function playAudio(a) {
+    a.play();
+}
+
+function stopAudio(a) {
+    a.stop();
+    a.time = 0;
 }
 
 // these are the stages for the code 
@@ -191,24 +198,6 @@ function setStageName(stage) {
     $('#stage').html(stage_names[stage]);
 }
 
-// function setMinigameNames(stage) {
-// console.log("Inside function: setMinigameNames");
-//     if (stage === "setup") {
-//         shuffleArray(minigames);
-//         while ('WHACK-A-MOLE' in minigames.slice(0, 2) === 'TARGET GOLF' in minigames.slice(0, 2)) {
-//         shuffleArray(minigames);
-//         }
-//         $('#minigame1').html(minigames[0]);
-//         $('#minigame2').html(minigames[1]);
-//     } else if (stage === "teleop_2") {
-//         $('#minigame1').html(minigames[2]);
-//         $('#minigame2').html(minigames[3]);
-//     } else if (stage === "end") {
-//         $('#minigame1').html("");
-//         $('#minigame2').html("");
-//     }
-// }
-
 function updateTeam(team_name_b1, team_num_b1, team_name_b2, team_num_b2, 
 team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
     console.log("Inside function: updateTeam");
@@ -222,9 +211,6 @@ team_name_g1, team_num_g1, team_name_g2, team_num_g2) {
     $('#team-num-g2').html(team_num_g2);
 }
 
-// function setSetupState() {
-//     progression_bar.css("background", "rgb(195, 195, 195)");
-// }
 
 function setStartTime(start_time) {
 // A function that takes in the starting time of the stage as sent by Shepherd. We calculate
@@ -254,7 +240,6 @@ if (stageTimer) {
 
     total_game_time += currTime - prev_curr_time;
     total_game_time = total_game_time > 190 ? 190 : total_game_time;
-    // progression_bar.css("background", "linear-gradient(to right, var(--blue500) 0%, var(--blue500) " + (100 * total_game_time / 190) + "%, var(--gold500) " + (100 * total_game_time / 190) + "%, var(--gold500) 100%)")
     prev_curr_time = currTime;
 
     myStageTimeout = setTimeout(runStageTimer, 200, startTime);
@@ -269,9 +254,7 @@ function secondsToTimeString(seconds) {
         + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
     }
 
-//     function buttonHide() {
-//     // $('.audio-button').hide();
-// }
+
 
 function shuffleArray(array) {
     let currentIndex = array.length, randomIndex;
