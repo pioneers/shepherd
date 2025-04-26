@@ -20,8 +20,12 @@ function updateProgressBar() {
     const team1Score = parseInt(teamScores[0].dataset.score);
     const team2Score = parseInt(teamScores[1].dataset.score);
     const total = team1Score + team2Score;
-    const team1Percentage = (team1Score / total) * 100;
-    
+    let team1Percentage;
+    if (!total) {
+        team1Percentage = 50;
+    } else {
+        team1Percentage = (team1Score / total) * 100;
+    }
     progressFill.style.width = `${team1Percentage}%`;
 }
 
@@ -109,6 +113,7 @@ socket.on("scores_for_icons", (score_info) => {
     gold_score = score_info.gold_score;
     setBlueScore(blue_score["score"]);
     setGoldScore(gold_score["score"]);
+    updateScores(blue_score["live"], gold_score["live"]);
 });
 
 socket.on("pause_timer", () => {

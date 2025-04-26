@@ -292,7 +292,7 @@ body {
     width: 80%;
     max-width: 600px;
     height: 0.7rem;
-    background: rgba(255,255,255,0.3);
+    background: #FDB515;
     z-index: 3;
     border-radius: 10px;
     border-width: 2px;
@@ -304,7 +304,7 @@ body {
     position: absolute;
     left: 0;
     height: 100%;
-    background: #ffd700;
+    background: #33aaff;
     width: 50%;
     transition: width 0.5s ease;
     border-radius: 2px;

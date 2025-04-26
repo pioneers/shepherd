@@ -8,7 +8,7 @@ from utils import *
 
 
 REQUIREMENT = 5
-NUM_BUTTONS = 3 + 3
+NUM_BUTTONS = 5 + 5
 YC = Client(YDL_TARGETS.SHEPHERD)
 BLUE_QUEUE = queue.Queue()
 GOLD_QUEUE = queue.Queue()
@@ -26,8 +26,8 @@ def turn_off_light(id):
 
 
 def turn_all_lights(alliance, on):
-    ar = [0, 1, 2, 3, 4, 5] if alliance == ALLIANCE_COLOR.BLUE else [
-        6, 7, 8, 9, 10, 11]
+    ar = [i for i in range(NUM_BUTTONS)] 
+    ar = ar[:NUM_BUTTONS//2] if alliance == ALLIANCE_COLOR.BLUE else ar[NUM_BUTTONS//2:]
     for i in ar:
         turn_on_light(i) if on else turn_off_light(i)
 

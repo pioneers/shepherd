@@ -177,6 +177,7 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = {
                         "score": int(row[2]),
+                        "live": int(row[7]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
@@ -185,6 +186,7 @@ class Sheet:
                 elif row[1] == "Gold":
                     gold = {
                         "score": int(row[2]),
+                        "live": int(row[7]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
@@ -371,17 +373,15 @@ class Sheet:
         if row_num == -1:
             print("Error: row number not found!")
             return
-        match team:                                 # Python match clause doesn't fall!
-            case INDICES.BLUE_1:
-                range_name = f"Ref!E{row_num + 4}"
-            case INDICES.BLUE_2:
-                range_name = f"Ref!F{row_num + 4}"
-            case INDICES.GOLD_1:
-                range_name = f"Ref!E{row_num + 5}"
-            case INDICES.GOLD_2:
-                range_name = f"Ref!F{row_num + 5}"
-            case _:
-                print("Error: unknown team id!")
+        if team == INDICES.BLUE_1:
+            range_name = f"Ref!E{row_num + 4}"
+        elif team == INDICES.BLUE_2:
+            range_name = f"Ref!F{row_num + 4}"
+        elif team == INDICES.GOLD_1:
+            range_name = f"Ref!E{row_num + 5}"
+        elif team == INDICES.GOLD_2:
+            range_name = f"Ref!F{row_num + 5}"
+        else: print("Error: unknown team id!")
         body = {
             'values': [[int(score)]]
         }
