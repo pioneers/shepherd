@@ -487,7 +487,7 @@ class SENSOR_HEADER():
 
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "raise_sail")
-    def LOWER_SAIL(alliance: str):
+    def RAISE_SAIL(alliance: str):
         """
         Digital Write LOW followed by HIGH (opposite)
         """

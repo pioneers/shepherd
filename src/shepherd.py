@@ -140,6 +140,10 @@ def to_setup(match_num, teams):
     calls reset_match() to move to setup state.
     By the end, should be ready to start match.
     '''
+
+    YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.BLUE))
+    YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.GOLD))
+    
     if Sheet.write_match_info(match_num, teams) == False:
         return
     global MATCH_NUMBER
@@ -223,8 +227,6 @@ def to_end():
     '''
     global GAME_STATE
     
-    # YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.BLUE))
-    # YC.send(SENSOR_HEADER.RAISE_SAIL(ALLIANCE_COLOR.GOLD))
     GAME_STATE = STATE.END
     disable_robots()
     YC.send(UI_HEADER.PLAY_END_SOUND())

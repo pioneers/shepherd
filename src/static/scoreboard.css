@@ -21,7 +21,7 @@
 .wave-container {
     position: absolute;
     display: flex;
-    bottom: 0;
+    bottom: 1rem;
     left: 0;
 }
 .waves {
@@ -80,7 +80,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10rem;
+    gap: 14rem;
     left: 1rem;
     position: relative;
 }
@@ -184,28 +184,28 @@ body {
 
 .blue-banner-text {
     position: relative;
-    bottom: 20rem;
+    bottom: 19.5rem;
     left: 2.5rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
-    font-size: 3rem;
+    font-size: 2.3rem;
     z-index: 101;
 }
 
 .gold-banner-text {
     position: relative;
-    bottom: 17.3rem;
+    bottom: 16.9rem;
     left: 1.78rem;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
-    font-size: 2.78rem;
+    font-size: 2.2rem;
     z-index: 101;
 }
 
 .blue-rope {
     height: 15rem;
     width: 15rem;
-    left: 3.5rem;
+    left: 3.75rem;
     position: relative;
     z-index: 99;
     background: url("../static/banners/rope.png") center/contain;
@@ -225,8 +225,8 @@ body {
 .teams-container {
     display: flex;
     justify-content: center;
-    gap: 52rem;
-    bottom: 20rem;
+    gap: 59.5rem;
+    bottom: 15rem;
     position: relative;
 }
 
@@ -262,7 +262,7 @@ body {
     flex-wrap: wrap;
     margin-bottom: 2rem;
     position: relative;
-    bottom: 15rem;
+    bottom: 6rem;
     gap: 24rem;
 }
 
@@ -280,7 +280,7 @@ body {
     padding: 2.4rem 5rem;
     font-size: 2.5rem;
     text-align: center;
-    min-width: 24rem;
+    min-width: 28rem;
     font-weight: bold;
 }
 
@@ -322,6 +322,7 @@ body {
     border-width: 2px;
     border-color: white;
     border-style: solid;
+    top: 20rem;
 }
 
 .progress-fill {

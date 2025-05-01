@@ -83,21 +83,48 @@ def turn_off_button_light(id):
 def lower_sail_thread(alliance):
     global blueSail, goldSail
     print("THIS GOT RAN")
-    if alliance == ALLIANCE_COLOR.BLUE:
+    if alliance == ALLIANCE_COLOR.BLUE and not blueSail:
         print("LOWER Inner Function ran blue")
         sails[1].set_state(low)
         time.sleep(1.5)
         sails[1].set_state(high)
-    elif alliance == ALLIANCE_COLOR.GOLD:
+        blueSail = True
+    elif alliance == ALLIANCE_COLOR.GOLD and not goldSail:
         print("LOWER Inner Function ran gold")
         sails[2].set_state(low)
         time.sleep(1.5)
         sails[2].set_state(high)
+        goldSail = True
+
+def raise_sail_thread(alliance):
+    global blueSail, goldSail
+    print("THIS GOT RAN")
+    if alliance == ALLIANCE_COLOR.BLUE and blueSail:
+        print("LOWER Inner Function ran blue")
+        blueSail = False
+        sails[0].set_state(low)
+        time.sleep(1.5)
+        sails[0].set_state(high)
+    elif alliance == ALLIANCE_COLOR.GOLD and goldSail:
+        print("LOWER Inner Function ran gold")
+        goldSail = False
+        sails[3].set_state(low)
+        time.sleep(1.5)
+        sails[3].set_state(high)
+
 
 @yh.on(SENSOR_HEADER.LOWER_SAIL)
 def lower_sail(alliance):
     print("Outer Function Ran")
     t = threading.Thread(target=lower_sail_thread, args=[alliance])
+    t.run()
+    
+
+@yh.on(SENSOR_HEADER.RAISE_SAIL)
+def raise_sail(alliance):
+    print("Outer Function Ran")
+    t = threading.Thread(target=raise_sail_thread, args=[alliance])
+    t.run()
 
 while True:
     msg = YC.receive()
