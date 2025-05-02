@@ -21,7 +21,7 @@ match_audio = new Audio("../static/pirate_noises/pirate_music.wav");
 end_audio = new Audio("../static/boxing_bell.wav");
 audio_started = false;
 
-const teamScores = document.querySelectorAll('.team-score');
+const teamScores = document.querySelectorAll('.challenge-count');
 const progressFill = document.querySelector('.progress-fill');
 
 function updateProgressBar() {
@@ -32,7 +32,7 @@ function updateProgressBar() {
     if (!total) {
         team1Percentage = 50;
     } else {
-        team1Percentage = (team1Score / total) * 100;
+        team1Percentage = ((1 - (team1Score / total)) * 100);
     }
     progressFill.style.width = `${team1Percentage}%`;
 }
@@ -123,7 +123,7 @@ socket.on("scores_for_icons", (score_info) => {
     gold_score = score_info.gold_score;
     setBlueScore(blue_score["score"]);
     setGoldScore(gold_score["score"]);
-    updateScores(blue_score["live"], gold_score["live"]);
+    updateScores(blue_score["live"]/10, gold_score["live"]/10);
 });
 
 socket.on("pause_timer", () => {

@@ -20,7 +20,7 @@
             <div class="middle-section">
                 <img class="time-container" src="../static/timer.png">
                 <div id="timer" class="time">0:00</div>
-                <div id="stage" class="setup-label">Loading...</div>
+                <!-- <div id="stage" class="setup-label">Post-Match</div> -->
             </div>
             <div class="banner-container">
                 <img class="gold-rope" src="../static/banners/rope.png">
@@ -31,10 +31,11 @@
 
         <div class="teams-container">
             <div class="team">
-                <div id="score-blue" class="team-score" data-score="6">...</div>
+                <div id="score-blue" class="team-score" data-score="6">0</div>
             </div>
+            <div id="stage" class="setup-label">Loading...</div>
             <div class="team">
-                <div id="score-gold" class="team-score"data-score="6">...</div>
+                <div id="score-gold" class="team-score"data-score="6">0</div>
             </div>
         </div>
 
@@ -51,9 +52,11 @@
     </div>
 
     <div class="progress-container">
+        <div id="live-blue" class="challenge-count" data-score="0">0</div>
         <div class="progress-bar">
             <div class="progress-fill"></div>
         </div>
+        <div id="live-gold" class="challenge-count" data-score="0">0</div>
     </div>
 
     <div id="ship-animation" class="sail" style="z-index: 1;">

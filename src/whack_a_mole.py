@@ -73,7 +73,7 @@ def make_cheat_code():
 
 def celebrate(alliance):
     print("CHEAT CODE BONUS!!!")
-    
+
     YC.send(SENSOR_HEADER.LOWER_SAIL(alliance))
     YC.send(SHEPHERD_HEADER.SEND_SAIL_STATUS(alliance))
     turn_all_lights(alliance, on=True)

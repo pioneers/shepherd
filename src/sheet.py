@@ -190,7 +190,7 @@ class Sheet:
                 if row[1] == "Blue":
                     blue = {
                         "score": int(row[2]),
-                        "live": int(row[7]),
+                        "live": int(row[6       ]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
@@ -199,7 +199,7 @@ class Sheet:
                 elif row[1] == "Gold":
                     gold = {
                         "score": int(row[2]),
-                        "live": int(row[7]),
+                        "live": int(row[6]),
                     }
                     if blue is not None and gold is not None:
                         YC.send(UI_HEADER.SCORES_FOR_ICONS(
@@ -324,23 +324,23 @@ class Sheet:
         ref_data = spreadsheet.values().get(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                             range="Ref!A4:A").execute()['values']
 
-        row_num = -1  # if this fails, it'll overwrite the header which is fine
-        for i, row in enumerate(ref_data):
-            if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
-                row_num = i
-                break
-        if row_num == -1:
-            print("Error: row number not found!")
-            return
-        if alliance == ALLIANCE_COLOR.BLUE:
-            range_name = f"Ref!Z{row_num + 4}"
-        else:
-            range_name = f"Ref!Z{row_num + 5}"
-        body = {
-            'values': [[bool(done)]]
-        }
-        spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
-                                    range=range_name, body=body, valueInputOption="RAW").execute()
+        # row_num = -1  # if this fails, it'll overwrite the header which is fine
+        # for i, row in enumerate(ref_data):
+        #     if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
+        #         row_num = i
+        #         break
+        # if row_num == -1:
+        #     print("Error: row number not found!")
+        #     return
+        # if alliance == ALLIANCE_COLOR.BLUE:
+        #     range_name = f"Ref!Z{row_num + 4}"
+        # else:
+        #     range_name = f"Ref!Z{row_num + 5}"
+        # body = {
+        #     'values': [[bool(done)]]
+        # }
+        # spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
+        #                             range=range_name, body=body, valueInputOption="RAW").execute()
 
     @staticmethod
     def __write_cheat_code(match_number, alliance, score):
@@ -408,11 +408,14 @@ class Sheet:
                                             range="Ref!A4:A").execute()['values']
         row_num = -1
         for i, row in enumerate(ref_data):
+            # print("row: " + str(row[0]))
+            # print("match num: "+str(match_number))
             if len(row) > 0 and row[0].isdigit() and int(row[0]) == match_number:
                 row_num = i
                 break
         if row_num == -1:
             print("Row not found!")
+            return
         if alliance == ALLIANCE_COLOR.BLUE:
             range_name = f"Ref!Z{row_num + 4}"
         elif alliance == ALLIANCE_COLOR.GOLD:
