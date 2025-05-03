@@ -36,4 +36,4 @@ Candy|Fredrick has a candies and b friends, how many candies should each friend 
 Median|What is the median of the given unsorted array? Assume the arrays have an odd number of elements.+-=>>> lst([1, 5, 7, 9, 3])+-= 5|def median(lst):|test_median
 Add Sum Multiply Max|Of 3 integer arguments, return the max multiplied by the sum of the other two.+-=Example:+-=>>> add_sub_mul_max(1, 2, 7)+-= 21|def add_sub_mul_max(one, two, three):|test_add_sub_mul_max
 Double Eights|Write a function that takes in a number and determines if the digits contain two adjacent 8s.+-=>>> double_eights(882)+-= True|double_eights(term):|test_double_eights
-Divisible By K|Write a function divisible_by_k that takes positive integers n and k. It PRINTS all positive integers less than or equal to n that are divisible by k from smallest to largest. Then, it RETURNS how many numbers were printed.+-=>>> double_eights(10,2)+-=2+-=4+-=6+-=8+-=10|divisible_by_k(n, k):|test_divisible_by_k
+
