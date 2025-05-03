@@ -32,8 +32,8 @@ CLIENTS = RuntimeClientManager(YC)
 # Game Specific Variables
 ###########################################
 BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2, GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = [], [], [], []
-SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = 0,0,0,0
-LIVE_CODING_COUNT = 10
+SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = 0, 0, 0, 0
+LIVE_CODING_COUNT = 39
 
 ###########################################
 # Evergreen Methods
