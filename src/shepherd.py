@@ -33,7 +33,7 @@ CLIENTS = RuntimeClientManager(YC)
 ###########################################
 BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2, GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = [], [], [], []
 SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = 0, 0, 0, 0
-LIVE_CODING_COUNT = 38
+LIVE_CODING_COUNT = 37
 
 ###########################################
 # Evergreen Methods
