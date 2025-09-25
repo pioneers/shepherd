@@ -26,10 +26,14 @@ python3 sheet.py
 
 ## Verification
 
+* On your command line, execute
+
 ### Shepherd/src
 ```
 python3 sheet.py
 ```
+
+* Then you should see the following
 
 ```
 Success.
