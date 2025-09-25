@@ -15,9 +15,11 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*")
 YC = Client(YDL_TARGETS.UI)
 
+
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
+
 
 def password(p):
     """
@@ -30,6 +32,7 @@ def password(p):
     m.update((p + "cheese").encode("utf-8"))
     return m.hexdigest() == CONSTANTS.UI_PASSWORD_HASH
 
+
 @app.route('/<path:subpath>')
 def give_page(subpath):
     """
@@ -40,17 +43,21 @@ def give_page(subpath):
     if subpath[-1] == "/":
         subpath = subpath[:-1]
     if subpath in UI_PAGES:
-        passed = (not UI_PAGES[subpath]) or password(request.cookies.get('password'))
+        passed = (not UI_PAGES[subpath]) or password(
+            request.cookies.get('password'))
         return render_template(subpath if passed else "password.html")
-    #return "oops page not found"
+    # return "oops page not found"
+
 
 @socketio.event
 def connect():
     print('Established socketio connection')
 
+
 @socketio.on('join')
 def handle_join(client_name):
     print(f'confirmed join: {client_name}')
+
 
 @socketio.on('ui-to-server')
 def ui_to_server(p, header, args=None):
@@ -68,6 +75,7 @@ def receiver():
         event = tpool.spawn(YC.receive).get()
         print("RECEIVED:", event[1], event[2])
         socketio.emit(event[1], json.dumps(event[2], ensure_ascii=False))
+
 
 if __name__ == "__main__":
     print("Hello, world!")

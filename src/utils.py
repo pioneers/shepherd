@@ -1,10 +1,13 @@
 # pylint: disable=invalid-name
 from ydl import Handler, header
 
+
 class YDL_TARGETS():
     SHEPHERD = "ydl_target_shepherd"
     UI = "ydl_target_ui"
     SENSORS = "ydl_target_sensors"
+    LIVE = "ydl_target_challenges"
+
 
 class SHEPHERD_HEADER():
     @staticmethod
@@ -181,13 +184,84 @@ class SHEPHERD_HEADER():
         an alliance and contains the name of each school. Updates the
         Google Sheets with the alliances selected.
         """
+
     @staticmethod
-    @header(YDL_TARGETS.SHEPHERD, "update_whack_a_mole_score")
-    def UPDATE_WHACK_A_MOLE_SCORE(alliance, score):
+    @header(YDL_TARGETS.SHEPHERD, "update_security_breach_score")
+    def UPDATE_SECURITY_BREACH_SCORE(alliance, done):
         """
         alliance: 'blue' or 'gold'
-        source: whack_a_mole.py update the whack a mole score for the alliance.
+        source: whack_a_mole.py update the security breach score for the alliance.
+        """
 
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "update_cheat_code_score")
+    def UPDATE_CHEAT_CODE_SCORE(alliance, score):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py update the cheat code score for the alliance.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "set_cheat_code")
+    def SET_CHEAT_CODE(alliance, CHEAT_CODE):
+        """
+        alliance: 'blue' or 'gold'
+        source: whack_a_mole.py send the cheat code information for the alliance.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_challenges_state")
+    def SEND_CHALLENGES_STATE(state):
+        pass
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_challenges_score")
+    def SEND_CHALLENGES_SCORE(team, score):
+        """
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        score: live coding score.
+        source: LIVE.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "live_four_sheep_state")
+    def LIVE_FOUR_SHEEP_STATE(team, fetched):
+        """
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        fetched: whether or not the team has live challenges correctly configured
+        source: LIVE.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "parse_live_file")
+    def PARSE_LIVE_FILE():
+        """
+        signal live_coding.py to parse csv
+        source: SHEPHERD.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_live_file_to_shepherd")
+    def SEND_LIVE_FILE_TO_SHEPHERD(sheep_names, sheep_descs, sheep_bases, sheep_tests):
+        """
+        send parsed csv from live_coding.py to shepherd.py
+        source: LIVE_CODING.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "start_whackamole")
+    def START_WHACKAMOLE():
+        """
+        ***Whack-A-Mole***
+        Starts a new game of whackamole. For Demo Purpose only.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "send_sail_status")
+    def SEND_SAIL_STATUS(alliance):
+        """
+        Writes sail confirmation when alliance completes whack a mole
+        challenge into sheet for Spring 2025.
         """
 
 
@@ -225,8 +299,8 @@ class UI_HEADER():
 
     @staticmethod
     @header(YDL_TARGETS.UI, "runtime_status")
-    def RUNTIME_STATUS(ind: int, shep_connected: bool, dawn_connected: bool, \
-        mode, battery: float, version: str):
+    def RUNTIME_STATUS(ind: int, shep_connected: bool, dawn_connected: bool,
+                       mode, battery: float, version: str):
         """
         source: runtimeclient. runtime status
         """
@@ -296,6 +370,89 @@ class UI_HEADER():
         source: Shepherd. Plays the end sound when the game ends
         """
 
+    @staticmethod
+    @header(YDL_TARGETS.UI, "set_cheat_code")
+    def SET_CHEAT_CODE(blue_cheat_code, gold_cheat_code):
+        """
+        source: Shepherd. Send ceat code infomation to UI
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.UI, "update_player_score")
+    def UPDATE_PLAYER_SCORE(score):
+        """
+        ***Whack-A-Mole***
+        Updates and displays the current player's whackamole score
+        on whackamole.html. This should update every instance a 
+        light is turned on. 
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.UI, "whack_a_mole_game_over")
+    def WHACK_A_MOLE_GAME_OVER():
+        """
+        ***Whack-A-Mole***
+        Tells user that they have lost in the game of whackamole. 
+        """
+
+
+class LIVE_HEADER():
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "set_challenge")
+    def SET_CHALLENGE(challenges, codes):
+        """
+        source: Shepherd
+        Sends list of coding challenges and cheat codes (disabled in year Haiku) 
+        to live coding challenges UI.
+        """
+    
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "set_live_challenges")
+    def SET_LIVE_CHALLENGES(team, sheep_names, sheep_descs, sheep_bases, sheep_tests):
+        """
+        send parsed csv from shepherd.py to main.js in bleatcode
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        source: SHEPHERD.
+        """
+        
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "pause_timer")
+    def PAUSE_TIMER():
+        """
+        source: Shepherd. Pauses the game timer in scoreboard by clearing the timeout created in runStageTimer;
+        Used in the event that the game
+        needs to be paused and continued from the state it was paused at.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "resume_timer")
+    def RESUME_TIMER(end_time, pause_end):
+        """
+        source: Shepherd. Resumes the game timer in scoreboard by setting a new timeout
+        Used to resume the game after it has
+        been paused using PAUSE_TIMERS.
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "state")
+    def STATE(state, start_time=None, state_time=None):
+        """
+        tells UI that Shepherd is now in this state
+        """
+
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "reset_base_challenges")
+    def RESET_BASE_CHALLENGES():
+        pass
+    
+    @staticmethod
+    @header(YDL_TARGETS.LIVE, "default_code_base")
+    def DEFAULT_CODE_BASE():
+        """
+        source: Shepherd. Tells live challenges UIs to display the default code
+        """
+
 
 class SENSOR_HEADER():
     """
@@ -310,44 +467,30 @@ class SENSOR_HEADER():
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "turn_on_button_light")
     def TURN_ON_BUTTON_LIGHT(id: int):
-      """
-      example header doc string
-      """
+        """
+        Digital Write: HIGH
+        """
 
     @staticmethod
     @header(YDL_TARGETS.SENSORS, "turn_off_button_light")
     def TURN_OFF_BUTTON_LIGHT(id: int):
-      """
-      example header doc string
-      """
+        """
+        Digital Write: LOW
+        """
 
     @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_on_midline")
-    def TURN_ON_MIDLINE(id: int):
-      """
-      example header doc string
-      """
+    @header(YDL_TARGETS.SENSORS, "lower_sail")
+    def LOWER_SAIL(alliance: str):
+        """
+        Digital Write LOW followed by HIGH
+        """
 
     @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_off_midline")
-    def TURN_OFF_MIDLINE(id: int):
-      """
-      example header doc string
-      """
-
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_on_lasers")
-    def TURN_ON_LASERS():
-      """
-      example header doc string
-      """
-
-    @staticmethod
-    @header(YDL_TARGETS.SENSORS, "turn_off_lasers")
-    def TURN_OFF_LASERS():
-      """
-      example header doc string
-      """
+    @header(YDL_TARGETS.SENSORS, "raise_sail")
+    def RAISE_SAIL(alliance: str):
+        """
+        Digital Write LOW followed by HIGH (opposite)
+        """
 
 
 # A dictionary of pages -> whether page is password protected
@@ -363,14 +506,14 @@ UI_PAGES = {
     "match_creator.html": True,
     "alliance_selection.html": True,
     "bracket_ui.html": False,
+    "whackamole.html": True,
 }
-
 
 
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
-    SPREADSHEET_ID = "1c9NUoB1prQdrBfAAkaSKJCnIGrAQV8kx5GZKEeIAmWs"
+    SPREADSHEET_ID = "1JO1vo0cUzIvIk2QfgL9e4c7ltMw4OwTcK0Wlk75P-iI"
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
@@ -390,38 +533,33 @@ class STATE():
     SETUP = "setup"
     AUTO = "auto"
     TELEOP_1 = "teleop_1"
-    TELEOP_2 = "teleop_2"
-    TELEOP_3 = "teleop_3"
     END = "end"
+
 
 class SHEPHERD_HANDLER():
     EVERYWHERE = Handler()
     SETUP = Handler()
     AUTO = Handler()
     TELEOP_1 = Handler()
-    TELEOP_2 = Handler()
-    TELEOP_3 = Handler()
     END = Handler()
+
 
 STATE_HANDLERS = {
     STATE.SETUP: SHEPHERD_HANDLER.SETUP,
     STATE.AUTO: SHEPHERD_HANDLER.AUTO,
     STATE.TELEOP_1: SHEPHERD_HANDLER.TELEOP_1,
-    STATE.TELEOP_2: SHEPHERD_HANDLER.TELEOP_2,
-    STATE.TELEOP_3: SHEPHERD_HANDLER.TELEOP_3,
     STATE.END: SHEPHERD_HANDLER.END
 }
 
 STAGE_TIMES = {
-    STATE.AUTO: 30,
-    STATE.TELEOP_1: 60,
-    STATE.TELEOP_2: 10,
-    STATE.TELEOP_3: 90
+    STATE.AUTO: 20,
+    STATE.TELEOP_1: 270,
 }
+
 
 class PROTOBUF_TYPES():
     RUN_MODE = 0
     START_POS = 1
     LOG = 2  # text proto
     DEVICE_DATA = 3
-    GAME_STATE = 4
+    GAME_STATE = 2

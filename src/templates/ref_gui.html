@@ -152,96 +152,200 @@
     });
 
     beacon_1_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: true })
+      );
+    });
 
     beacon_1_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: false })
+      );
+    });
 
     beacon_2_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: true })
+      );
+    });
 
     beacon_2_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: false })
+      );
+    });
 
     beacon_3_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: true })
+      );
+    });
 
     beacon_3_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: false })
+      );
+    });
 
     beacon_4_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: true })
+      );
+    });
 
     beacon_4_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: false })
+      );
+    });
 
     midline_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: true}));
-
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 4, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 5, type: "button", on: true })
+      );
+    });
 
     midline_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 4, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 5, type: "button", on: false}));
-    })
-
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 4, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 5, type: "button", on: false })
+      );
+    });
 
     beacon_24_btn_on.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: true })
+      );
+    });
 
     beacon_24_btn_off.click(() => {
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: false })
+      );
+    });
 
     function sleep(ms) {
-      return new Promise(res => setTimeout(res, ms));
+      return new Promise((res) => setTimeout(res, ms));
     }
 
     beacon_flash_btn_on.click(async () => {
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: false })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: true })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: false}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: false })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 1, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 0, type: "button", on: true}));
-
-    })
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 1, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 0, type: "button", on: true })
+      );
+    });
 
     beacon_flash_btn_off.click(async () => {
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: false })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: true })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: false}));
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: false}));
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: false })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: false })
+      );
       await sleep(250);
-      send("turn_light_ui", JSON.stringify({num: 3, type: "button", on: true}));
-      send("turn_light_ui", JSON.stringify({num: 2, type: "button", on: true}));
-    })
-
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 3, type: "button", on: true })
+      );
+      send(
+        "turn_light_ui",
+        JSON.stringify({ num: 2, type: "button", on: true })
+      );
+    });
 
     // these are new functions that need to know what to appropiately send
     pause_btn.click(() => {

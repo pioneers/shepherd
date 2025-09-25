@@ -1,0 +1,214 @@
+/* root styles  */
+:root {
+    --font: "Comic Sans MS", "Comic Sans", cursive;
+    --blue50: #e8f1fb;
+    --blue100: #d1e3f6;
+    --blue200: #a4c7ed;
+    --blue300: #76abe5;
+    --blue400: #498fdc;
+    --blue500: #1b73d3; /* pie blue */
+    --blue600: #165ca9;
+    --blue700: #10457f;
+    --blue800: #0b2e54;
+    --blue900: #05172a;
+  
+    --gold50: #fef7eb;
+    --gold100: #fdefd7;
+    --gold200: #fbdfaf;
+    --gold300: #fad087;
+    --gold400: #f8c05f;
+    --gold500: #f6b037; /* pie gold */
+    --gold600: #c58d2c;
+    --gold700: #946a21;
+    --gold800: #624616;
+    --gold900: #31230b;
+  
+    --grey50: #fafafa;
+    --grey100: #f4f4f5;
+    --grey200: #e4e4e7;
+    --grey300: #d4d4d8;
+    --grey400: #a1a1aa;
+    --grey500: #71717a;
+    --grey600: #52525b;
+    --grey700: #3f3f46;
+    --grey800: #27272a;
+    --grey900: #18181b;
+  
+    --green100: #cce6cc;
+    --green200: #99cc99;
+    --green300: #66b366;
+    --green400: #339933;
+    --green500: #008000;
+    --green600: #006600;
+    --green700: #004d00;
+    --green800: #003300;
+    --green900: #001a00;
+  
+    --red100: #ffcccc;
+    --red200: #ff9999;
+    --red300: #ff6666;
+    --red400: #ff3333;
+    --red500: #ff0000;
+    --red600: #cc0000;
+    --red700: #990000;
+    --red800: #660000;
+    --red900: #330000;
+  
+    --black: #222;
+    --white: #fff;
+    --redLight: #f8d7da;
+    --redDark: #842029;
+    --greenLight: #d1e7dd;
+    --greenDark: #0f5132;
+  
+    --shadow1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow2: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow3: 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow4: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --lightShadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --darkShadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    --boxyGoldShadow: 5px 5px 0px 0px var(--gold500),
+      inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
+    --boxyBlueShadow: 5px 5px 0px 0px var(--blue500),
+      inset 0px 0px 9px 5px rgba(0, 0, 0, 0);
+  
+    --headingfont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --bodyfont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --border: 1px black solid;
+  
+    --borderRadius: 0.25rem;
+    --transition: 0.25s ease-in-out all;
+  }
+  
+  body {
+    background-color: var(--gold500);
+    background-size: cover;
+    font-family: var(--headingfont);
+    /* height: 100vh;
+      width: 100%; */
+  }
+  
+  p {
+    padding-left: 5px;
+  }
+  
+  .scoreboard-outer-container {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    /* top: 20px; */
+    width: 70%;
+    height: 100%;
+    padding: 20px;
+  }
+  
+  .scoreboard-container,
+  .total-container, 
+  .larger-container, 
+  .largest-table-container {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: stretch;
+    flex-direction: row;
+    padding: 0px;
+  }
+
+  .scoreboard-container {
+    height: 100px;
+  }
+  
+  .total-container {
+    height: 150px;
+  }
+
+  .larger-container {
+    height: 225px;
+  }
+  
+  .robotinfo,
+  .time,
+  .penalty,
+  .stamps,
+  .totalinfo {
+    margin: 10px;
+    background-color: white;
+    text-align: center;
+    font-size: 40px;
+    justify-content: center;
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    border: var(--border);
+  
+    box-shadow: var(--boxyBlueShadow);
+  }
+
+  .robotinfo {
+    flex-grow: 2;
+  }
+  
+  .totalinfo {
+    width: calc(40vh);
+  }
+
+  .time {
+    flex-grow: 2;
+    text-align: left;
+    padding: 50px;
+  }
+  
+  .penalty {
+    flex-grow: 2;
+    padding: 50px;
+  }
+
+  .table-container {
+    margin: 10px;
+    background-color: white;
+    /* text-align: center; */
+    font-size: 40px;
+    justify-content: center;
+    align-content: center;
+    /* display: flex;
+    flex-direction: column; */
+    border: var(--border);
+  
+    box-shadow: var(--boxyBlueShadow);
+    flex-grow: 2;
+    padding: 50px;
+  }
+  
+  button {
+    background-color: var(--blue500);
+    border: none;
+    color: white;
+  }
+
+  table {
+    /* font-family: arial, sans-serif; */
+    font-size: 30px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 16px;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+
+  mark.black {
+    color: black;
+    background: none;
+  }
+  
