@@ -89,8 +89,8 @@ body {
 
 .time-container{
     position: relative;
-    height: 60rem;
-    width: 60rem;
+    height: 28rem;
+    width: 50rem;
     padding: 0;
     display: flex;
     align-items: center;
@@ -113,13 +113,13 @@ body {
 
 .time {
     font-family: 'Jolly Lodger';
-    color: #312C1E;
+    color: #2b2209;
     position: relative;
     font-size: 8rem;
     letter-spacing: 0.1em;
     font-weight: bold;
     z-index: 11;
-    bottom: 28.5rem;
+    bottom: 18rem;
     left: 0.1rem;
     padding: 0;
     margin: 0;
@@ -155,7 +155,7 @@ body {
     flex-direction: column;
     align-items: center;
     position: absolute;
-    top: 0.1rem;
+    top: 10rem;
     z-index: 10000000;
 }
 
@@ -192,7 +192,8 @@ body {
 .blue-banner-text {
     position: relative;
     bottom: 39.8rem;
-    left: 4rem;
+    display: flex;
+    justify-content: center;
     color: #E3D8BC;
     font-family: 'Jolly Lodger';
     font-size: 4.8rem;
@@ -202,8 +203,9 @@ body {
 .gold-banner-text {
     position: relative;
     bottom: 34rem;
-    left: 4.5rem;
-    color: #E3D8BC;
+    display: flex;
+    justify-content: center;
+    color: #0a1683;
     font-family: 'Jolly Lodger';
     font-size: 4.4rem;
     z-index: 101;
