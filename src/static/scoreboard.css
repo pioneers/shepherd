@@ -18,8 +18,8 @@
   }
 
 @font-face {
-    font-family: "Miso";
-    src: url("./Miso_Regular.otf") format("opentype");
+    font-family: "Frutiger";
+    src: url("./Frutiger.ttf");
 }
 
 @keyframes moveRight {
@@ -81,11 +81,13 @@ body {
 #blue-sign {
     grid-column: 1;
     grid-row: 1;
+    color: #000;
 }
 
 #gold-sign {
     grid-column: 3;
     grid-row: 1;
+    color: #000;
 }
 
 .center-pole {
@@ -121,11 +123,10 @@ body {
     justify-self: center;
     position: relative;
     top: 11.5rem;
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     color: #2b2209;
     font-size: 8rem;
     letter-spacing: 0.1em;
-    font-weight: bold;
     z-index: 11;
 }
 
@@ -141,15 +142,14 @@ body {
     grid-row: 1;
     grid-column: 1;
     justify-self: center;
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     color: #2b2209;
     font-size: 8.7rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.05em;
     margin: 0;
     text-align: center;
     position: relative;
     top: 35rem;
-    font-weight: bold;
     z-index: 1000;
 }
 
@@ -190,9 +190,9 @@ body {
 }
 
 .sign-text {
-    color: #000000;
-    font-family: 'Miso';
-    font-size: 6.5rem;
+
+    font-family: 'Frutiger';
+    font-size: 8rem;
     z-index: 101;
     grid-column: 1;
     grid-row: 1;
@@ -239,7 +239,7 @@ body {
 
 .team-name {
     color: #E3D8BC;
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     font-size: 4rem;
     margin-bottom: 0;
     font-weight: bold;
@@ -247,7 +247,7 @@ body {
 
 .team-score {
     color: #312C1E;
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     font-size: 20rem;
     font-weight: bold;
     line-height: 1;
@@ -259,7 +259,7 @@ body {
 .schools-wrap {
     display: flex;
     flex-direction: row;
-    gap: 15rem;
+    gap: 10rem;
     grid-row: 1;
     grid-column: 1;
 }
@@ -299,10 +299,9 @@ body {
 
 .school-box {
     color: #312C1E;
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     font-size: 6rem;
     text-align: center;
-    font-weight: bold;
     text-align: center;
     justify-content: center;
 }
@@ -337,7 +336,7 @@ body {
 }
 
 .challenge-count {
-    font-family: 'Miso';
+    font-family: 'Frutiger';
     z-index: 10000;
     font-size: 10rem;
     top: 14.5rem;
