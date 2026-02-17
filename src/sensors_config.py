@@ -13,11 +13,13 @@ arduino1 = Arduino(1)
 arduino2 = Arduino(2)
 arduino3 = Arduino(3)
 arduino4 = Arduino(4)
+arduino5 = Arduino(5)
+arduino6 = Arduino(6)
 YC = Client(YDL_TARGETS.SENSORS)
 yh = Handler()
 
 lights = [
-    OutputPin(arduino1, 3, PinMode.DIGITAL_OUT, initial_value=high),
+    # OutputPin(arduino1, 3, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino1, 5, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino1, 7, PinMode.DIGITAL_OUT, initial_value=high),
     OutputPin(arduino1, 9, PinMode.DIGITAL_OUT, initial_value=high),
@@ -37,7 +39,18 @@ sails = [
     OutputPin(arduino4, 7, PinMode.DIGITAL_OUT, initial_value=high),
 ]
 
+##add a rfid sensor output pins (2 i guess)
 
+walls = [
+    OutputPin(arduino5, 20, PinMode.DIGITAL_OUT, initial_value=high)
+    OutputPin(arduino5, 21, PinMode.DIGITAL_OUT, initial_value=high)
+    OutputPin(arduino6, 20, PinMode.DIGITAL_OUT, initial_value=high)
+    OutputPin(arduino6, 21, PinMode.DIGITAL_OUT, initial_value=high)
+]
+
+rfid = [
+    InputPin(arduino1, 8, PinMode.DIGITAL_IN, lambda: print("wow we see something!"))
+]
 
 def make_button_handler(id):
     def handler(state):
@@ -45,6 +58,7 @@ def make_button_handler(id):
             print(f"button {id} was pressed: {state}")
             YC.send(SHEPHERD_HEADER.BUTTON_PRESS(id=id))
     return handler
+
 
 
 buttons = [
@@ -61,6 +75,9 @@ buttons = [
     InputPin(arduino2, 10, PinMode.DIGITAL_IN, make_button_handler(9)),
 
 ]
+
+
+
 # color_sensor = InputPin(arduino1, 123, PinMode.PULSE_IN, banana)
 
 start_device_handlers(
@@ -135,3 +152,8 @@ while True:
 
     # else:
     #     turn_off_button_light(msg[2]["id"])
+
+    #TO ADD FOR RFID
+        #sensor on -- turn sensor on(id for alliance)
+
+    

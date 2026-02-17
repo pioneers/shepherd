@@ -40,7 +40,7 @@ buttons = [
     InputPin(arduino1, 2, PinMode.DIGITAL_IN, make_button_handler(0)),
     InputPin(arduino1, 4, PinMode.DIGITAL_IN, make_button_handler(1)),
     InputPin(arduino1, 6, PinMode.DIGITAL_IN, make_button_handler(2)),
-    InputPin(arduino1, 8, PinMode.DIGITAL_IN, make_button_handler(3)),
+    InputPin(arduino1, 8, PinMode.DIGITAL_IN, lambda: print("wow we see something!")),
     InputPin(arduino1, 10, PinMode.DIGITAL_IN, make_button_handler(4)),
    
     InputPin(arduino2, 2, PinMode.DIGITAL_IN, make_button_handler(0)),
@@ -57,17 +57,18 @@ start_device_handlers(
 )
 
 while True:
-    command = input()
-    if command == "a":
-        sails[2].set_state(low);
-        print("hh")
-        #for light in lights:
-        #    light.set_state(high)
-    elif command == "b":
-        sails[2].set_state(high);
-        print("hl")
-    else:
-        sails[0].set_state(high);
-        for light in lights:
-            light.set_state(low)
-    print("asd")
+    # command = input()
+    # if command == "a":
+    #     sails[2].set_state(low);
+    #     print("hh")
+    #     #for light in lights:
+    #     #    light.set_state(high)
+    # elif command == "b":
+    #     sails[2].set_state(high);
+    #     print("hl")
+    # else:
+    #     sails[0].set_state(high);
+    #     for light in lights:
+    #         light.set_state(low)
+    # print("asd")
+    pass

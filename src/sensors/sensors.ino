@@ -136,3 +136,14 @@ void loop() {
   
   Serial.write(msg_buf, 1 + num_input_pins);
 }
+
+//right now only handles wired
+//serial communication: basic devices communicate with each other
+  //send 1s and 0s
+
+//functions for shepherd RFID connections
+  //all 4 ESM32s sensors connected to 
+  //clorox recieves signals and sends signals
+
+//TODO: need to change to handle bluetooth and wireless connections
+  //assign everything an id: serial port connections
