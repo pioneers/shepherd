@@ -24,13 +24,16 @@
 
 @keyframes moveRight {
     0% {
-        transform: translateX(-100vw) translateY(0vw);
+        transform: translateX(0vw);
     }
-    50% {
-        transform: translateX(-50vw) translateY(2vw);
+    40% {
+        transform: translateX(600vw);
+    }
+    60% {
+        transform: translateX(600vw);
     }
     100% {
-        transform: translateX(0vw) translateY(0vw);
+        transform: translateX(1300vw);
     }
 }
 @keyframes upDown {
@@ -75,7 +78,7 @@ body {
     display: grid;
     justify-content: center;
     column-gap: 8%;
-    z-index: 999999;
+    z-index: 100;
 }
 
 #blue-sign {
@@ -167,7 +170,7 @@ body {
     grid-row: 1;
     display: grid;
     justify-content: center;
-    z-index: 10000000;
+    z-index: 1000;
 }
 
 .banner-container {
@@ -292,6 +295,21 @@ body {
     grid-column: 2;
 }
 
+.train-container {
+    position: relative;
+    bottom: 220rem;
+    height: 40vh;
+    right: 1150vw;
+    z-index: 90;
+    animation: moveRight;
+    animation-duration: 4s;
+    animation-timing-function: ease;
+}
+
+.train {
+    height: 70vh;
+}
+
 .ad-container {
     z-index: 2;
     align-self: center;
@@ -302,7 +320,6 @@ body {
     font-family: 'Frutiger';
     font-size: 6rem;
     text-align: center;
-    text-align: center;
     justify-content: center;
 }
 
@@ -310,13 +327,14 @@ body {
 .progress-container {
     display: flex;
     justify-content: center;
+    align-items: center;
     position: relative;
-    bottom: 5rem;
+    bottom: 48rem;
+    z-index: 10000;
 }
+
 .progress-bar {
-    position: relative;
-    width: 80%;
-    max-width: 40rem;
+    width: 20vw;
     height: 1rem;
     background: #002676;
     z-index: 3;
@@ -324,7 +342,6 @@ body {
     border-width: 2px;
     border-color: white;
     border-style: solid;
-    top: 20rem;
 }
 
 .progress-fill {
@@ -339,18 +356,18 @@ body {
     font-family: 'Frutiger';
     z-index: 10000;
     font-size: 10rem;
-    top: 14.5rem;
-    position: relative;
     padding-left: 4rem;
     padding-right: 4rem;
-    color: white;
+    background: url("../static/live_coding_border.png") center/contain;
+    background-repeat: no-repeat;
+    color: black;
 }
 
 .ground {
     width: 101vw;
     position: relative;
     bottom: 60vh;
-    z-index: 9;
+    z-index: 95;
 }
 
 @keyframes float {
