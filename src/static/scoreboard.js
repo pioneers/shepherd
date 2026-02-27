@@ -16,10 +16,33 @@ var audio_started;
 document.addEventListener('DOMContentLoaded', () => {
 // Calculate progress bar position
 
-start_audio = new Audio("../static/pirate_noises/pirate_cannon_short.wav");
-match_audio = new Audio("../static/pirate_noises/pirate_music.wav");
-end_audio = new Audio("../static/boxing_bell.wav");
-audio_started = false;
+start_audio = new Audio("static/boxing-bell.wav");
+// match_audio = new Audio();
+end_audio = new Audio("static/boxing-bell.wav");
+// audio_started = false;
+
+
+/* ###########################################
+# Spring 2026 Game
+########################################### */
+
+// Train animation for end scores
+let trainExistance = false;
+const train = document.querySelector(".train")
+
+function resetScoreAnimation() {
+    if (trainExistance) return;
+    
+    trainExistance = true;
+    train.classList.remove("startAnimation");
+    void train.offsetWidth;
+    train.classList.add("startAnimation");
+}
+
+train.addEventListener("animationend", () =>
+{
+    train.classList.remove("startAnimation");
+});
 
 const teamScores = document.querySelectorAll('.challenge-count');
 const progressFill = document.querySelector('.progress-fill');
@@ -88,16 +111,17 @@ socket.on('state', (state_info) => {
         is_timer_paused = null;
         total_game_time = 0;
     } else if (state === "end") {
+        resetScoreAnimation();
         playAudio(end_audio);
         setTime(0);
-        audio_started = false;
-        stopAudio(match_audio);
+        // audio_started = false;
+        // stopAudio(match_audio);
     } else {
-        if (!audio_started) {
-            playAudio(start_audio);
-            playAudio(match_audio);
-            audio_started = true;
-        }
+        // if (!audio_started) {
+        //     playAudio(start_audio);
+        //     playAudio(match_audio);
+        //     audio_started = true;
+        // }
         clearTimeout(myStageTimeout);
         prev_curr_time = new Date().getTime() / 1000;
         start_time = state_info.start_time;
@@ -253,8 +277,6 @@ function secondsToTimeString(seconds) {
     return (seconds < 0 ? "-": "") 
         + Math.floor(time / 60) + ":" + ("" + (time % 60)).padStart(2, '0');
     }
-
-
 
 function shuffleArray(array) {
     let currentIndex = array.length, randomIndex;
