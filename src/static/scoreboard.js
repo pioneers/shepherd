@@ -25,9 +25,46 @@ const teamScores = document.querySelectorAll('.challenge-count');
 const progressFill = document.querySelector('.progress-fill');
 
 function updateProgressBar() {
+    //team 1 is blue, team 2 is gold
     const team1Score = parseInt(teamScores[0].dataset.score);
     const team2Score = parseInt(teamScores[1].dataset.score);
-    const total = team1Score + team2Score;
+    const team1TrainStart = document.getElementsByClassName("blue-bar-first")[0];
+    const team2TrainStart = document.getElementsByClassName("gold-bar-first")[0];
+    const team1TrainCar = document.getElementsByClassName("blue-bar")[0];
+    const team2TrainCar = document.getElementsByClassName("gold-bar")[0];
+    if (team1Score == '0') {
+        team1TrainStart.setAttribute("style", "display: none");
+        team1TrainCar.setAttribute("style", "display: none");
+    }
+    else if (team1Score == '1') {
+        team1TrainStart.setAttribute("style", "");
+        team1TrainCar.setAttribute("style", "display: none");
+    }
+    else {
+        team1TrainStart.setAttribute("style", "");
+        team1TrainCar.setAttribute("style", "");
+        const team1Trains = Math.min(team1Score, 5);
+        for (let i = 2; i < team1Trains; i++) {
+            document.getElementsByClassName("progress-bar-blue")[0].append(team1TrainCar.cloneNode(true))
+        }
+    }
+    if (team2Score == '0') {
+        team2TrainStart.setAttribute("style", "display: none");
+        team2TrainCar.setAttribute("style", "display: none");
+    }
+    else if (team2Score == '1') {
+        team2TrainStart.setAttribute("style", "");
+        team2TrainCar.setAttribute("style", "display: none");
+    }
+    else {
+        team2TrainStart.setAttribute("style", "");
+        team2TrainCar.setAttribute("style", "");
+        const team2Trains = Math.min(team2Score, 5);
+        for (let i = 2; i < team2Trains; i++) {
+            document.getElementsByClassName("progress-bar-gold")[0].prepend(team2TrainCar.cloneNode(true))
+        }
+    }
+    /*
     let team1Percentage;
     if (!total) {
         team1Percentage = 50;
@@ -35,6 +72,7 @@ function updateProgressBar() {
         team1Percentage = ((1 - (team1Score / total)) * 100);
     }
     progressFill.style.width = `${team1Percentage}%`;
+    */
 }
 
 // Initial update
