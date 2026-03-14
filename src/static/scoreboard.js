@@ -31,6 +31,7 @@ let trainExistance = false;
 const train = document.querySelector(".train")
 
 function resetScoreAnimation() {
+    console.log("Successful message: startTrain");
     if (trainExistance) return;
     
     trainExistance = true;
@@ -41,6 +42,7 @@ function resetScoreAnimation() {
 
 train.addEventListener("animationend", () =>
 {
+    console.log("Successful message: endTrain");
     train.classList.remove("startAnimation");
 });
 
@@ -147,7 +149,7 @@ socket.on("scores_for_icons", (score_info) => {
     gold_score = score_info.gold_score;
     setBlueScore(blue_score["score"]);
     setGoldScore(gold_score["score"]);
-    updateScores(blue_score["live"]/10, gold_score["live"]/10);
+    updateScores(blue_score["live"], gold_score["live"]);
 });
 
 socket.on("pause_timer", () => {
