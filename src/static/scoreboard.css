@@ -297,16 +297,13 @@ body {
 
 .train-container {
     position: relative;
-    bottom: 220rem;
+    bottom: 210rem;
     height: 40vh;
 }
 
 .train {
     right: 1150vw;
     z-index: 90;
-}
-
-.train.startAnimation{
     animation: moveRight;
     animation-duration: 4s;
     animation-timing-function: ease;
@@ -335,27 +332,46 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
-    bottom: 48rem;
+    bottom: 42rem;
     z-index: 10000;
 }
 
-.progress-bar {
-    width: 20vw;
-    height: 1rem;
-    background: #002676;
-    z-index: 3;
-    border-radius: 10px;
-    border-width: 2px;
-    border-color: white;
-    border-style: solid;
+.progress-bar-gold {
+    position: absolute;
+    inset-inline-start: 50vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.progress-fill {
-    height: 100%;
-    background:#FDB515;
-    width: 50%;
-    transition: width 0.5s ease;
-    border-radius: 2px;
+.progress-bar-blue {
+    position: absolute;
+    inset-inline-end: 50vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.blue-bar-first {
+    transform: scaleX(-1);
+    height: 6vh;
+    /* display: none; */
+}
+
+.blue-bar {
+    height: 6vh;
+    /* display: none; */
+}
+
+.gold-bar-first {
+    height: 6vh;
+    /* display: none; */
+}
+
+.gold-bar {
+    height: 6vh;
+    /* display: none; */
+
 }
 
 .challenge-count {
@@ -372,7 +388,7 @@ body {
 .ground {
     width: 101vw;
     position: relative;
-    bottom: 60vh;
+    bottom: 55vh;
     z-index: 95;
 }
 
