@@ -57,13 +57,16 @@ function updateProgressBar() {
     const team2TrainStart = document.getElementsByClassName("gold-bar-first")[0];
     const team1TrainCar = document.getElementsByClassName("blue-bar")[0];
     const team2TrainCar = document.getElementsByClassName("gold-bar")[0];
-    const blueCars = document.getElementsByClassName("blue-bar");
-    const goldCars = document.getElementsByClassName("gold-bar");
-    for (let i = 1; i < blueCars.size(); i++) {
+    const blueCars = document.getElementsByClassName("progress-bar-blue")[0].childNodes;
+    const goldCars = document.getElementsByClassName("progress-bar-gold")[0].childNodes;
+    console.log(blueCars);
+    console.log(goldCars);
+    for (let i = 6; i < blueCars.length; i++) {
         blueCars[i].remove();
     }
-    for (let i = 1; i < goldCars.size(); i++) {
-        goldCars[i].remove();
+    const cold = goldCars.length;
+    for (let i = 6; i < cold; i++) {
+        goldCars[cold - i - 1].remove();
     }
     if (team1Score == '0') {
         team1TrainStart.setAttribute("style", "display: none");
