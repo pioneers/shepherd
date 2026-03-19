@@ -299,9 +299,12 @@ body {
     position: relative;
     bottom: 210rem;
     height: 40vh;
+}
+
+.train {
     right: 1150vw;
     z-index: 90;
-    /* animation: moveRight; */
+    animation: moveRight;
     animation-duration: 4s;
     animation-timing-function: ease;
 }
