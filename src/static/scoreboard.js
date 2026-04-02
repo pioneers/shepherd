@@ -59,10 +59,10 @@ function updateProgressBar() {
     const team2TrainCar = document.getElementsByClassName("gold-bar")[0];
     const blueCars = document.getElementsByClassName("blue-bar");
     const goldCars = document.getElementsByClassName("gold-bar");
-    for (let i = 1; i < blueCars.size(); i++) {
+    for (let i = 1; i < blueCars.length; i++) {
         blueCars[i].remove();
     }
-    for (let i = 1; i < goldCars.size(); i++) {
+    for (let i = 1; i < goldCars.length; i++) {
         goldCars[i].remove();
     }
     if (team1Score == '0') {

@@ -416,6 +416,17 @@ def initialize_live(team_num):
     print(f"Resetting Live Coding for STATION {team_num}...")
     YC.send(LIVE_HEADER.SET_LIVE_CHALLENGES(team_num, 
                                             SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS))
+    
+
+###########################################
+# Spring 2026 Game
+###########################################
+@SHEPHERD_HANDLER.EVERYWHERE.on(SHEPHERD_HEADER.RESET_CHALLENGES_SCORE)
+def reset_challenges_score(team):
+    """
+    Send Reset Coding Challenges Scores in Sheet
+    """
+    Sheet.reset_live_challenge_scores(MATCH_NUMBER)
 
 
 @SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SEND_LIVE_FILE_TO_SHEPHERD)

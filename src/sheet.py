@@ -134,6 +134,18 @@ class Sheet:
         threading.Thread(target=bg_thread_work).start()
 
     @staticmethod
+    def reset_live_challenge_scores(match_number):
+        def bg_thread_work():
+            try:
+                Sheet.__reset_live_challenge_scores(match_number)
+            except:
+                print(
+                    f'[error!] Google API has changed yet again, please fix Sheet.py')
+                print("Unable to reset scores")
+        YC.send(("ydl_target_shepherd", 16383))
+        threading.Thread(target=bg_thread_work).start()
+
+    @staticmethod
     def write_sail(match_num, alliance):
         def bg_thread_work():
             try:
@@ -402,7 +414,13 @@ class Sheet:
         }
         spreadsheet.values().update(spreadsheetId=CONSTANTS.SPREADSHEET_ID,
                                     range=range_name, body=body, valueInputOption="RAW").execute()
-        
+
+    @staticmethod
+    def __reset_live_challenge_scores(match_number):
+        for i in range(4):
+            Sheet.__write_live_challenge(match_number, i, 0)
+
+
     @staticmethod
     def __write_sail(match_number, alliance):
         spreadsheet = Sheet.__get_authorized_sheet()

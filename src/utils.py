@@ -224,6 +224,15 @@ class SHEPHERD_HEADER():
         """
     
     @staticmethod
+    @header(YDL_TARGETS.SHEPHERD, "reset_challenges_state")
+    def RESET_CHALLENGES_SCORE(team):
+        """
+        team: 0, 1, 2, or 3. Check enum INDICES.
+        score: live coding score.
+        source: LIVE.
+        """
+
+    @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "live_four_sheep_state")
     def LIVE_FOUR_SHEEP_STATE(team, fetched):
         """
