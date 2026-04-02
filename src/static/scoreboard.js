@@ -57,6 +57,7 @@ function updateProgressBar() {
     const team2TrainStart = document.getElementsByClassName("gold-bar-first")[0];
     const team1TrainCar = document.getElementsByClassName("blue-bar")[0];
     const team2TrainCar = document.getElementsByClassName("gold-bar")[0];
+<<<<<<< HEAD
     const blueCars = document.getElementsByClassName("blue-bar");
     const goldCars = document.getElementsByClassName("gold-bar");
     for (let i = 1; i < blueCars.length; i++) {
@@ -64,6 +65,18 @@ function updateProgressBar() {
     }
     for (let i = 1; i < goldCars.length; i++) {
         goldCars[i].remove();
+=======
+    const blueCars = document.getElementsByClassName("progress-bar-blue")[0].childNodes;
+    const goldCars = document.getElementsByClassName("progress-bar-gold")[0].childNodes;
+    console.log(blueCars);
+    console.log(goldCars);
+    for (let i = 6; i < blueCars.length; i++) {
+        blueCars[i].remove();
+    }
+    const cold = goldCars.length;
+    for (let i = 6; i < cold; i++) {
+        goldCars[cold - i - 1].remove();
+>>>>>>> e1682d02d382297806d0df601c0520af457868bb
     }
     if (team1Score == '0') {
         team1TrainStart.setAttribute("style", "display: none");
