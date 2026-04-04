@@ -26,25 +26,28 @@ end_audio = new Audio("static/boxing-bell.wav");
 # Spring 2026 Game
 ########################################### */
 
-// Train animation for end scores
+// Train animation for end scores (removed for now)
 let trainExistance = false;
-const train = document.querySelector(".train")
+// const train = document.querySelector(".train");
 
 function resetScoreAnimation() {
     console.log("Successful message: startTrain");
     if (trainExistance) return;
-    
+
+
     trainExistance = true;
     train.classList.remove("startAnimation");
     void train.offsetWidth;
     train.classList.add("startAnimation");
 }
 
+/*
 train.addEventListener("animationend", () =>
 {
     console.log("Successful message: endTrain");
     train.classList.remove("startAnimation");
 });
+*/
 
 const teamScores = document.querySelectorAll('.challenge-count');
 const progressFill = document.querySelector('.progress-fill');
@@ -59,8 +62,6 @@ function updateProgressBar() {
     const team2TrainCar = document.getElementsByClassName("gold-bar")[0];
     const blueCars = document.getElementsByClassName("progress-bar-blue")[0].childNodes;
     const goldCars = document.getElementsByClassName("progress-bar-gold")[0].childNodes;
-    console.log(blueCars);
-    console.log(goldCars);
     for (let i = 6; i < blueCars.length; i++) {
         blueCars[i].remove();
     }

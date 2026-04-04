@@ -125,7 +125,7 @@ body {
     grid-column: 1;
     justify-self: center;
     position: relative;
-    top: 11.5rem;
+    top: 13rem;
     font-family: 'Frutiger';
     color: #2b2209;
     font-size: 8rem;
@@ -152,7 +152,7 @@ body {
     margin: 0;
     text-align: center;
     position: relative;
-    top: 35rem;
+    top: 36.5rem;
     z-index: 1000;
 }
 
