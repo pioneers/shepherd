@@ -30,6 +30,7 @@ end_audio = new Audio("static/boxing-bell.wav");
 let trainExistance = false;
 // const train = document.querySelector(".train");
 
+/*
 function resetScoreAnimation() {
     console.log("Successful message: startTrain");
     if (trainExistance) return;
@@ -41,7 +42,6 @@ function resetScoreAnimation() {
     train.classList.add("startAnimation");
 }
 
-/*
 train.addEventListener("animationend", () =>
 {
     console.log("Successful message: endTrain");
@@ -146,6 +146,7 @@ socket.on('teams_info', (match_info) => {
     team_num_g2 = match_info.teams[3]["team_num"];
     updateTeam(team_name_b1, team_num_b1, team_name_b2, 
         team_num_b2, team_name_g1, team_num_g1, team_name_g2, team_num_g2);
+    updateProgressBar();
 });
 
 // USE STATE, NOT STAGE
