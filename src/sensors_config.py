@@ -1,3 +1,23 @@
+"""
+sensors_config.py — The runnable sensor process: field wiring + YDL glue.
+
+sensors.py provides the generic Arduino plumbing; THIS file is the
+year-specific configuration that says which pins on which Arduinos are
+buttons, button lights, and sail motors. It is the process you actually run
+(python3 sensors_config.py, Linux only).
+
+Two directions of traffic:
+  * Hardware -> system: a debounced button press calls its handler, which
+    sends SHEPHERD_HEADER.BUTTON_PRESS onto YDL (consumed by whack_a_mole.py,
+    which shares the SHEPHERD target).
+  * System -> hardware: the loop at the bottom receives SENSOR_HEADER
+    messages (TURN_ON/OFF_BUTTON_LIGHT, RAISE/LOWER_SAIL) and sets output
+    pin states, which the polling loop pushes to the boards.
+
+NOTE: as written, the `walls` list below is missing commas between its
+OutputPin entries — the file will not import until that's fixed.
+Use fake_sensors.py to simulate this process without hardware.
+"""
 import time
 from ydl import Client, Handler
 from utils import *

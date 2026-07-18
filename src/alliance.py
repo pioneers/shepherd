@@ -1,3 +1,9 @@
+"""
+alliance.py — Data holder for one side of the field (blue or gold).
+
+An Alliance pairs two Robot objects with a running score. shepherd.py keeps
+exactly two of these in its ALLIANCES dict and resets them between matches.
+"""
 from utils import *
 
 class Alliance:

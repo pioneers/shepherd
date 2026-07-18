@@ -1,3 +1,13 @@
+/**
+ * whackamole.js — Client logic for the whack-a-mole staff/demo page
+ * (whackamole.html, password-protected).
+ *
+ * Like all UI pages, it talks to shepherd through server.py's socket.io
+ * bridge: send(header, json) emits 'ui-to-server' (with the password cookie)
+ * which server.py forwards onto YDL, and incoming UI_HEADER broadcasts
+ * arrive as socket.on events. The actual minigame rules run server-side in
+ * whack_a_mole.py; this page is display + manual controls.
+ */
 $(document).ready(function () {
     //logg: logs messages to an html element at the bottom of the page
 

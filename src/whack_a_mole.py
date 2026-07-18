@@ -1,3 +1,24 @@
+"""
+whack_a_mole.py — Standalone game-logic process for the field button minigame.
+
+Each alliance has a bank of physical lighted buttons (blue: ids 0-4,
+gold: ids 5-9). This process runs the minigame rules: light up buttons,
+watch for presses, and reward completed sequences by lowering the
+alliance's sail (via SENSOR_HEADER) and reporting scores (via
+SHEPHERD_HEADER -> shepherd.py -> Google Sheet).
+
+Threading model:
+  * The main thread (fill_queue) subscribes to the SHEPHERD YDL target and
+    sorts relevant events — button_press from sensors_config.py, plus match
+    lifecycle headers — into per-alliance queues.
+  * Four daemon threads run the game loops (whack_a_mole_start and
+    sail_task, one per alliance), consuming from those queues. Queues are
+    used because the game loops need blocking/timeout reads, which the
+    single YDL receive loop can't give each thread directly.
+
+Note it shares the SHEPHERD mailbox with shepherd.py — YDL delivers each
+message to all subscribers of a target, so both see the same events.
+"""
 import time
 import random
 import queue
@@ -7,12 +28,12 @@ import copy
 from utils import *
 
 
-REQUIREMENT = 5
-NUM_BUTTONS = 5
+REQUIREMENT = 5    # correct presses needed to complete the task
+NUM_BUTTONS = 5    # buttons per alliance (blue ids 0-4, gold ids 5-9)
 YC = Client(YDL_TARGETS.SHEPHERD)
-BLUE_QUEUE = queue.Queue()
-GOLD_QUEUE = queue.Queue()
-DELAY = 30
+BLUE_QUEUE = queue.Queue()   # events routed to blue's game threads
+GOLD_QUEUE = queue.Queue()   # events routed to gold's game threads
+DELAY = 30         # seconds allowed per press in whack_a_mole_start
 
 
 def turn_on_light(id):

@@ -1,3 +1,11 @@
+"""
+fake_sensors.py — Development stand-in for sensors_config.py (no hardware).
+
+Subscribes to the SENSORS YDL target like the real sensor process. Renders
+button lights as a terminal string ("@" = on, "-" = off) and lets you type
+a number + Enter to simulate pressing that button (sends BUTTON_PRESS to
+the SHEPHERD target, just like a real debounced press would).
+"""
 from ydl import Client, Handler
 from utils import YDL_TARGETS, SHEPHERD_HEADER, SENSOR_HEADER
 import threading

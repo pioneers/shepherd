@@ -1,3 +1,11 @@
+"""
+robot.py — Plain data holder for one competing team's robot.
+
+Four Robot instances exist (2 per Alliance, see shepherd.py's ALLIANCES).
+Holds the team name/number and per-match state; info_dict() is the shape
+sent to the UI in TEAMS_INFO messages. The robot's network connection is
+NOT here — that's runtimeclient.py, keyed by the same INDICES.
+"""
 from datetime import datetime
 import random
 import math

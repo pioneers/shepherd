@@ -1,3 +1,19 @@
+/**
+ * scoreboard.js — Client logic for the public scoreboard (scoreboard.html).
+ *
+ * Connects to server.py over socket.io. server.py rebroadcasts every YDL
+ * message addressed to the UI target as a socket.io event named after the
+ * message header, so the socket.on(...) handlers below are the browser-side
+ * halves of the UI_HEADER definitions in utils.py:
+ *   'teams_info'       -> show team names/numbers for the loaded match
+ *   'state'            -> stage label, start/end sounds, kick off the clock
+ *   'scores' / 'scores_for_icons' -> score displays + progress bar
+ *   'pause_timer' / 'resume_timer' -> freeze/resume the countdown
+ *
+ * The countdown itself runs locally: Shepherd sends the stage start time and
+ * duration once, and runStageTimer re-renders every 200ms from wall-clock
+ * math (no per-tick messages from the server).
+ */
 var socket = io("/");
 var stageTimer = false;
 var myStageTimeout;

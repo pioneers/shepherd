@@ -1,15 +1,41 @@
 # pylint: disable=invalid-name
+"""
+utils.py — The shared "protocol definition" for the whole system.
+
+Every process imports this file. It defines:
+  * YDL_TARGETS   — the named mailboxes on the YDL message bus.
+  * *_HEADER      — every message type in the system, grouped by recipient
+                    (SHEPHERD_HEADER = messages TO shepherd.py, UI_HEADER =
+                    messages TO the browser UIs via server.py, etc.). Each
+                    header is a function decorated with @header(target, name);
+                    calling it, e.g. SHEPHERD_HEADER.SET_STATE(state="auto"),
+                    returns the (target, name, args) tuple that YC.send() takes.
+                    The docstrings on each header double as protocol docs —
+                    "source:" says which process sends it.
+  * UI_PAGES      — which HTML pages server.py serves and which need a password.
+  * CONSTANTS / enums (STATE, ALLIANCE_COLOR, INDICES) shared by everyone.
+  * SHEPHERD_HANDLER / STATE_HANDLERS / STAGE_TIMES — the scaffolding for
+    shepherd.py's per-state event dispatch and stage durations.
+
+If you add a new message anywhere in the system, it gets defined here first.
+"""
 from ydl import Handler, header
 
 
 class YDL_TARGETS():
-    SHEPHERD = "ydl_target_shepherd"
-    UI = "ydl_target_ui"
-    SENSORS = "ydl_target_sensors"
-    LIVE = "ydl_target_challenges"
+    """Named recipients on the YDL bus. Each process subscribes to one."""
+    SHEPHERD = "ydl_target_shepherd"      # shepherd.py (+ whack_a_mole, live_coding)
+    UI = "ydl_target_ui"                  # server.py, which relays to browsers
+    SENSORS = "ydl_target_sensors"        # sensors_config.py (field hardware)
+    LIVE = "ydl_target_challenges"        # live coding challenge stations
 
 
 class SHEPHERD_HEADER():
+    """
+    Messages addressed TO shepherd.py. Senders include the UI (via server.py),
+    the sensor process, the Sheet background threads, the timer callback,
+    whack_a_mole.py, and live_coding.py.
+    """
     @staticmethod
     @header(YDL_TARGETS.SHEPHERD, "button_press")
     def BUTTON_PRESS(id):
@@ -397,7 +423,11 @@ class UI_HEADER():
 
 
 class LIVE_HEADER():
-
+    """
+    Messages addressed TO the live-coding challenge stations ("bleatcode"
+    UIs) — the per-team laptops where students solve coding challenges
+    mid-match for points.
+    """
     @staticmethod
     @header(YDL_TARGETS.LIVE, "set_challenge")
     def SET_CHALLENGE(challenges, codes):
@@ -512,8 +542,11 @@ UI_PAGES = {
 
 class CONSTANTS():
     BLIZZARD_WARNING_TIME = 170
+    # Offline fallback for match schedules when Google Sheets is unreachable
     CSV_FILE_NAME = "sheets/Shepherd Evergreen Database - Match Database.csv"
+    # The Google Sheet used as the season's match/score database
     SPREADSHEET_ID = "1JO1vo0cUzIvIk2QfgL9e4c7ltMw4OwTcK0Wlk75P-iI"
+    # sha256(password + "cheese"); checked by server.py for staff pages
     UI_PASSWORD_HASH = "44590c963be2a79f52c07f7a7572b3907bf5bb180d993bd31aab510d29bbfbd3"
 
 
@@ -523,6 +556,8 @@ class ALLIANCE_COLOR():
 
 
 class INDICES():
+    """Canonical ordering of the 4 robots, used for teams lists,
+    CLIENTS (runtime connections), and live-coding station numbers."""
     BLUE_1 = 0
     BLUE_2 = 1
     GOLD_1 = 2
@@ -530,13 +565,18 @@ class INDICES():
 
 
 class STATE():
-    SETUP = "setup"
-    AUTO = "auto"
-    TELEOP_1 = "teleop_1"
-    END = "end"
+    """The stages of a match, in order. shepherd.py holds exactly one of
+    these at a time and it gates which handlers run."""
+    SETUP = "setup"        # teams loaded, waiting for match start
+    AUTO = "auto"          # autonomous period (robots run their own code)
+    TELEOP_1 = "teleop_1"  # driver-controlled period
+    END = "end"            # match over; scores flushed
 
 
 class SHEPHERD_HANDLER():
+    """One event-handler registry per state, plus EVERYWHERE for handlers
+    that should fire regardless of state. shepherd.py's functions register
+    themselves into these via decorators."""
     EVERYWHERE = Handler()
     SETUP = Handler()
     AUTO = Handler()
@@ -544,6 +584,7 @@ class SHEPHERD_HANDLER():
     END = Handler()
 
 
+# Which handler group shepherd.py consults for each game state.
 STATE_HANDLERS = {
     STATE.SETUP: SHEPHERD_HANDLER.SETUP,
     STATE.AUTO: SHEPHERD_HANDLER.AUTO,
@@ -551,6 +592,7 @@ STATE_HANDLERS = {
     STATE.END: SHEPHERD_HANDLER.END
 }
 
+# Duration of each timed stage, in seconds (SETUP/END are untimed).
 STAGE_TIMES = {
     STATE.AUTO: 20,
     STATE.TELEOP_1: 270,
@@ -558,6 +600,8 @@ STAGE_TIMES = {
 
 
 class PROTOBUF_TYPES():
+    """Message-type bytes prefixed to protobufs on the Shepherd<->Runtime
+    TCP socket (see runtimeclient.py). Must match Runtime's expectations."""
     RUN_MODE = 0
     START_POS = 1
     LOG = 2  # text proto

@@ -1,3 +1,27 @@
+"""
+shepherd.py — The central state machine of the entire field-control system.
+
+This is the "brain" process. Everything else (the web UI server, the sensor
+process, whack_a_mole, live_coding, the Google Sheets helpers) communicates
+with this process exclusively through YDL messages addressed to
+YDL_TARGETS.SHEPHERD.
+
+How it works, in one paragraph:
+    Shepherd sits in an infinite loop (start()) pulling messages off its YDL
+    queue. Each message is a (target, header, args) tuple. Handlers are plain
+    functions registered with decorators like
+    @SHEPHERD_HANDLER.SETUP.on(SHEPHERD_HEADER.SETUP_MATCH) — meaning "when a
+    SETUP_MATCH message arrives AND the game is in the SETUP state, call this
+    function." Handlers registered under SHEPHERD_HANDLER.EVERYWHERE run
+    regardless of state. State transitions are just handlers that mutate the
+    global GAME_STATE and broadcast the new state to the UIs.
+
+Game state flow (see STATE in utils.py):
+    SETUP --START_NEXT_STAGE--> AUTO --STAGE_TIMER_END--> TELEOP_1
+          --STAGE_TIMER_END--> END --SETUP_MATCH--> SETUP (next match)
+
+Run with: python3 shepherd.py  (requires `python3 -m ydl` broker running first)
+"""
 import threading
 import random
 import time
@@ -14,26 +38,43 @@ from robot import Robot
 
 ###########################################
 # Evergreen Variables
+# ("Evergreen" = kept every year, as opposed to game-specific code below
+#  which is rewritten for each season's game.)
 ###########################################
+# The YDL client: receives every message addressed to SHEPHERD, and is used
+# to send messages out to the UI, LIVE (coding challenges), and SENSORS targets.
 YC = Client(YDL_TARGETS.SHEPHERD)
 MATCH_NUMBER: int = -1
+# Current stage of the match; starts in END so a SETUP_MATCH message is
+# required to begin a match. Determines which handler group processes events.
 GAME_STATE: str = STATE.END
+# All timers live in one TimerGroup so a match pause freezes them together.
 TIMERS = TimerGroup()
+# The main stage clock. When it expires it doesn't transition directly —
+# it sends STAGE_TIMER_END back through YDL so the transition happens on the
+# main event loop thread, like every other event.
 GAME_TIMER = Timer(TIMERS,
                    lambda: YC.send(SHEPHERD_HEADER.STAGE_TIMER_END()))
+# Score/team state for each side of the field (2 robots per alliance).
 ALLIANCES = {
     ALLIANCE_COLOR.GOLD: Alliance(Robot("", -1), Robot("", -1)),
     ALLIANCE_COLOR.BLUE: Alliance(Robot("", -1), Robot("", -1)),
 }
+# TCP connections to the 4 robots' Raspberry Pis (indices follow INDICES:
+# BLUE_1=0, BLUE_2=1, GOLD_1=2, GOLD_2=3).
 CLIENTS = RuntimeClientManager(YC)
 
 
 ###########################################
 # Game Specific Variables
 ###########################################
+# Button sequences for the whack-a-mole cheat-code minigame (set via
+# SET_CHEAT_CODE from whack_a_mole.py; largely disabled for the 2025 game).
 BLUE_CHEAT_CODE_1, BLUE_CHEAT_CODE_2, GOLD_CHEAT_CODE_1, GOLD_CHEAT_CODE_2 = [], [], [], []
+# Live-coding challenge data parsed from live/q.csv by live_coding.py.
+# 0 is a sentinel for "not loaded yet" (truthiness checked in to_setup).
 SHEEP_NAMES, SHEEP_DESCS, SHEEP_BASES, SHEEP_TESTS = 0, 0, 0, 0
-LIVE_CODING_COUNT = 38
+LIVE_CODING_COUNT = 38  # total number of live coding challenges in the pool
 
 ###########################################
 # Evergreen Methods
@@ -46,11 +87,14 @@ def start():
     based on game state and the dictionary of available functions
     '''
     while True:
-        payload = YC.receive()
+        payload = YC.receive()  # blocks until a message arrives
         print("GAME STATE OUTSIDE: ", GAME_STATE)
         print(payload)
+        # State-independent handlers always get a chance first...
         SHEPHERD_HANDLER.EVERYWHERE.handle(payload)
 
+        # ...then the handler group for the current stage. A header only
+        # does something if a function was registered for it in this state.
         if GAME_STATE in STATE_HANDLERS:
             handler = STATE_HANDLERS.get(GAME_STATE)
             handler.handle(payload)
@@ -59,6 +103,12 @@ def start():
 
 
 def pull_from_sheets():
+    '''
+    Background thread (started in __main__): every 2 seconds while a match is
+    actively running, asks Sheet to fetch the referee-entered scores from the
+    Google Sheet. Sheet sends them to the scoreboard via UI_HEADER.SCORES_FOR_ICONS.
+    This polling is how ref scoring reaches the scoreboard mid-match.
+    '''
     while True:
         # if GAME_STATE not in [STATE.SETUP]:
         if not TIMERS.is_paused() and GAME_STATE not in [STATE.END, STATE.SETUP]:
@@ -150,9 +200,13 @@ def to_setup(match_num, teams):
     MATCH_NUMBER = match_num
     set_teams_info(teams)
 
+    # Lazily ask live_coding.py to parse the challenge CSV the first time;
+    # it replies with SEND_LIVE_FILE_TO_SHEPHERD which fills the SHEEP_* lists.
     if not SHEEP_NAMES:
         YC.send(SHEPHERD_HEADER.PARSE_LIVE_FILE())
 
+    # Give each station a random ordering of the challenge pool. Both robots
+    # on an alliance share an ordering (c1 for station pair, c2 for the other).
     c1 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
     c2 = random.sample(range(LIVE_CODING_COUNT), LIVE_CODING_COUNT)
     challenges = [c1, c2, c1.copy(), c2.copy()]
@@ -442,5 +496,6 @@ def live_four_sheep_state(team, fetched):
 ###########################################
 # pylint: disable=no-member
 if __name__ == '__main__':
+    # Score polling runs on a side thread; the main thread runs the event loop.
     threading.Thread(target=pull_from_sheets, daemon=True).start()
     start()

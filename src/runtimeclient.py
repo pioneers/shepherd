@@ -1,3 +1,21 @@
+"""
+runtimeclient.py — TCP links from Shepherd to the robots.
+
+Each competing robot runs "Runtime" on a Raspberry Pi, listening on port
+8101. Shepherd keeps one RuntimeClient per robot (4 total, managed by
+RuntimeClientManager and indexed by INDICES) to:
+
+  * TELL the robot things, chiefly its run mode — IDLE (disabled), AUTO, or
+    TELEOP — when stages change or a ref toggles a robot. Messages are
+    length-prefixed protobufs: [1-byte type][2-byte little-endian length][body].
+  * HEAR from the robot: RuntimeStatus protobufs (connection, battery,
+    version), which are forwarded straight to the staff UI over YDL.
+
+Each client owns a background thread that receives from its socket and
+auto-reconnects every second if the link drops, until close_connection()
+sets manually_closed. Use fake_runtime.py to stand in for a real robot
+during development.
+"""
 import time
 import threading
 import socket

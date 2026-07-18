@@ -83,6 +83,12 @@ class DigitalValue(Enum):
 
 
 class Arduino:
+    """
+    Represents one physical Arduino board, identified by the UUID flashed
+    into its sensors.ino. Holds the list of InputPin/OutputPin objects
+    configured on it (pins register themselves in their constructors — see
+    sensors_config.py for the actual field wiring).
+    """
     def __init__(self, uuid: int, onloop=lambda:None, poll_delay_ms=10):
         self.uuid = uuid
         self.lock = threading.Lock() # protects output pin values
@@ -119,6 +125,12 @@ class Arduino:
         assert idx == len(msg)
 
 class InputPin:
+    """
+    A pin we read from (e.g. a button). Includes software debouncing:
+    update() keeps the last num_collect raw readings, and only calls
+    state_switch_fn(new_value) once a new value fills >= thresh of that
+    window — so a single corrupted or bouncing byte never fires the handler.
+    """
     def __init__(self, arduino: Arduino, pin: int, pin_mode:PinMode,
                  state_switch_fn, num_collect=8, thresh=0.99):
         self.arduino = arduino
@@ -142,6 +154,11 @@ class InputPin:
             self.last_value = value
 
 class OutputPin:
+    """
+    A pin we write to (e.g. a button light). set_state() just records the
+    desired value; the polling loop pushes it to the Arduino on every cycle,
+    so writes are eventually-consistent within ~one poll_delay.
+    """
     def __init__(self, arduino: Arduino, pin: int, pin_mode:PinMode, initial_value: int):
         self.arduino = arduino
         self.pin = pin

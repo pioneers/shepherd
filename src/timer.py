@@ -1,3 +1,24 @@
+"""
+timer.py — Pausable countdown timers for the match clock.
+
+Shepherd needs to pause an entire match (e.g. for a field fault) and resume
+exactly where it left off. Python's built-in threading.Timer can't be paused,
+so this module implements timers on top of a single background thread:
+
+  * TimerGroup owns a daemon thread that sleeps until the soonest timer
+    expires, then runs that timer's callback. A semaphore wakes the thread
+    early whenever a timer is started or the group is resumed.
+  * Timer stores either an absolute _end_time (while running) or a relative
+    _time_remaining (while its group is paused); pausing converts one to the
+    other, which is what makes resume pick up seamlessly.
+
+In this codebase there is one TimerGroup (TIMERS in shepherd.py) and the
+main GAME_TIMER whose callback sends STAGE_TIMER_END back into the event
+loop to trigger the next stage transition.
+
+Thread-safety: TimerGroup._lock protects all timer state; callbacks run
+outside the lock so a callback can safely start/reset timers.
+"""
 import threading
 import time
 

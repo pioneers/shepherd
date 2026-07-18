@@ -1,3 +1,13 @@
+"""
+fake_runtime.py — Development stand-in for a robot's Raspberry Pi.
+
+Listens on 127.0.0.1:8101 (the same port runtimeclient.py connects to),
+prints every protobuf Shepherd sends (run mode, start pos, game state), and
+sends back randomized RuntimeStatus messages every 10 seconds so the staff
+UI's connection/battery indicators light up. Point a robot's IP at
+127.0.0.1 in the staff GUI to use it. No YDL involved — pure TCP, exactly
+like a real robot.
+"""
 import socket
 import selectors
 import time

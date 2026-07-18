@@ -1,7 +1,26 @@
-# installation:
-# pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
-# source: https://developers.google.com/sheets/api/quickstart/python
+"""
+sheet.py — Google Sheets integration (match schedule + score database).
 
+The season's matches and referee-entered scores live in a Google Sheet
+(CONSTANTS.SPREADSHEET_ID). This module is Shepherd's only path to it.
+
+Design notes worth knowing before explaining this file:
+  * Every public method spawns a background thread for the actual API call,
+    because Sheets round-trips take seconds and shepherd.py's event loop
+    must never block. Results are delivered asynchronously by sending a YDL
+    message back (e.g. get_match -> SHEPHERD_HEADER.SET_TEAMS_INFO), not by
+    return value.
+  * Reads fall back to the local CSV in sheets/ when offline (get_match).
+  * Auth: OAuth flow via sheets/client_secret.json on first run; the token
+    is cached in sheets/user_token.json (gitignored).
+  * Sheet layout: "Match Database" tab = one row per match (teams + IPs);
+    "Ref" tab = two rows per match (Blue row then Gold row) where refs enter
+    scores, which __send_scores_for_icons polls for the scoreboard.
+
+installation:
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+source: https://developers.google.com/sheets/api/quickstart/python
+"""
 import os
 import csv
 import threading

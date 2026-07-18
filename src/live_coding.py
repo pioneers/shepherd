@@ -1,3 +1,16 @@
+"""
+live_coding.py — One-shot loader for the live-coding challenge bank.
+
+Parses live/q.csv (pipe-delimited: name | description | starter code | tests,
+with "+-=" standing in for newlines inside cells) into four parallel lists,
+then waits for shepherd.py to send PARSE_LIVE_FILE and replies with
+SEND_LIVE_FILE_TO_SHEPHERD carrying the parsed lists. Shepherd caches them
+and distributes challenges to the four station UIs via LIVE_HEADER.
+
+Note: this process subscribes to the SHEPHERD YDL target (same mailbox as
+shepherd.py and whack_a_mole.py) so it can see the PARSE_LIVE_FILE request,
+and it exits after answering once.
+"""
 import csv
 from ydl import Client
 from utils import *
@@ -6,8 +19,8 @@ from utils import *
 YC = Client(YDL_TARGETS.SHEPHERD)
 
 LIVE_FILE_PATH = "./live/q.csv"
-DELIMITER = '|'
-CRLF = "+-="
+DELIMITER = '|'   # cells are pipe-separated so code can contain commas
+CRLF = "+-="      # placeholder for newlines inside a CSV cell
 
 def read():
     sheep_names = []
